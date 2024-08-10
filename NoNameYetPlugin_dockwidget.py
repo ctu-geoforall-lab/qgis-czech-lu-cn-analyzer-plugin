@@ -28,7 +28,7 @@ from .function import *
 
 from qgis.PyQt import QtGui, QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal
-from qgis.core import Qgis, QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsFeatureRequest, QgsApplication
+from qgis.core import Qgis, QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsFeatureRequest, QgsApplication, QgsCoordinateTransformContext, QgsCoordinateTransform, QgsRectangle, QgsRasterLayer
 from qgis.gui import QgsMessageBar
 from qgis.analysis import QgsNativeAlgorithms
 import processing
@@ -82,24 +82,14 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         :param message: The message to be displayed
         :return:
         """
-        iface.messageBar().pushMessage(
-            "Error",
-            message,
-            level=Qgis.Critical,
-            duration=5
-        )
+        iface.messageBar().pushMessage("Error", message, level=Qgis.Critical, duration=5)
 
-    def LoadingMsg(self):
+    def LoadingMsg(self, msg):
         """
         Function to display loading messages
         :return:
         """
-        iface.messageBar().pushMessage(
-            "Loading",
-            "Loading data, please wait...",
-            level=Qgis.Info,
-            duration=0
-        )
+        iface.messageBar().pushMessage("Loading", msg, level=Qgis.Info, duration=0)
 
     def CloseLoadingMsg(self):
         """
@@ -109,6 +99,10 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         iface.messageBar().clearWidgets()
 
     def Run(self):
+        """
+        Function to run the plugin
+        :return:
+        """
 
         # Return current QGIS CRS
         crs = QgsProject.instance().crs().authid()
@@ -127,7 +121,7 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         else:
             polygon = None
 
-        self.LoadingMsg()
+        self.LoadingMsg("Loading data, please wait...")
         layers, names = load_wfs_layers(FLAG, polygon)
 
         # ERROR HANDLING
@@ -145,7 +139,6 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         for index, layer in enumerate(layers):
             QgsProject.instance().addMapLayer(layer)
             if FLAG:
-
                 # Define parameters for the clip algorithm
                 params = {
                     'INPUT': layer,
@@ -168,12 +161,30 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 # Update the reference to the layer to the new clipped layer
                 layer = clipped_layer
 
-                # if the layer is empty,remove it
+                # if the layer is empty, remove it
                 if layer.featureCount() == 0:
                     QgsProject.instance().removeMapLayer(layer.id())
                     continue
 
+            # Set the name of the layer
             layer.setName(names[index])
             layer.triggerRepaint()
+
+        # Get the extent for raster download
+        if FLAG:
+            if polygon and polygon.isValid():
+                current_extent = polygon.extent()
+            else:
+                self.CloseLoadingMsg()
+                self.ErrorMsg("Invalid polygon layer")
+                return
+        else:
+            current_extent = iface.mapCanvas().extent()
+
+        # Load and add the raster layer
+        if current_extent:
+            raster_layer = load_raster_layer(current_extent)
+            if raster_layer:
+                print("Raster layer added to the map.")
 
         self.CloseLoadingMsg()
