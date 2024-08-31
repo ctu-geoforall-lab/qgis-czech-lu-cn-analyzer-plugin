@@ -22,33 +22,141 @@
  ***************************************************************************/
 """
 
-import os
+import processing
+
+from qgis.PyQt import QtWidgets, uic
+from qgis.PyQt.QtCore import pyqtSignal
+from qgis.core import Qgis, QgsMapLayerProxyModel, QgsProject, QgsApplication, QgsTask
 
 from .function import *
-
-from qgis.PyQt import QtGui, QtWidgets, uic
-from qgis.PyQt.QtCore import pyqtSignal
-from qgis.core import Qgis, QgsMapLayerProxyModel, QgsProject, QgsVectorLayer, QgsFeatureRequest, QgsApplication, QgsCoordinateTransformContext, QgsCoordinateTransform, QgsRectangle, QgsRasterLayer
-from qgis.gui import QgsMessageBar
-from qgis.analysis import QgsNativeAlgorithms
-import processing
-from qgis.analysis import QgsNativeAlgorithms
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'NoNameYetPlugin_dockwidget_base.ui'))
 
 
+class TASK_process_wfs_layer(QgsTask):
+    """QgsTask subclass to process WFS layers."""
+    progressChanged = pyqtSignal(int)
+
+    def __init__(self, wfs_layers, ymin, xmin, ymax, xmax, current_extent, polygon, flag, label, progress_bar,
+                 run_button, abort_button, polygon_button, extent_button):
+        super().__init__("Process WFS Layers", QgsTask.CanCancel)
+        self.wfs_layers = wfs_layers
+        self.ymin, self.xmin, self.ymax, self.xmax = ymin, xmin, ymax, xmax
+        self.current_extent, self.polygon, self.AreaFlag = current_extent, polygon, flag
+        self.label, self.progressBar = label, progress_bar  # to update them
+        self.runButton, self.abortButton = run_button, abort_button  # to enable/disable them
+        self.polygonButton, self.extentButton = polygon_button, extent_button  # to enable/disable them
+        self._is_canceled, self.plus_one_index = False, 0
+
+        # Connect the abort button to the cancel method
+        self.abortButton.clicked.connect(self.cancel)
+
+    def _update_progress_bar(self):
+        """Update progress bar incrementally, ensuring it does not exceed 99."""
+        # Every second iteration (controlled by plus_one_index) adds 1 to the percentage
+        # to ensure the progress bar reaches 100
+        percentage = int(round(100 / len(self.wfs_layers)))
+        increment = percentage + (1 if self.plus_one_index % 2 else 0)
+        new_value = min(self.progressBar.value() + increment, 99)
+        self.progressChanged.emit(new_value)
+        self.plus_one_index += 1
+
+    def finished(self, result):
+        """Handle the WFS layer task completion."""
+        print("Task finished.")
+        self.progressBar.setValue(100)
+        iface.messageBar().clearWidgets()
+        self.runButton.setEnabled(True)
+        self.abortButton.setEnabled(False)
+        self.label.setStyleSheet("QLabel { color : green; }")
+        self.label.setText("Completed :)")
+        self.polygonButton.setEnabled(True)
+        self.extentButton.setEnabled(True)
+
+    def run(self):
+        """Run the task of downloading WFS layers."""
+        self.progressBar.setEnabled(True)
+        try:
+            print("Task started...")
+            for self.layer in self.wfs_layers:
+                # Check if the task was canceled by the user by checking the _is_canceled flag
+                if self._is_canceled:
+                    print("Task was canceled by user.")
+                    return False
+
+                self._update_progress_bar()
+
+                # Process the WFS layer
+                wfsLayer = process_wfs_layer(self.layer, self.ymin, self.xmin, self.ymax, self.xmax,
+                                             self.current_extent)
+
+                # Skip empty layers
+                if wfsLayer.featureCount() == 0:
+                    continue
+
+                # Clip the layer to the polygon if the AreaFlag is set
+                if self.AreaFlag and self.polygon:
+                    print("Clipping layer to polygon...")
+                    params = {
+                        'INPUT': wfsLayer,
+                        'OVERLAY': self.polygon,
+                        'OUTPUT': 'memory:'
+                    }
+                    clipped_result = processing.run("native:clip", params)
+                    final_clipped_layer = clipped_result['OUTPUT']
+
+                    # Add the clipped layer to the map if it contains features
+                    if final_clipped_layer and final_clipped_layer.featureCount() > 0:
+                        final_clipped_layer.setName(wfsLayer.name())
+                        QgsProject.instance().addMapLayer(final_clipped_layer)
+                        print(
+                            f"Added clipped layer: {final_clipped_layer.name()}, feature count: {final_clipped_layer.featureCount()}")
+                else:
+                    # Add the unclipped layer to the map if it contains features based on the AreaFlag
+                    QgsProject.instance().addMapLayer(wfsLayer)
+                    print(f"Added unclipped layer: {wfsLayer.name()}")
+
+            print("List of layers processed.")
+            self.finished(True)
+            return True
+
+        # Handle exceptions
+        except Exception as e:
+            print(f"Error occurred in task: {e}")
+            iface.messageBar().pushMessage("ERROR", str(e), level=Qgis.Critical, duration=5)
+            self._reset_ui("Error occurred during processing.", 0)
+            return None
+
+    def cancel(self):
+        """Handles task cancellation."""
+        self._is_canceled = True  # Flag to stop the loop in the run method
+        iface.messageBar().clearWidgets()
+        iface.messageBar().pushMessage("Warning", "Process was canceled by user", level=Qgis.Warning, duration=5)
+        self._reset_ui("Task was canceled by user.", 0)
+        print("Task cancelled.")
+        super().cancel()
+
+    def _reset_ui(self, message, progress_value):
+        """Reset the UI elements after task cancellation or completion."""
+        self.progressBar.setValue(progress_value)
+        self.runButton.setEnabled(True)
+        self.abortButton.setEnabled(False)
+        self.progressBar.setEnabled(False)
+        self.polygonButton.setEnabled(True)
+        self.extentButton.setEnabled(True)
+        self.label.setText(message)
+        iface.messageBar().clearWidgets()
+        iface.messageBar().pushMessage("Exiting", message, level=Qgis.Critical, duration=5)
+
+
 class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
+    """Dock widget class for the NoNameYetPlugin plugin."""
     closingPlugin = pyqtSignal()
 
     def __init__(self, parent=None):
         """Constructor."""
         super(NoNameYetPluginDockWidget, self).__init__(parent)
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://doc.qt.io/qt-5/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
         # Set filter to map combobox to select only polygons
@@ -61,130 +169,131 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.runButton.clicked.connect(self.Run)
 
     def closeEvent(self, event):
+        """Emit the closingPlugin signal when the dock widget is closed."""
         self.closingPlugin.emit()
         event.accept()
 
     def ToggleChangeToExtent(self):
+        """Toggle the computation to the extent of the map canvas."""
         self.AreaFlag = True
         self.extentButton.setChecked(False)
         self.polygonLabel.setEnabled(True)
         self.mMapLayerComboBox.setEnabled(True)
 
     def ToggleChangeToPolygon(self):
+        """Toggle the computation to the polygon layer."""
         self.AreaFlag = False
         self.polygonButton.setChecked(False)
         self.polygonLabel.setEnabled(False)
         self.mMapLayerComboBox.setEnabled(False)
 
     def ErrorMsg(self, message):
-        """
-        Function to display error messages
-        :param message: The message to be displayed
-        :return:
-        """
+        """Display an error message."""
         iface.messageBar().pushMessage("Error", message, level=Qgis.Critical, duration=5)
 
     def LoadingMsg(self, msg):
-        """
-        Function to display loading messages
-        :return:
-        """
+        """Display a loading message."""
         iface.messageBar().pushMessage("Loading", msg, level=Qgis.Info, duration=0)
 
     def CloseLoadingMsg(self):
-        """
-        Function to close loading messages
-        :return:
-        """
+        """Close messages."""
         iface.messageBar().clearWidgets()
 
-    def Run(self):
-        """
-        Function to run the plugin
-        :return:
-        """
+    def setButtonstoDefault(self):
+        """Set the ui buttons to their default state."""
+        self.runButton.setEnabled(True)
+        self.progressBar.setEnabled(False)
+        self.abortButton.setEnabled(False)
+        self.progressBar.setValue(0)
+        self.label.setText("")
+        self.polygonButton.setEnabled(True)
+        self.extentButton.setEnabled(True)
 
-        # Return current QGIS CRS
+    def _validate_crs(self):
+        """Check if the CRS is set to EPSG:5514."""
         crs = QgsProject.instance().crs().authid()
-        # if EPSG is not 5514, return error
         if crs != 'EPSG:5514':
             self.ErrorMsg("Please change CRS to EPSG:5514")
-            return
+            self.setButtonstoDefault()
+            return False
+        return True
 
-        FLAG = self.AreaFlag
+    def _get_polygon_layer(self):
+        """Get the polygon layer if AreaFlag is set."""
+        polygon = self.mMapLayerComboBox.currentLayer()
+        if polygon and polygon.crs().authid() != 'EPSG:5514':
+            self.ErrorMsg("Please change the polygon layer CRS to EPSG:5514")
+            self.setButtonstoDefault()
+            return None
+        return polygon
 
-        if FLAG:
-            polygon = self.mMapLayerComboBox.currentLayer()
-
-            # Ensure the processing plugin is loaded
-            QgsApplication.processingRegistry().addProvider(QgsNativeAlgorithms())
-        else:
-            polygon = None
-
-        self.LoadingMsg("Loading data, please wait...")
-        layers, names = load_wfs_layers(FLAG, polygon)
-
-        # ERROR HANDLING
-        if layers == "ERR_missingconffile":
+    def _handle_wfs_errors(self, wfs_layers):
+        """Handle errors related to WFS layers."""
+        if wfs_layers == "ERR_missingconffile":
             self.CloseLoadingMsg()
             self.ErrorMsg("Missing or corrupted configuration file (zabagedlayers.conf)")
-            return
+            self.setButtonstoDefault()
+            return False
 
-        if layers == "ERR_plg":
+        if wfs_layers == "ERR_plg":
             self.CloseLoadingMsg()
             self.ErrorMsg("Please select a polygon layer")
-            return
+            self.setButtonstoDefault()
+            return False
 
-        # Add the layers to the map with corresponding names
-        for index, layer in enumerate(layers):
-            QgsProject.instance().addMapLayer(layer)
-            if FLAG:
-                # Define parameters for the clip algorithm
-                params = {
-                    'INPUT': layer,
-                    'OVERLAY': polygon,
-                    'OUTPUT': 'memory:'
-                }
+        return True
 
-                # Run the clip algorithm
-                result = processing.run("native:clip", params)
+    def _freeze_ui(self):
+        """Freeze the UI elements during processing."""
+        self.runButton.setEnabled(False)
+        self.extentButton.setEnabled(False)
+        self.polygonButton.setEnabled(False)
+        self.abortButton.setEnabled(True)
+        self.progressBar.setEnabled(True)
+        self.progressBar.setValue(0)
+        self.label.setText("Downloading ZABAGED layers...")
 
-                # Get the clipped layer
-                clipped_layer = result['OUTPUT']
+    def Run(self):
+        """Run the processing task."""
+        self.label.setStyleSheet("QLabel { color : black; }")
+        self.progressBar.setValue(0)
 
-                # Replace the original layer with the clipped layer in the project
-                QgsProject.instance().addMapLayer(clipped_layer)
-
-                # Remove the original layer
-                QgsProject.instance().removeMapLayer(layer.id())
-
-                # Update the reference to the layer to the new clipped layer
-                layer = clipped_layer
-
-                # if the layer is empty, remove it
-                if layer.featureCount() == 0:
-                    QgsProject.instance().removeMapLayer(layer.id())
-                    continue
-
-            # Set the name of the layer
-            layer.setName(names[index])
-            layer.triggerRepaint()
-
-        # Get the extent for raster download
-        if FLAG:
-            if polygon and polygon.isValid():
-                current_extent = polygon.extent()
-            else:
-                self.CloseLoadingMsg()
-                self.ErrorMsg("Invalid polygon layer")
+        try:
+            # Check if the CRS is set to EPSG:5514
+            if not self._validate_crs():
                 return
-        else:
-            current_extent = iface.mapCanvas().extent()
 
-        # Load and add the raster layer
-        if current_extent:
-            raster_layer = load_raster_layer(current_extent)
-            if raster_layer:
-                print("Raster layer added to the map.")
+            # Get the polygon layer if AreaFlag is set
+            polygon = self._get_polygon_layer()
+            if polygon is None and self.AreaFlag:
+                return
 
-        self.CloseLoadingMsg()
+            self.LoadingMsg("Loading data, please wait...")
+            # Freeze the UI elements during processing
+            self._freeze_ui()
+
+            # Get info for WFS service input based on extent or polygon
+            wfs_layers, ymin, xmin, ymax, xmax, current_extent = get_wfs_info(self.AreaFlag, polygon)
+
+            # Handle errors related to WFS layers
+            if not self._handle_wfs_errors(wfs_layers):
+                return
+
+            # Create a task to process WFS layers
+            task = TASK_process_wfs_layer(wfs_layers, ymin, xmin, ymax, xmax, current_extent, polygon, self.AreaFlag,
+                                          self.label, self.progressBar, self.runButton, self.abortButton,
+                                          self.polygonButton, self.extentButton)
+            task.progressChanged.connect(self.updateProgressBar)
+            QgsApplication.taskManager().addTask(task)
+
+            # Load and add a raster layer to the current extent
+            if current_extent:
+                load_raster_layer(current_extent)
+
+        except Exception as e:
+            self.ErrorMsg(f"Error occurred: {e}")
+            self.setButtonstoDefault()
+
+    def updateProgressBar(self, value):
+        """Update the progress bar value based on the task progress."""
+        self.progressBar.setValue(value)
