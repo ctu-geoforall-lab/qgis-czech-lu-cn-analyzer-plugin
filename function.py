@@ -1,218 +1,126 @@
+import os
 from qgis.core import (
     QgsVectorLayer,
     QgsProject,
     QgsFeatureRequest,
-    QgsVectorFileWriter,
     QgsWkbTypes,
-    QgsRectangle,
     QgsGeometry,
     QgsFeature,
-    QgsRasterLayer,
-    QgsCoordinateReferenceSystem,
-    QgsCoordinateTransformContext,
-    QgsCoordinateTransform
+    QgsRasterLayer
 )
 from qgis.utils import iface
-from PyQt5.QtCore import QFileInfo
-import os
 
-# WARNING: This script works only with EPSG:5514
 
-# Function to get the current polygon from the map canvas
+# WARNING: This script only works with EPSG:5514
+
+
 def get_current_polygon(polygon_layer):
-    # Initialize an empty list to hold all points from the polygon
+    """ Retrieve points from the current polygon layer"""
     points = []
-
-    # Iterate through the features in the layer
     for feature in polygon_layer.getFeatures():
-        # Get the geometry of the feature
         geom = feature.geometry()
-
-        # Check if the geometry is a polygon
         if geom.isGeosValid() and geom.type() == QgsWkbTypes.PolygonGeometry:
-            # Extract the polygon's points
-            for polygon in geom.asPolygon():
-                points.extend(polygon)
-
+            points.extend(geom.asPolygon()[0])
     return points
 
-# Function to get the current map canvas extent
+
 def get_current_extent():
-    canvas = iface.mapCanvas()
-    extent = canvas.extent()
-    return extent
+    """ Retrieve the current extent of the map canvas"""
+    return iface.mapCanvas().extent()
 
-# Function to clip a vector layer to the given extent
-def clip_layer(layer, extent):
-    # Convert the QgsRectangle to QgsGeometry (polygon)
+
+def clip_layer(layer, extent, layer_name):
+    """ Clip the layer to the given extent"""
+
     extent_geom = QgsGeometry.fromRect(extent)
-
-    # Create a temporary memory layer for the clipped features
     clipped_layer = QgsVectorLayer(
         f"{QgsWkbTypes.displayString(layer.wkbType())}?crs={layer.crs().authid()}",
-        "Clipped Layer",
+        layer_name,
         "memory"
     )
 
-    clipped_layer_data_provider = clipped_layer.dataProvider()
-    clipped_layer_data_provider.addAttributes(layer.fields())
+    clipped_layer.dataProvider().addAttributes(layer.fields())
     clipped_layer.updateFields()
 
-    # Create a feature request to filter the features by the current extent
-    request = QgsFeatureRequest().setFilterRect(extent)
-    features = layer.getFeatures(request)
-
-    # Add features that intersect with the extent to the clipped layer
-    added_feature_count = 0
-    for feature in features:
+    for feature in layer.getFeatures(QgsFeatureRequest().setFilterRect(extent)):
         geom = feature.geometry()
         if geom.intersects(extent_geom):
             clipped_feature = QgsFeature()
             clipped_feature.setGeometry(geom.intersection(extent_geom))
             clipped_feature.setAttributes(feature.attributes())
-            clipped_layer_data_provider.addFeature(clipped_feature)
-            added_feature_count += 1
+            clipped_layer.dataProvider().addFeature(clipped_feature)
 
     clipped_layer.commitChanges()
-
-    if added_feature_count == 0:
+    if not clipped_layer.featureCount():
         print("No features added to the clipped layer.")
 
     return clipped_layer
 
-def loadZabagedLayers():
-    # load wfs layers from zabagedlayers.conf stored in the same directory
 
-    # Get direcotry of this script
-    script_dir = os.path.dirname(os.path.realpath(__file__))
-
-    # Join the directory with the file name
-    file_path = os.path.join(script_dir, "zabagedlayers.conf")
-    layers = []
-
-    with open(file_path, "r") as f:
-        for line in f:
-            layers.append(line.strip())
-    return layers
-
-def load_wfs_layers(FLAG, polygon):
-    layer_list = []
-    layer_name_list = []
-    # List all available layers from the WFS service
+def load_zabaged_layers():
+    """ Load WFS layers from the configuration file"""
+    config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "zabagedlayers.conf")
     try:
-        wfs_layers = loadZabagedLayers()
+        with open(config_path, "r") as file:
+            return [line.strip() for line in file]
     except Exception as e:
         print(f"Failed to load WFS layers: {e}")
-        return "ERR_missingconffile", 0
+        return []
 
-    # Directory to save temporary layers
-    temp_dir = os.path.join(os.path.expanduser("~"), "qgis_temp_layers")
-    os.makedirs(temp_dir, exist_ok=True)
 
-    # Get the current extent from the map canvas
-    if not FLAG:
-        current_extent = get_current_extent()
-        xmin, ymin, xmax, ymax = current_extent.xMinimum(), current_extent.yMinimum(), current_extent.xMaximum(), current_extent.yMaximum()
+def get_wfs_info(use_polygon, polygon=None):
+    """ Get WFS layers and extent information"""
+    wfs_layers = load_zabaged_layers()
+    if not wfs_layers:
+        return "ERR_missingconffile", 0, 0, 0, 0, None  # return error code for later handling
+
+    if not use_polygon:
+        extent = get_current_extent()
+    elif polygon and polygon.isValid():
+        extent = polygon.extent()
     else:
-        #Zoom to the polygon
-        if polygon.isValid() and polygon is not None:
-            current_extent = polygon.extent()
-            xmin, ymin, xmax, ymax = current_extent.xMinimum(), current_extent.yMinimum(), current_extent.xMaximum(), current_extent.yMaximum()
-        else:
-            print("Invalid polygon layer")
-            return "ERR_plg", []
+        print("Invalid polygon layer")
+        return "ERR_plg", 0, 0, 0, 0, None  # return error code for later handling
 
-    # Load the WFS layers
-    for layer_name in wfs_layers:
-        uri = (f"https://ags.cuzk.cz/arcgis/services/ZABAGED_POLOHOPIS/MapServer/WFSServer?"
-               f"&version=2.0.0&request=GetFeature&typename={layer_name}"
-               f"&bbox={xmin},{ymin},{xmax},{ymax},EPSG:5514")  # Note the EPSG code changed to 5514
+    return wfs_layers, extent.yMinimum(), extent.xMinimum(), extent.yMaximum(), extent.xMaximum(), extent
 
-        vlayer = QgsVectorLayer(uri, f"Layer: {layer_name}", "WFS")
 
-        # Check if the layer was loaded successfully
-        if not vlayer.isValid():
-            print(f"Failed to load layer: {layer_name}")
-            continue
+def process_wfs_layer(layer_name, ymin, xmin, ymax, xmax, extent):
+    """ Load and clip a WFS layer to the given extent"""
+    uri = (
+        f"https://ags.cuzk.cz/arcgis/services/ZABAGED_POLOHOPIS/MapServer/WFSServer?"
+        f"&version=2.0.0&request=GetFeature&typename={layer_name}"
+        f"&bbox={xmin},{ymin},{xmax},{ymax},EPSG:5514"
+    )
 
-        print(f"Successfully loaded layer: {layer_name}, feature count: {vlayer.featureCount()}")
+    vlayer = QgsVectorLayer(uri, f"Layer: {layer_name}", "WFS")
+    if not vlayer.isValid() or not vlayer.featureCount():
+        print(f"Failed to load or empty layer: {layer_name}")
+        return None
 
-        # Check if the layer has features, if not skip to the next layer
-        if vlayer.featureCount() == 0:
-            continue
+    clipped_layer = clip_layer(vlayer, extent, layer_name)
+    if clipped_layer.isValid():
+        print(f"Successfully clipped layer: {layer_name}, feature count: {clipped_layer.featureCount()}")
+        return clipped_layer
 
-        # Clip the layer to the current extent
-        clipped_layer = clip_layer(vlayer, current_extent)
 
-        # Check if features were added
-        clipped_layer_feature_count = clipped_layer.featureCount()
-        print(f"Clipped layer feature count: {clipped_layer_feature_count}")
-
-        # Check if the clipped layer has features, if not skip to the next layer
-        if clipped_layer_feature_count == 0:
-            print(f"No features in clipped layer: {layer_name}")
-            continue
-
-        # Check if the clipped layer is valid
-        if not clipped_layer.isValid():
-            print(f"Failed to load clipped layer: {layer_name}")
-        else:
-            # Add the clipped layer to the list of layers
-            layer_list.append(clipped_layer)
-            layer_name_list.append(layer_name)
-            print(f"Successfully loaded clipped layer: {layer_name}, feature count: {clipped_layer_feature_count}")
-
-    # Return the list of layers and their names
-    return layer_list, layer_name_list
-
-# Function to download and add raster layers
 def load_raster_layer(extent):
-    xmin, ymin, xmax, ymax = extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()
-
-    wms_params = {
-        'url': 'https://mze.gov.cz/public/app/wms/public_DPB_PB_OPV.fcgi',
-        'layers': 'DPB_KUL',
-        'styles': '',
-        'format': 'image/png',
-        'crs': 'EPSG:5514',
-        'dpiMode': '7',
-        'tilePixelRatio': '0'
-    }
-
+    """ Load raster layer from WMS service """
     wms_uri = (
-        f"contextualWMSLegend=0&crs={wms_params['crs']}&dpiMode={wms_params['dpiMode']}&"
-        f"format={wms_params['format']}&layers={wms_params['layers']}&styles={wms_params['styles']}&"
-        f"url={wms_params['url']}&tilePixelRatio={wms_params['tilePixelRatio']}&"
-        f"bbox={xmin},{ymin},{xmax},{ymax}"
+        f"contextualWMSLegend=0&crs=EPSG:5514&dpiMode=7&format=image/png&"
+        f"layers=DPB_KUL&styles=&url=https://mze.gov.cz/public/app/wms/public_DPB_PB_OPV.fcgi&"
+        f"tilePixelRatio=0&bbox={extent.xMinimum()},{extent.yMinimum()},{extent.xMaximum()},{extent.yMaximum()}"
     )
 
     rlayer = QgsRasterLayer(wms_uri, 'Raster Layer', 'wms')
-    if not rlayer.isValid():
+    if rlayer.isValid():
+        QgsProject.instance().addMapLayer(rlayer)
+        print("Successfully loaded raster layer")
+        return rlayer
+    else:
         print("Failed to load raster layer")
         return None
 
-    print("Successfully loaded raster layer")
-    QgsProject.instance().addMapLayer(rlayer)
-    return rlayer
 
 if __name__ == "__main__":
-    FLAG = False
-    polygon = None  # Define your polygon if necessary
-
-    vector_layers, vector_layer_names = load_wfs_layers(FLAG, polygon)
-    if vector_layers:
-        print(f"Loaded vector layers: {vector_layer_names}")
-
-    # Get the extent for raster download
-    if not FLAG:
-        current_extent = get_current_extent()
-    else:
-        if polygon.isValid() and polygon is not None:
-            current_extent = polygon.extent()
-        else:
-            current_extent = None
-
-    if current_extent:
-        raster_layer = load_raster_layer(current_extent)
-        if raster_layer:
-            print("Raster layer added to the map.")
+    print("This script is not meant to be run directly.")
