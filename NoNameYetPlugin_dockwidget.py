@@ -37,6 +37,9 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 class TASK_process_wfs_layer(QgsTask):
     """QgsTask subclass to process WFS layers."""
     progressChanged = pyqtSignal(int)
+    taskFinished = pyqtSignal(bool)
+    taskCanceled = pyqtSignal(bool)
+    taskError = pyqtSignal(str)
 
     def __init__(self, wfs_layers, ymin, xmin, ymax, xmax, current_extent, polygon, flag, label, progress_bar,
                  run_button, abort_button, polygon_button, extent_button):
@@ -64,19 +67,11 @@ class TASK_process_wfs_layer(QgsTask):
 
     def finished(self, result):
         """Handle the WFS layer task completion."""
-        print("Task finished.")
-        self.progressBar.setValue(100)
-        iface.messageBar().clearWidgets()
-        self.runButton.setEnabled(True)
-        self.abortButton.setEnabled(False)
-        self.label.setStyleSheet("QLabel { color : green; }")
-        self.label.setText("Completed :)")
-        self.polygonButton.setEnabled(True)
-        self.extentButton.setEnabled(True)
+        self.taskFinished.emit(True)
 
     def run(self):
         """Run the task of downloading WFS layers."""
-        self.progressBar.setEnabled(True)
+
         try:
             print("Task started...")
             for self.layer in self.wfs_layers:
@@ -123,31 +118,15 @@ class TASK_process_wfs_layer(QgsTask):
 
         # Handle exceptions
         except Exception as e:
-            print(f"Error occurred in task: {e}")
-            iface.messageBar().pushMessage("ERROR", str(e), level=Qgis.Critical, duration=5)
-            self._reset_ui("Error occurred during processing.", 0)
+            print(f"Error occurred: {e}")
+            self.taskError.emit(str(e))
             return None
 
     def cancel(self):
         """Handles task cancellation."""
-        self._is_canceled = True  # Flag to stop the loop in the run method
-        iface.messageBar().clearWidgets()
-        iface.messageBar().pushMessage("Warning", "Process was canceled by user", level=Qgis.Warning, duration=5)
-        self._reset_ui("Task was canceled by user.", 0)
-        print("Task cancelled.")
         super().cancel()
-
-    def _reset_ui(self, message, progress_value):
-        """Reset the UI elements after task cancellation or completion."""
-        self.progressBar.setValue(progress_value)
-        self.runButton.setEnabled(True)
-        self.abortButton.setEnabled(False)
-        self.progressBar.setEnabled(False)
-        self.polygonButton.setEnabled(True)
-        self.extentButton.setEnabled(True)
-        self.label.setText(message)
-        iface.messageBar().clearWidgets()
-        iface.messageBar().pushMessage("Exiting", message, level=Qgis.Critical, duration=5)
+        self._is_canceled = True  # Flag to stop the loop in the run method
+        self.taskCanceled.emit(True)
 
 
 class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
@@ -255,6 +234,7 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def Run(self):
         """Run the processing task."""
+        print("RUNRRCLC_FNL")
         self.label.setStyleSheet("QLabel { color : black; }")
         self.progressBar.setValue(0)
 
@@ -279,11 +259,17 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             if not self._handle_wfs_errors(wfs_layers):
                 return
 
+            self.progressBar.setEnabled(True)
             # Create a task to process WFS layers
             task = TASK_process_wfs_layer(wfs_layers, ymin, xmin, ymax, xmax, current_extent, polygon, self.AreaFlag,
                                           self.label, self.progressBar, self.runButton, self.abortButton,
                                           self.polygonButton, self.extentButton)
+
+            # Connect signals to update the progress bar and handle task completion
             task.progressChanged.connect(self.updateProgressBar)
+            task.taskFinished.connect(self.TaskFinished)
+            task.taskCanceled.connect(self.TaskCanceled)
+            task.taskError.connect(self.TaskError)
             QgsApplication.taskManager().addTask(task)
 
             # Load and add a raster layer to the current extent
@@ -295,5 +281,43 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.setButtonstoDefault()
 
     def updateProgressBar(self, value):
-        """Update the progress bar value based on the task progress."""
+        """Signaled by task - Update the progress bar value based on the task progress."""
         self.progressBar.setValue(value)
+
+    def _reset_ui(self, message, progress_value):
+        """Reset the UI elements after task cancellation or completion."""
+        self.progressBar.setValue(progress_value)
+        self.runButton.setEnabled(True)
+        self.abortButton.setEnabled(False)
+        self.progressBar.setEnabled(False)
+        self.polygonButton.setEnabled(True)
+        self.extentButton.setEnabled(True)
+        self.label.setText(message)
+        iface.messageBar().clearWidgets()
+        iface.messageBar().pushMessage("Exiting", message, level=Qgis.Critical, duration=5)
+
+    def TaskFinished(self):
+        """Signaled by task - Handle the completion of the processing task."""
+        print("Task finished.")
+        self.progressBar.setValue(100)
+        iface.messageBar().clearWidgets()
+        self.runButton.setEnabled(True)
+        self.abortButton.setEnabled(False)
+        self.label.setStyleSheet("QLabel { color : green; }")
+        self.label.setText("Completed :)")
+        self.polygonButton.setEnabled(True)
+        self.extentButton.setEnabled(True)
+        iface.messageBar().pushMessage("Success", "Task completed successfully", level=Qgis.Success, duration=5)
+
+    def TaskCanceled(self):
+        """Signaled by task - Handle the cancellation of the processing task."""
+        iface.messageBar().clearWidgets()
+        iface.messageBar().pushMessage("Warning", "Process was canceled by user", level=Qgis.Warning, duration=5)
+        self._reset_ui("Task was canceled by user.", 0)
+        print("Task cancelled.")
+
+    def TaskError(self, e):
+        """Signaled by task - Handle errors that occurred during the processing task."""
+        print(f"Error occurred in task: {e}")
+        iface.messageBar().pushMessage("ERROR", str(e), level=Qgis.Critical, duration=5)
+        self._reset_ui("Error occurred during processing.", 0)
