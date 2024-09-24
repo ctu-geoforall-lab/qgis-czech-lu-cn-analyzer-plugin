@@ -234,7 +234,7 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def Run(self):
         """Run the processing task."""
-        print("RUNRRCLC_FNL")
+        print("run button clicked..")
         self.label.setStyleSheet("QLabel { color : black; }")
         self.progressBar.setValue(0)
 
@@ -279,6 +279,10 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         except Exception as e:
             self.ErrorMsg(f"Error occurred: {e}")
             self.setButtonstoDefault()
+            return None
+
+
+
 
     def updateProgressBar(self, value):
         """Signaled by task - Update the progress bar value based on the task progress."""
@@ -298,6 +302,22 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def TaskFinished(self):
         """Signaled by task - Handle the completion of the processing task."""
+
+        # Get the same string part from all entries in zabagedlayers.conf = common in name of all zabaged layers
+        common_string = get_common_string()
+
+        if common_string == "conf_file_err" or common_string == "no_common_prefix":
+            self.ErrorMsg("Missing or corrupted configuration file (zabagedlayers.conf)")
+            self.label.setStyleSheet("QLabel { color : red; }")
+            self.label.setText("Error in zabagedlayers.conf file")
+            return None
+
+        print(f"Common string: {common_string}")
+
+        # Add atributte to all layers in current project with common string
+        add_attribute_to_layers(common_string, QgsProject.instance().mapLayers())
+
+        # Modify the UI elements after task completion
         print("Task finished.")
         self.progressBar.setValue(100)
         iface.messageBar().clearWidgets()
