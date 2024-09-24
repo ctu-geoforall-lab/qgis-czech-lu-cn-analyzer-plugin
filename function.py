@@ -1,4 +1,6 @@
 import os
+
+from PyQt5.QtCore import QVariant
 from qgis.core import (
     QgsVectorLayer,
     QgsProject,
@@ -6,7 +8,9 @@ from qgis.core import (
     QgsWkbTypes,
     QgsGeometry,
     QgsFeature,
-    QgsRasterLayer
+    QgsRasterLayer,
+    QgsField,
+
 )
 from qgis.utils import iface
 
@@ -121,6 +125,97 @@ def load_raster_layer(extent):
         print("Failed to load raster layer")
         return None
 
+
+def common_prefix(lines):
+    """ Find the common prefix for a list of strings"""
+    if not lines:
+        return ""
+
+    # Take the first line as the reference
+    prefix = lines[0].strip()
+
+    # Compare the prefix with each subsequent line
+    for line in lines[1:]:
+        line = line.strip()  # remove any surrounding whitespace or newline
+        i = 0
+        while i < len(prefix) and i < len(line) and prefix[i] == line[i]:
+            i += 1
+        # Shorten the prefix to the common part found
+        prefix = prefix[:i]
+
+        # If the prefix becomes empty, stop early
+        if not prefix:
+            break
+
+    return prefix
+
+
+def get_common_string():
+    """ Get the common string part for each line in zabaged.conf file"""
+    config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "zabagedlayers.conf")
+    try:
+        with open(config_path, "r") as file:
+            lines = file.readlines()
+            if not lines:
+                return "conf_file_err"
+            # Get the common string part from all lines
+            common_part = common_prefix(lines)
+            return common_part if common_part else "no_common_prefix"
+    except Exception as e:
+        return f"conf_file_err: {str(e)}"
+
+def add_attribute_to_layers(common_string, qgs_project):
+    """ Add an attribute to all layers with the common string"""
+    layers = qgs_project.values()
+    for layer in layers:
+        layer_name = layer.name()
+        if common_string in layer_name:
+            layer.dataProvider().addAttributes([QgsField("SoilVeg_code", QVariant.Int)])
+            layer.updateFields()
+
+            attribute_template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "zabaged_to_SoilVegCode_table.conf")
+            with open(attribute_template_path, "r") as file:
+                for line in file:
+                    # split line by ; to get all names but don use the last one
+                    names = line.split(";")[:-2]
+                    # save the last one as the code ( [-1] is "\n" )
+                    code = int(line.split(";")[-2])
+
+                    if any(name.lower() in layer_name.lower() for name in names):
+
+                        layer.startEditing()
+                        for feature in layer.getFeatures():
+                            feature["SoilVeg_code"] = code
+                            layer.updateFeature(feature)
+                        layer.commitChanges()
+
+            # Add more specific code for the categorized forest layer by druh_k attribute
+            if "les" in layer_name.lower() and "kategor" in layer_name.lower():
+                layer.startEditing()
+                for feature in layer.getFeatures():
+                    code = 30000
+                    value = feature["druh_k"]
+
+                    if value == "N":
+                        feature["SoilVeg_code"] = code
+
+
+                    elif value == "J":
+                        code += 3200
+                        feature["SoilVeg_code"] = code
+
+
+                    elif value == "L":
+                        code += 3100
+                        feature["SoilVeg_code"] = code
+
+
+                    else:
+                        code += 3300
+                        feature["SoilVeg_code"] = code
+                    layer.updateFeature(feature)
+
+                layer.commitChanges()
 
 if __name__ == "__main__":
     print("This script is not meant to be run directly.")
