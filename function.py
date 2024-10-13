@@ -14,6 +14,9 @@ from qgis.core import (
 )
 from qgis.utils import iface
 
+from .layereditor import *
+
+
 
 # WARNING: This script only works with EPSG:5514
 
@@ -170,10 +173,10 @@ def add_attribute_to_layers(common_string, qgs_project):
     for layer in layers:
         layer_name = layer.name()
         if common_string in layer_name:
-            layer.dataProvider().addAttributes([QgsField("SoilVeg_code", QVariant.Int)])
+            layer.dataProvider().addAttributes([QgsField("LandUse_code", QVariant.Int)])
             layer.updateFields()
 
-            attribute_template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "zabaged_to_SoilVegCode_table.conf")
+            attribute_template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "zabaged_to_LandUseCode_table.conf")
             with open(attribute_template_path, "r") as file:
                 for line in file:
                     # split line by ; to get all names but don use the last one
@@ -185,37 +188,65 @@ def add_attribute_to_layers(common_string, qgs_project):
 
                         layer.startEditing()
                         for feature in layer.getFeatures():
-                            feature["SoilVeg_code"] = code
+                            feature["LandUse_code"] = code
                             layer.updateFeature(feature)
                         layer.commitChanges()
 
             # Add more specific code for the categorized forest layer by druh_k attribute
             if "les" in layer_name.lower() and "kategor" in layer_name.lower():
-                layer.startEditing()
-                for feature in layer.getFeatures():
-                    code = 30000
-                    value = feature["druh_k"]
+                forest_layer_edit(layer)
 
-                    if value == "N":
-                        feature["SoilVeg_code"] = code
+            if "silnice" in layer_name.lower() and "dálnice" in layer_name.lower():
+                road_layer_edit(layer, common_string)
 
+def clip_layers_with_common_string(common_string, qgs_project, AreaFlag, polygon, ymin, xmin, ymax, xmax):
+    """ Clip all layers with the common string to the given extent or polygon """
+    layers = qgs_project.values()
+    for layer in layers:
+        layer_name = layer.name()
+        if common_string in layer_name:
+            clipped_layer = None  # Initialize clipped_layer to None
+            if not AreaFlag:  # Clip by extent
+                extent = QgsRectangle(xmin, ymin, xmax, ymax)
+                clipped_layer = clip_layer(layer, extent, f"{layer_name}_clipped")
+            else:  # Clip by polygon
+                if polygon:
+                    extent = polygon.extent()
+                    clipped_layer = clip_layer(layer, extent, f"{layer_name}_clipped")
+                    clipped_layer = clip_layer_by_polygon(clipped_layer, polygon, f"{layer_name}_clipped_by_polygon")
 
-                    elif value == "J":
-                        code += 3200
-                        feature["SoilVeg_code"] = code
+            if clipped_layer and clipped_layer.isValid():
+                QgsProject.instance().addMapLayer(clipped_layer)
+                QgsProject.instance().removeMapLayer(layer.id())  # Remove the original unclipped layer
+                print(f"Successfully clipped and removed original layer: {layer_name}")
+            else:
+                print(f"Failed to clip layer: {layer_name}")
 
+def clip_layer_by_polygon(layer, polygon, layer_name):
+    """ Clip the layer to the given polygon """
+    clipped_layer = QgsVectorLayer(
+        f"{QgsWkbTypes.displayString(layer.wkbType())}?crs={layer.crs().authid()}",
+        layer_name,
+        "memory"
+    )
 
-                    elif value == "L":
-                        code += 3100
-                        feature["SoilVeg_code"] = code
+    clipped_layer.dataProvider().addAttributes(layer.fields())
+    clipped_layer.updateFields()
 
+    for feature in layer.getFeatures():
+        geom = feature.geometry()
+        if geom.intersects(polygon.geometry()):
+            clipped_feature = QgsFeature()
+            clipped_feature.setGeometry(geom.intersection(polygon.geometry()))
+            clipped_feature.setAttributes(feature.attributes())
+            clipped_layer.dataProvider().addFeature(clipped_feature)
 
-                    else:
-                        code += 3300
-                        feature["SoilVeg_code"] = code
-                    layer.updateFeature(feature)
+    clipped_layer.commitChanges()
+    if not clipped_layer.featureCount():
+        print("No features added to the clipped layer.")
 
-                layer.commitChanges()
+    return clipped_layer
+
 
 if __name__ == "__main__":
     print("This script is not meant to be run directly.")
