@@ -133,15 +133,21 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     """Dock widget class for the NoNameYetPlugin plugin."""
     closingPlugin = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, polygon=None, ymin=None, ymax=None, xmin=None, xmax=None, AreaFlag=False, parent=None):
         """Constructor."""
         super(NoNameYetPluginDockWidget, self).__init__(parent)
         self.setupUi(self)
 
+        # Initialize attributes from arguments
+        self.polygon = polygon
+        self.ymin = ymin
+        self.ymax = ymax
+        self.xmin = xmin
+        self.xmax = xmax
+        self.AreaFlag = AreaFlag
+
         # Set filter to map combobox to select only polygons
         self.mMapLayerComboBox.setFilters(QgsMapLayerProxyModel.PolygonLayer)
-
-        self.AreaFlag = False  # False == computation in window extent (default), True == computation in polygon
 
         self.extentButton.toggled.connect(self.ToggleChangeToPolygon)
         self.polygonButton.toggled.connect(self.ToggleChangeToExtent)
@@ -179,7 +185,7 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         iface.messageBar().clearWidgets()
 
     def setButtonstoDefault(self):
-        """Set the ui buttons to their default state."""
+        """Set the UI buttons to their default state."""
         self.runButton.setEnabled(True)
         self.progressBar.setEnabled(False)
         self.abortButton.setEnabled(False)
@@ -244,16 +250,17 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 return
 
             # Get the polygon layer if AreaFlag is set
-            polygon = self._get_polygon_layer()
-            if polygon is None and self.AreaFlag:
-                return
+            if self.AreaFlag:
+                self.polygon = self._get_polygon_layer()
+                if self.polygon is None:
+                    return
 
             self.LoadingMsg("Loading data, please wait...")
             # Freeze the UI elements during processing
             self._freeze_ui()
 
             # Get info for WFS service input based on extent or polygon
-            wfs_layers, ymin, xmin, ymax, xmax, current_extent = get_wfs_info(self.AreaFlag, polygon)
+            wfs_layers, self.ymin, self.xmin, self.ymax, self.xmax, current_extent = get_wfs_info(self.AreaFlag, self.polygon)
 
             # Handle errors related to WFS layers
             if not self._handle_wfs_errors(wfs_layers):
@@ -261,7 +268,7 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
             self.progressBar.setEnabled(True)
             # Create a task to process WFS layers
-            task = TASK_process_wfs_layer(wfs_layers, ymin, xmin, ymax, xmax, current_extent, polygon, self.AreaFlag,
+            task = TASK_process_wfs_layer(wfs_layers, self.ymin, self.xmin, self.ymax, self.xmax, current_extent, self.polygon, self.AreaFlag,
                                           self.label, self.progressBar, self.runButton, self.abortButton,
                                           self.polygonButton, self.extentButton)
 
@@ -280,9 +287,6 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.ErrorMsg(f"Error occurred: {e}")
             self.setButtonstoDefault()
             return None
-
-
-
 
     def updateProgressBar(self, value):
         """Signaled by task - Update the progress bar value based on the task progress."""
@@ -314,8 +318,12 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         print(f"Common string: {common_string}")
 
-        # Add atributte to all layers in current project with common string
+        # Add attribute to all layers in current project with common string
         add_attribute_to_layers(common_string, QgsProject.instance().mapLayers())
+
+        # Clip all layer with common string to the polygon or extent by AreaFlag
+        clip_layers_with_common_string(common_string, QgsProject.instance().mapLayers(), self.AreaFlag, self.polygon,
+                                       self.ymin, self.xmin, self.ymax, self.xmax)
 
         # Modify the UI elements after task completion
         print("Task finished.")
