@@ -7,9 +7,10 @@ Testováno na MS Windows a Linux(Ubuntu). <br> <br>
 - Plugin připojuje LPIS WMS vrstvu
 - Stahování probíhá na pozadí v jiném vlákně Qgisu
 - Uživatel je informován o procesu stahování a je schopen ho tlačítkem ukončit
-- **nově: Přířazení SoilVeg kódu dle názvu ZABAGED vrsty**
-- **nově: Zpřesnění SoilVeg kódu dle typu porostu v lesní kategorizované ploše (druh_k atribut)**
-
+- Přířazení LandUse kódu dle názvu ZABAGED vrsty
+- Zpřesnění LandUse kódu dle typu porostu v lesní kategorizované ploše (druh_k atribut)
+- **nově: Na vrstvu silnic je aplikován buffer dle typu silnice**
+  
 ## Další informace
 Názvy ZABAGED vrstev, které plugin získává, jsou v souboru zabagedlayers.conf <br>
 Některé požadované ZABAGED vrstvy není možné zahrnout kvůli následujícím problémům poskytovatele dat: <br>
