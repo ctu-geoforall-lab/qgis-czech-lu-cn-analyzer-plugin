@@ -9,9 +9,14 @@ Testováno na MS Windows a Linux(Ubuntu). <br> <br>
 - Uživatel je informován o procesu stahování a je schopen ho tlačítkem ukončit
 - Přířazení LandUse kódu dle názvu ZABAGED vrsty
 - Zpřesnění LandUse kódu dle typu porostu v lesní kategorizované ploše (druh_k atribut)
-- **nově: Na vrstvu silnic je aplikován buffer dle typu silnice**
+- Na vrstvu silnic je aplikován buffer dle typu silnice
+- **nově: Polygonové vrstvy ZABAGED jsou spojeny do jedné vrstvy dle dané priority vrstev**
   
 ## Další informace
+- na další bodové a linové prvky je potřeba zvolit buffer
+- Je nuntné doplnit další LandUse kódy pro více ZABAGED vrstev
+
+<br><br>
 Názvy ZABAGED vrstev, které plugin získává, jsou v souboru zabagedlayers.conf <br>
 Některé požadované ZABAGED vrstvy není možné zahrnout kvůli následujícím problémům poskytovatele dat: <br>
 - Usazovací nádrž - 2024-01-01: 1.07 USAZOVACÍ NÁDRŽ - objekt zrušen z kategorie 1. SÍDELNÍ, HOSPODÁŘSKÉ A KULTURNÍ OBJEKTY <br>
