@@ -325,6 +325,8 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         clip_layers_with_common_string(common_string, QgsProject.instance().mapLayers(), self.AreaFlag, self.polygon,
                                        self.ymin, self.xmin, self.ymax, self.xmax)
 
+        stack_layers(QgsProject.instance(), common_string)
+
         # Modify the UI elements after task completion
         print("Task finished.")
         self.progressBar.setValue(100)
