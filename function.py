@@ -1,4 +1,5 @@
 import os
+import processing
 
 from PyQt5.QtCore import QVariant
 from qgis.core import (
@@ -10,6 +11,8 @@ from qgis.core import (
     QgsFeature,
     QgsRasterLayer,
     QgsField,
+    QgsVectorLayerUtils,
+    QgsProcessingFeatureSourceDefinition
 
 )
 from qgis.utils import iface
@@ -247,6 +250,92 @@ def clip_layer_by_polygon(layer, polygon, layer_name):
 
     return clipped_layer
 
+def stack_layers(qgs_project,common_string):
+    """
+    Merge polygon layers by their priority:
+    1) roads and paths
+    2) water bodies and streams
+    3) buildings
+    4) LPIS
+    5) other ZABAGED layers
 
-if __name__ == "__main__":
-    print("This script is not meant to be run directly.")
+    Also removes original input layers
+    """
+    lvl1_layer = []
+    lvl2_layer = []
+    lvl3_layer = []
+    lvl4_layer = []
+    lvl5_layer = []
+
+    layers = qgs_project.mapLayers().values()
+    for layer in layers:
+        # Only process vector layers and polygons
+        if isinstance(layer, QgsVectorLayer) and layer.geometryType() == 2:
+            layer_name = layer.name()
+
+            if common_string in layer_name or "LPIS" in layer_name:
+
+                # 1) roads and paths
+                if any(substring in layer_name for substring in
+                       ["Silnice", "Pěšina", "Cesta", "Ulice", "Most", "Lávka", "Parkoviště", "trať", "Koleiště",
+                        "Tramvajová", "točna"]):
+                    lvl1_layer.append(layer)
+
+                # 2) water bodies and streams
+                elif any(substring in layer_name for substring in ["tok", "Vodní_plocha"]):
+                    lvl2_layer.append(layer)
+
+                # 3) buildings
+                elif any(substring in layer_name for substring in
+                         ["Budova", "Věž", "Kůlna", "věž", "zásobní", "Silo", "Vodojem", "Větrný", "Rozvalina",
+                          "Hradba", "Zeď", "Hrad", "Zámek", "stavba", "Tribuna", "Stavební", "zastávka",
+                          "Stožár", "Elektrárna"]):
+                    lvl3_layer.append(layer)
+
+                # 4) LPIS
+                elif "LPIS" in layer_name:
+                    lvl4_layer.append(layer)
+
+                # 5) other ZABAGED layers
+                else:
+                    lvl5_layer.append(layer)
+
+    # Function to merge layers at each level
+    def merge_layers(level_layers, output_name):
+        if len(level_layers) > 0:
+            merged_layer = processing.run(
+                "native:mergevectorlayers",
+                {'LAYERS': level_layers, 'CRS': level_layers[0].crs(), 'OUTPUT': 'memory:'}
+            )['OUTPUT']
+            merged_layer.setName(output_name)
+            return merged_layer
+        return None
+
+    # Merge layers by priority level
+    merged_lvl1 = merge_layers(lvl1_layer, "Merged_LVL1")
+    merged_lvl2 = merge_layers(lvl2_layer, "Merged_LVL2")
+    merged_lvl3 = merge_layers(lvl3_layer, "Merged_LVL3")
+    merged_lvl4 = merge_layers(lvl4_layer, "Merged_LVL4")
+    merged_lvl5 = merge_layers(lvl5_layer, "Merged_LVL5")
+
+    # Combine merged levels into a final stacked layer
+    final_merged_layers = [layer for layer in [merged_lvl5, merged_lvl4, merged_lvl3, merged_lvl2, merged_lvl1] if
+                           layer]
+
+    # Create final merged layer if there are any layers to merge
+    if final_merged_layers:
+        final_merged = processing.run(
+            "native:mergevectorlayers",
+            {'LAYERS': final_merged_layers, 'CRS': final_merged_layers[0].crs(), 'OUTPUT': 'memory:'}
+        )['OUTPUT']
+        final_merged.setName("Final_Merged_Layers")
+        qgs_project.addMapLayer(final_merged)
+
+    # Remove original layers after merging
+    for layer in layers:
+        layer_name = layer.name()
+        if isinstance(layer, QgsVectorLayer) and layer.geometryType() == 2 and (common_string in layer_name or "LPIS" in layer_name):
+            QgsProject.instance().removeMapLayer(layer.id())
+
+    print("Layers merged by priority with Final_Merged_Layers stacked by level.")
+    return None
