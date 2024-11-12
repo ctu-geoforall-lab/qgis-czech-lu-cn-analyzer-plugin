@@ -82,9 +82,14 @@ class TASK_process_wfs_layer(QgsTask):
 
                 self._update_progress_bar()
 
+                ATR_config_path = os.path.join(os.path.dirname(__file__), 'config', 'zabaged_WFS_URL.conf')
+                with open(ATR_config_path, 'r') as file:
+                    # read first line
+                    zabaged_URL = file.readline().strip()
+
                 # Process the WFS layer
                 wfsLayer = process_wfs_layer(self.layer, self.ymin, self.xmin, self.ymax, self.xmax,
-                                             self.current_extent)
+                                             self.current_extent, zabaged_URL)
 
                 # Skip empty layers
                 if wfsLayer.featureCount() == 0:
@@ -247,43 +252,53 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         try:
             # Check if the CRS is set to EPSG:5514
             if not self._validate_crs():
+                print("CRS validation failed.")
                 return
 
             # Get the polygon layer if AreaFlag is set
             if self.AreaFlag:
                 self.polygon = self._get_polygon_layer()
                 if self.polygon is None:
+                    print("Polygon layer is None.")
                     return
 
             self.LoadingMsg("Loading data, please wait...")
             # Freeze the UI elements during processing
             self._freeze_ui()
 
+            # Get the list of WFS layers to process from config file
+            config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config", "zabagedlayers.conf")
+
             # Get info for WFS service input based on extent or polygon
-            wfs_layers, self.ymin, self.xmin, self.ymax, self.xmax, current_extent = get_wfs_info(self.AreaFlag, self.polygon)
+            wfs_layers, self.ymin, self.xmin, self.ymax, self.xmax, current_extent = get_wfs_info(self.AreaFlag, config_path,
+                                                                                                  self.polygon)
+            print(f"WFS layers: {wfs_layers}")
 
             # Handle errors related to WFS layers
             if not self._handle_wfs_errors(wfs_layers):
+                print("WFS layer error handling failed.")
                 return
 
             self.progressBar.setEnabled(True)
             # Create a task to process WFS layers
-            task = TASK_process_wfs_layer(wfs_layers, self.ymin, self.xmin, self.ymax, self.xmax, current_extent, self.polygon, self.AreaFlag,
+            task = TASK_process_wfs_layer(wfs_layers, self.ymin, self.xmin, self.ymax, self.xmax, current_extent,
+                                          self.polygon, self.AreaFlag,
                                           self.label, self.progressBar, self.runButton, self.abortButton,
                                           self.polygonButton, self.extentButton)
+            print("Task created.")
 
             # Connect signals to update the progress bar and handle task completion
             task.progressChanged.connect(self.updateProgressBar)
             task.taskFinished.connect(self.TaskFinished)
             task.taskCanceled.connect(self.TaskCanceled)
             task.taskError.connect(self.TaskError)
-            QgsApplication.taskManager().addTask(task)
+            print("Task signals connected.")
 
-            # Load and add a raster layer to the current extent
-            if current_extent:
-                load_raster_layer(current_extent)
+            QgsApplication.taskManager().addTask(task)
+            print("Task added to task manager.")
 
         except Exception as e:
+            print(f"Exception occurred: {e}")
             self.ErrorMsg(f"Error occurred: {e}")
             self.setButtonstoDefault()
             return None
@@ -318,14 +333,20 @@ class NoNameYetPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         print(f"Common string: {common_string}")
 
-        # Add attribute to all layers in current project with common string
-        add_attribute_to_layers(common_string, QgsProject.instance().mapLayers())
+        # Get the path to the config file with base LandUse codes and keywords for zabaged layers
+        attribute_template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config",
+                                               "zabaged_to_LandUseCode_table.conf")
+        # Add attribute updated LandUse codes and buffer line features to all layers in current project with common string
+        add_attribute_to_LandUse_and_buffer_to_layers(common_string, QgsProject.instance().mapLayers(), attribute_template_path)
 
         # Clip all layer with common string to the polygon or extent by AreaFlag
         clip_layers_with_common_string(common_string, QgsProject.instance().mapLayers(), self.AreaFlag, self.polygon,
                                        self.ymin, self.xmin, self.ymax, self.xmax)
 
-        stack_layers(QgsProject.instance(), common_string)
+        # Stack layers with LandUse code into one
+        stacking_template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config",
+                                               "layers_merging_order.conf")
+        stack_layers(QgsProject.instance(), common_string, stacking_template_path)
 
         # Modify the UI elements after task completion
         print("Task finished.")

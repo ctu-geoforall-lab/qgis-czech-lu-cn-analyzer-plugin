@@ -1,5 +1,6 @@
 import os
 import processing
+import yaml
 
 from PyQt5.QtCore import QVariant
 from qgis.core import (
@@ -67,9 +68,9 @@ def clip_layer(layer, extent, layer_name):
     return clipped_layer
 
 
-def load_zabaged_layers():
+def load_zabaged_layers(config_path):
     """ Load WFS layers from the configuration file"""
-    config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "zabagedlayers.conf")
+
     try:
         with open(config_path, "r") as file:
             return [line.strip() for line in file]
@@ -78,9 +79,9 @@ def load_zabaged_layers():
         return []
 
 
-def get_wfs_info(use_polygon, polygon=None):
+def get_wfs_info(use_polygon, config_path, polygon=None ):
     """ Get WFS layers and extent information"""
-    wfs_layers = load_zabaged_layers()
+    wfs_layers = load_zabaged_layers(config_path)
     if not wfs_layers:
         return "ERR_missingconffile", 0, 0, 0, 0, None  # return error code for later handling
 
@@ -95,10 +96,10 @@ def get_wfs_info(use_polygon, polygon=None):
     return wfs_layers, extent.yMinimum(), extent.xMinimum(), extent.yMaximum(), extent.xMaximum(), extent
 
 
-def process_wfs_layer(layer_name, ymin, xmin, ymax, xmax, extent):
+def process_wfs_layer(layer_name, ymin, xmin, ymax, xmax, extent, URL):
     """ Load and clip a WFS layer to the given extent"""
     uri = (
-        f"https://ags.cuzk.cz/arcgis/services/ZABAGED_POLOHOPIS/MapServer/WFSServer?"
+        f"{URL}?"
         f"&version=2.0.0&request=GetFeature&typename={layer_name}"
         f"&bbox={xmin},{ymin},{xmax},{ymax},EPSG:5514"
     )
@@ -113,23 +114,6 @@ def process_wfs_layer(layer_name, ymin, xmin, ymax, xmax, extent):
         print(f"Successfully clipped layer: {layer_name}, feature count: {clipped_layer.featureCount()}")
         return clipped_layer
 
-
-def load_raster_layer(extent):
-    """ Load raster layer from WMS service """
-    wms_uri = (
-        f"contextualWMSLegend=0&crs=EPSG:5514&dpiMode=7&format=image/png&"
-        f"layers=DPB_KUL&styles=&url=https://mze.gov.cz/public/app/wms/public_DPB_PB_OPV.fcgi&"
-        f"tilePixelRatio=0&bbox={extent.xMinimum()},{extent.yMinimum()},{extent.xMaximum()},{extent.yMaximum()}"
-    )
-
-    rlayer = QgsRasterLayer(wms_uri, 'Raster Layer', 'wms')
-    if rlayer.isValid():
-        QgsProject.instance().addMapLayer(rlayer)
-        print("Successfully loaded raster layer")
-        return rlayer
-    else:
-        print("Failed to load raster layer")
-        return None
 
 
 def common_prefix(lines):
@@ -158,7 +142,7 @@ def common_prefix(lines):
 
 def get_common_string():
     """ Get the common string part for each line in zabaged.conf file"""
-    config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "zabagedlayers.conf")
+    config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),"config", "zabagedlayers.conf")
     try:
         with open(config_path, "r") as file:
             lines = file.readlines()
@@ -170,7 +154,7 @@ def get_common_string():
     except Exception as e:
         return f"conf_file_err: {str(e)}"
 
-def add_attribute_to_layers(common_string, qgs_project):
+def add_attribute_to_LandUse_and_buffer_to_layers(common_string, qgs_project, attribute_template_path):
     """ Add an attribute to all layers with the common string"""
     layers = qgs_project.values()
     for layer in layers:
@@ -179,7 +163,6 @@ def add_attribute_to_layers(common_string, qgs_project):
             layer.dataProvider().addAttributes([QgsField("LandUse_code", QVariant.Int)])
             layer.updateFields()
 
-            attribute_template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "zabaged_to_LandUseCode_table.conf")
             with open(attribute_template_path, "r") as file:
                 for line in file:
                     # split line by ; to get all names but don use the last one
@@ -188,19 +171,72 @@ def add_attribute_to_layers(common_string, qgs_project):
                     code = int(line.split(";")[-2])
 
                     if any(name.lower() in layer_name.lower() for name in names):
-
                         layer.startEditing()
                         for feature in layer.getFeatures():
                             feature["LandUse_code"] = code
                             layer.updateFeature(feature)
                         layer.commitChanges()
 
-            # Add more specific code for the categorized forest layer by druh_k attribute
-            if "les" in layer_name.lower() and "kategor" in layer_name.lower():
-                forest_layer_edit(layer)
+                # ----------------------------------------------------------------------------------
+                # Buffer line layers - zabaged_atr_to_Buffer.yaml
+                try:
+                    BUF_config_path = os.path.join(os.path.dirname(__file__), 'config', 'zabaged_atr_to_Buffer.yaml')
+                    with open(BUF_config_path, 'r') as BUFfile:
+                        BUFconfig = yaml.safe_load(BUFfile)
 
-            if "silnice" in layer_name.lower() and "dálnice" in layer_name.lower():
-                road_layer_edit(layer, common_string)
+                        # Loop through each layer configuration in the YAML file
+                        for layer_config in BUFconfig['buffer_layers']:
+                            default_buffer = layer_config['default_buffer']
+                            buffer_levels = layer_config['buffer_levels']
+                            controlling_atr_name = layer_config['controlling_atr_name']
+                            input_layer_name = layer_config['input_layer_name']
+
+                            priorities = []
+                            values = []
+                            distances = []
+                            for buffer_level in buffer_levels:
+                                priorities.append(buffer_level['priority'])
+                                values.append(buffer_level['values'])
+                                distances.append(buffer_level['distance'])
+
+                            if input_layer_name == layer_name:
+                                attribute_layer_buffer(
+                                    layer,
+                                    controlling_atr_name=controlling_atr_name,
+                                    default_buffer=default_buffer,
+                                    priorities=priorities,
+                                    values=values,
+                                    distances=distances,
+                                    input_layer_name=input_layer_name
+                                )
+
+                except Exception as e:
+                    print(f"Failed to buffer layer attributes: {e}")
+                    print("Please check the zabaged_atr_to_Buffer.yaml file for errors!")
+                #----------------------------------------------------------------------------------
+                # Edit ZABAGED layers LandUse code by its attributes - zabaged_atr_to_LandUse.yaml
+                try:
+                    ATR_config_path = os.path.join(os.path.dirname(__file__), 'config', 'zabaged_atr_to_LandUse.yaml')
+                    with open(ATR_config_path, 'r') as ATRfile:
+                        ATRconfig = yaml.safe_load(ATRfile)
+
+                        # Loop through each layer configuration in the YAML file
+                        for layer_config in ATRconfig['layers']:
+                            # Extract parameters for each layer
+                            base_use_code = layer_config['base_use_code']
+                            controlling_attribute = layer_config['controlling_attribute']
+                            value_increments = layer_config['value_increments']
+
+                            # Call the function for each layer configuration
+                            attribute_layer_edit(
+                                layer,
+                                base_use_code=base_use_code,
+                                controlling_attribute=controlling_attribute,
+                                value_increments=value_increments
+                            )
+                except Exception as e:
+                    print(f"Failed to edit layer attributes: {e}")
+                    print("Please check the zabaged_atr_to_LandUse.yaml file for errors!")
 
 def clip_layers_with_common_string(common_string, qgs_project, AreaFlag, polygon, ymin, xmin, ymax, xmax):
     """ Clip all layers with the common string to the given extent or polygon """
@@ -211,12 +247,12 @@ def clip_layers_with_common_string(common_string, qgs_project, AreaFlag, polygon
             clipped_layer = None  # Initialize clipped_layer to None
             if not AreaFlag:  # Clip by extent
                 extent = QgsRectangle(xmin, ymin, xmax, ymax)
-                clipped_layer = clip_layer(layer, extent, f"{layer_name}_clipped")
+                clipped_layer = clip_layer(layer, extent, f"{layer_name}")
             else:  # Clip by polygon
                 if polygon:
                     extent = polygon.extent()
-                    clipped_layer = clip_layer(layer, extent, f"{layer_name}_clipped")
-                    clipped_layer = clip_layer_by_polygon(clipped_layer, polygon, f"{layer_name}_clipped_by_polygon")
+                    clipped_layer = clip_layer(layer, extent, f"{layer_name}")
+                    clipped_layer = clip_layer_by_polygon(clipped_layer, polygon, f"{layer_name}")
 
             if clipped_layer and clipped_layer.isValid():
                 QgsProject.instance().addMapLayer(clipped_layer)
@@ -250,57 +286,16 @@ def clip_layer_by_polygon(layer, polygon, layer_name):
 
     return clipped_layer
 
-def stack_layers(qgs_project,common_string):
+def stack_layers(qgs_project,common_string, stacking_template_path):
     """
-    Merge polygon layers by their priority:
-    1) roads and paths
-    2) water bodies and streams
-    3) buildings
-    4) LPIS
-    5) other ZABAGED layers
-
+    Merge polygon layers by their priority from the stacking list - layers_merging_order.conf
     Also removes original input layers
     """
-    lvl1_layer = []
-    lvl2_layer = []
-    lvl3_layer = []
-    lvl4_layer = []
-    lvl5_layer = []
 
-    layers = qgs_project.mapLayers().values()
-    for layer in layers:
-        # Only process vector layers and polygons
-        if isinstance(layer, QgsVectorLayer) and layer.geometryType() == 2:
-            layer_name = layer.name()
+    print("--- Merging polygon layers ---")
 
-            if common_string in layer_name or "LPIS" in layer_name:
 
-                # 1) roads and paths
-                if any(substring in layer_name for substring in
-                       ["Silnice", "Pěšina", "Cesta", "Ulice", "Most", "Lávka", "Parkoviště", "trať", "Koleiště",
-                        "Tramvajová", "točna"]):
-                    lvl1_layer.append(layer)
-
-                # 2) water bodies and streams
-                elif any(substring in layer_name for substring in ["tok", "Vodní_plocha"]):
-                    lvl2_layer.append(layer)
-
-                # 3) buildings
-                elif any(substring in layer_name for substring in
-                         ["Budova", "Věž", "Kůlna", "věž", "zásobní", "Silo", "Vodojem", "Větrný", "Rozvalina",
-                          "Hradba", "Zeď", "Hrad", "Zámek", "stavba", "Tribuna", "Stavební", "zastávka",
-                          "Stožár", "Elektrárna"]):
-                    lvl3_layer.append(layer)
-
-                # 4) LPIS
-                elif "LPIS" in layer_name:
-                    lvl4_layer.append(layer)
-
-                # 5) other ZABAGED layers
-                else:
-                    lvl5_layer.append(layer)
-
-    # Function to merge layers at each level
+    # Function to merge layers
     def merge_layers(level_layers, output_name):
         if len(level_layers) > 0:
             merged_layer = processing.run(
@@ -308,34 +303,63 @@ def stack_layers(qgs_project,common_string):
                 {'LAYERS': level_layers, 'CRS': level_layers[0].crs(), 'OUTPUT': 'memory:'}
             )['OUTPUT']
             merged_layer.setName(output_name)
+            QgsProject.instance().addMapLayer(merged_layer)  # Add merged layer to the project
             return merged_layer
         return None
 
-    # Merge layers by priority level
-    merged_lvl1 = merge_layers(lvl1_layer, "Merged_LVL1")
-    merged_lvl2 = merge_layers(lvl2_layer, "Merged_LVL2")
-    merged_lvl3 = merge_layers(lvl3_layer, "Merged_LVL3")
-    merged_lvl4 = merge_layers(lvl4_layer, "Merged_LVL4")
-    merged_lvl5 = merge_layers(lvl5_layer, "Merged_LVL5")
+    with open(stacking_template_path, 'r') as STCfile:
+        # Skip first line and read others in order and put them in a list
+        STClines = STCfile.readlines()[1:]
+        STClist = [line.strip() for line in STClines]
+        print(f"Ordering layers by priority: {STClist} - editable in layers_merging_order.conf")
 
-    # Combine merged levels into a final stacked layer
-    final_merged_layers = [layer for layer in [merged_lvl5, merged_lvl4, merged_lvl3, merged_lvl2, merged_lvl1] if
-                           layer]
+        layers = qgs_project.mapLayers().values()
+        LayerOrderedList = []
 
-    # Create final merged layer if there are any layers to merge
-    if final_merged_layers:
-        final_merged = processing.run(
-            "native:mergevectorlayers",
-            {'LAYERS': final_merged_layers, 'CRS': final_merged_layers[0].crs(), 'OUTPUT': 'memory:'}
-        )['OUTPUT']
-        final_merged.setName("Final_Merged_Layers")
-        qgs_project.addMapLayer(final_merged)
+        for layer in layers:
+            # Only process vector layers and polygons
+            if isinstance(layer, QgsVectorLayer) and layer.geometryType() == 2:
+                layer_name = layer.name()
 
-    # Remove original layers after merging
-    for layer in layers:
-        layer_name = layer.name()
-        if isinstance(layer, QgsVectorLayer) and layer.geometryType() == 2 and (common_string in layer_name or "LPIS" in layer_name):
+                if common_string in layer_name or "LPIS" in layer_name:
+                    # Check if the layer is in the stacking list
+                    if layer_name in STClist:
+                        LayerOrderedList.append(layer)
+                    else:
+                        print(f"Layer '{layer_name}' not found in the stacking list.")
+                        continue
+
+        # Order layers by STClist, filtering only layers found in STClist
+        LayerOrderedList = sorted(LayerOrderedList, key=lambda x: STClist.index(x.name()))
+
+        # Merge each layer in order and stack by priority level
+        priority_merged_layers = []
+        for idx, layer in enumerate(LayerOrderedList):
+            merged_layer = merge_layers([layer], f"Merged_Layer_Priority_{idx + 1}")
+            if merged_layer:
+                priority_merged_layers.append(merged_layer)
+
+        # Reverse the list to merge the layers in the correct order
+        priority_merged_layers.reverse()
+        # Merge all priority layers together in the specified order
+        final_merged_layer = merge_layers(priority_merged_layers, "Final_Merged_Layer")
+
+        # Add the final merged layer to the project
+        if final_merged_layer:
+            QgsProject.instance().addMapLayer(final_merged_layer)
+        else:
+            print("Failed to merge layers.")
+
+        # Remove partial Marged_Layer layers
+        for layer in priority_merged_layers:
             QgsProject.instance().removeMapLayer(layer.id())
 
-    print("Layers merged by priority with Final_Merged_Layers stacked by level.")
-    return None
+        # Remove original layers after merging
+        for layer in layers:
+            layer_name = layer.name()
+            if isinstance(layer, QgsVectorLayer) and layer.geometryType() == 2 and (
+                    common_string in layer_name or "LPIS" in layer_name):
+                QgsProject.instance().removeMapLayer(layer.id())
+
+        print("Layers merged by priority and added to the project as Final_Merged_Layer.")
+        return None
