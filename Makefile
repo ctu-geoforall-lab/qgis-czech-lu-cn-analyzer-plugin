@@ -1,12 +1,12 @@
 #/***************************************************************************
-# NoNameYetPlugin
+# CzechLandUseandCNAnalyzer
 #
-# NoNameYetPlugin
+# This plugin downloads czech geospatial data via WFS and evaluates them by land use. Then it can procees CN(Runoff curve number) analysis.
 #							 -------------------
-#		begin				: 2024-07-19
+#		begin				: 2024-11-24
 #		git sha				: $Format:%H$
-#		copyright			: (C) 2024 by CTU
-#		email				: jehlijos@cvut.cz
+#		copyright			: (C) 2024 by CTU Prague
+#		email				: jehlijos@proton.me
 # ***************************************************************************/
 #
 #/***************************************************************************
@@ -38,15 +38,15 @@ LOCALES =
 # translation
 SOURCES = \
 	__init__.py \
-	NoNameYetPlugin.py NoNameYetPlugin_dockwidget.py
+	czech_land_use_and_CN_Analyzer.py czech_land_use_and_CN_Analyzer_dockwidget.py
 
-PLUGINNAME = NoNameYetPlugin
+PLUGINNAME = czech_land_use_and_CN_Analyzer
 
 PY_FILES = \
 	__init__.py \
-	NoNameYetPlugin.py NoNameYetPlugin_dockwidget.py
+	czech_land_use_and_CN_Analyzer.py czech_land_use_and_CN_Analyzer_dockwidget.py
 
-UI_FILES = NoNameYetPlugin_dockwidget_base.ui
+UI_FILES = czech_land_use_and_CN_Analyzer_dockwidget_base.ui
 
 EXTRAS = metadata.txt icon.png
 

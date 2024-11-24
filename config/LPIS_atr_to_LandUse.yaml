@@ -1,0 +1,24 @@
+# This file contains settings for LPIS layer where their LandUse code is updated by some value in its attribute.
+# base_use_code is the LandUse code for the whole layer, and numbers from values in the controlling attribute are added to base_use_code.
+layers:
+  - name: "LPIS_layer"
+    base_use_code: 10000
+    controlling_attribute: "kultura"
+    value_increments:
+      "standartní orná půda": 0
+      "chmelnice": 40000
+      "vinice": 40000
+      "ovocný sad": 40000
+      "trvalý travní porost": 3300
+      "travní porost (na orné půdě)": 1500
+      "rybník": 67200
+      "zalesněná půda": 999999999
+      "mimoprodukční plocha": 56400
+      "jiná trvalá kultura": 999999999
+      "jiná kultura": 999999999
+      "školka": 2100
+      "plocha s kontejnery": 999999999
+      "rychle rostoucí dřeviny pěstované na výmladkových plantážích": 999999999
+      "plocha s víceletými produkčními plodinami": 999999999
+      "plocha s lanýži": 999999999
+

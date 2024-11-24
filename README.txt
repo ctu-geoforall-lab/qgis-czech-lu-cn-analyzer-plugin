@@ -1,7 +1,7 @@
 Plugin Builder Results
 
-Your plugin NoNameYetPlugin was created in:
-    /home/jehlijos/Desktop/PK_to_JoJe/plugin/nonameyetplugin
+Your plugin CzechLandUseandCNAnalyzer was created in:
+    /home/jehlijos/Desktop/PK_to_JoJe/newplug/NEWNEW2/czech_land_use_and_cn_analyzer
 
 Your QGIS plugin directory is located at:
     /home/jehlijos/.local/share/QGIS/QGIS3/profiles/default/python/plugins
@@ -17,11 +17,11 @@ What's Next:
 
   * Test the plugin by enabling it in the QGIS plugin manager
 
-  * Customize it by editing the implementation file: ``NoNameYetPlugin.py``
+  * Customize it by editing the implementation file: ``czech_land_use_and_CN_Analyzer.py``
 
   * Create your own custom icon, replacing the default icon.png
 
-  * Modify your user interface by opening NoNameYetPlugin_dockwidget_base.ui in Qt Designer
+  * Modify your user interface by opening CzechLandUseandCNAnalyzer_dockwidget_base.ui in Qt Designer
 
   * You can use the Makefile to compile your Ui and resource files when
     you make changes. This requires GNU make (gmake)

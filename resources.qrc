@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/plugins/NoNameYetPlugin" >
+    <qresource prefix="/plugins/czech_land_use_and_CN_Analyzer" >
         <file>icon.png</file>
     </qresource>
 </RCC>

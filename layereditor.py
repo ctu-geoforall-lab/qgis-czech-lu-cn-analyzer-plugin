@@ -16,7 +16,8 @@ from qgis.utils import iface
 from PyQt5.QtCore import Qt
 
 
-def attribute_layer_edit(layer, base_use_code, controlling_attribute, value_increments):
+def attribute_layer_edit(layer: QgsVectorLayer, base_use_code: int,
+                         controlling_attribute: str, value_increments: dict) -> None:
     """
     Edit the layer based on the controlling attribute
     Add a more specific code to the LandUse_code field based on attribute values
@@ -47,7 +48,8 @@ def attribute_layer_edit(layer, base_use_code, controlling_attribute, value_incr
     layer.commitChanges()
 
 
-def attribute_layer_buffer(layer, controlling_atr_name, default_buffer, priorities, values, distances, input_layer_name):
+def attribute_layer_buffer(layer: QgsVectorLayer, controlling_atr_name: str, default_buffer: float, priorities: list, values: list, distances: list, input_layer_name: str) -> None:
+
     """
     Edit the line or point layer (layer)
     Buffer the features by their attribute (controlling_atr_name) values (values)

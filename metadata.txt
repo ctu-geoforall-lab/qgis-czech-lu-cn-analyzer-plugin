@@ -3,17 +3,17 @@
 # This file should be included when you package your plugin.# Mandatory items:
 
 [general]
-name=NoNameYetPlugin
+name=Czech Land Use and CN Analyzer
 qgisMinimumVersion=3.0
-description=NoNameYetPlugin
-version=0.1
-author=CTU
-email=jehlijos@cvut.cz
+description=This plugin downloads czech geospatial data via WFS and evaluates them by land use. Then it can procees CN(Runoff curve number) analysis.
+version=0.2
+author=CTU Prague
+email=jehlijos@proton.me
 
-about=Provide a brief description of the plugin and its purpose.
+about=This plugin downloads czech geospatial data via WFS and evaluates them by land use. Then it can procees CN(Runoff curve number) analysis.
 
-tracker=https://github.com/ctu-geoforall-lab/qgis-zabaged-plugin/issues
-repository=https://github.com/ctu-geoforall-lab/qgis-zabaged-plugin
+tracker=https://github.com/ctu-geoforall-lab
+repository=https://github.com/ctu-geoforall-lab
 # End of mandatory metadata
 
 # Recommended items:
@@ -25,7 +25,7 @@ hasProcessingProvider=no
 # Tags are comma separated with spaces allowed
 tags=python
 
-homepage=http://homepage
+homepage=https://github.com/ctu-geoforall-lab
 category=Plugins
 icon=icon.png
 # experimental flag
