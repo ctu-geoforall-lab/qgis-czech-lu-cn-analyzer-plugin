@@ -1,4 +1,4 @@
-![plugin icon](https://github.com/jehlijos/hydro/blob/main/docs/images/baner.png?raw=true) <br>
+![plugin icon](https://github.com/ctu-geoforall-lab/qgis-zabaged-plugin/blob/main/docs/images/baner.png?raw=true) <br>
 Načítání vrstev není úplně nejrychlejší. <br>
 Pro správnou funkci je potřeba mít v projektu nastaven CRS na EPSG:5514 <br>
 Testováno na MS Windows a Linux(Ubuntu). <br> <br>
