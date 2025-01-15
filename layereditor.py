@@ -14,6 +14,7 @@ from qgis.core import (
 )
 from qgis.utils import iface
 from PyQt5.QtCore import Qt
+from typing import Optional
 
 
 def attribute_layer_edit(layer: QgsVectorLayer, base_use_code: int,
@@ -48,7 +49,7 @@ def attribute_layer_edit(layer: QgsVectorLayer, base_use_code: int,
     layer.commitChanges()
 
 
-def attribute_layer_buffer(layer: QgsVectorLayer, controlling_atr_name: str, default_buffer: float, priorities: list, values: list, distances: list, input_layer_name: str) -> None:
+def attribute_layer_buffer(layer: QgsVectorLayer, controlling_atr_name: str, default_buffer: float, priorities: list, values: list, distances: list, input_layer_name: str, temp_dir: str) -> Optional[QgsVectorLayer]:
 
     """
     Edit the line or point layer (layer)
@@ -93,9 +94,9 @@ def attribute_layer_buffer(layer: QgsVectorLayer, controlling_atr_name: str, def
         # Buffer the feature
         geom = feature.geometry()
         print(f"Feature ID {feature.id()} geometry type: {geom.wkbType()}")
-        if geom.wkbType() == 1:
+        if geom.wkbType() == 1 or geom.wkbType() == 4: # 1 = Point, 4 = Multipoint
             buffer = geom.buffer(buffer_distance, 5)
-        elif geom.wkbType() == 2:
+        elif geom.wkbType() == 2 or geom.wkbType() == 5: # 2 = LineString, 5 = MultiLineString
             buffer = geom.buffer(buffer_distance, 2)
         else:
             print(f"Warning: Unsupported geometry type for feature ID {feature.id()} in layer '{layer.name()}'")
@@ -112,10 +113,12 @@ def attribute_layer_buffer(layer: QgsVectorLayer, controlling_atr_name: str, def
     if not buffer_layer.commitChanges():
         print("Failed to commit changes to the buffer layer.")
     else:
-        QgsProject.instance().addMapLayer(buffer_layer)
-        print("Buffer layer added to the project.")
+        # Remove the original geojson file
+        if os.path.exists(f"{temp_dir}/{layer.name()}.geojson"):
+            os.remove(f"{temp_dir}/{layer.name()}.geojson")
+            print("Original geojson file removed from the temporary directory.")
 
-    # Remove the original input layer from the QGIS project
-    QgsProject.instance().removeMapLayer(layer.id())
-    print("Original layer removed from the project.")
+        return buffer_layer
+
+
     print("---BUFFERING COMPLETE---")

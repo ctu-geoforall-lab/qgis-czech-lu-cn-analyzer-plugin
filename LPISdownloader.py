@@ -3,17 +3,19 @@ This file focuses on downloading the LPIS data.
 """
 from typing import Type
 
-from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsProject, QgsField, QgsVectorDataProvider
+
+
+from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsProject, QgsField, QgsVectorDataProvider, QgsVectorFileWriter
 from PyQt5.QtCore import QVariant
 import yaml
 
 
-from .function import process_wfs_layer, ClipByPolygon
+from .function import process_wfs_layer, ClipByPolygon, save_layer_as_geojson
 from .layereditor import attribute_layer_edit
 
 
 def GetLPISLayer(LPISURL: str, layer_name: str, LPISLandUseCodes: str, ymin: float, xmin: float, ymax: float, xmax:
-float, current_extent: QgsGeometry, polygon: QgsVectorLayer, AreaFlag: bool, QgsProject: Type[QgsProject]) -> QgsVectorLayer:
+float, current_extent: QgsGeometry, polygon: QgsVectorLayer, AreaFlag: bool, temp_dir: str) -> QgsVectorLayer:
 
     """
     Downloads and processes an LPIS layer, optionally clips it by a polygon, and adds it to the QGIS project.
@@ -62,9 +64,14 @@ float, current_extent: QgsGeometry, polygon: QgsVectorLayer, AreaFlag: bool, Qgs
         # Clip the layer to the polygon if the AreaFlag is set
     if AreaFlag and polygon:
         # Clip the layer to the polygon
-        ClipByPolygon(LPISlayer, polygon)
+        ClipByPolygon(LPISlayer, polygon, temp_dir)
     else:
-        # Add the unclipped layer to the map if it contains features based on the AreaFlag
-        QgsProject.instance().addMapLayer(LPISlayer)
+        # Add the unclipped layer to the temp_dir if it contains features based on the AreaFlag
+        # Save the layer to the specified temp_dir
+        file_path, error_message = save_layer_as_geojson(LPISlayer, temp_dir, "LPIS_layer")
+        if error_message:
+            print(error_message)
+        else:
+            print(f"Layer saved successfully at {file_path}")
 
     return LPISlayer
