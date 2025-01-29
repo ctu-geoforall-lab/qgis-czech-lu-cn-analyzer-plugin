@@ -13,7 +13,8 @@ Testováno na MS Windows a Linux(Ubuntu). <br> <br>
 - Na vrstvu silnic je aplikován buffer dle typu silnice
 - Polygonové vrstvy ZABAGED jsou spojeny do jedné vrstvy dle dané priority vrstev
 - Vstupní parametry jsou čteny z konfiguračních souborů.
-- **nově: LPIS vrstva je připojena, ohodnocena dle typu parcely a sloučena do finální vrstvy dle priority.**
+- LPIS vrstva je připojena, ohodnocena dle typu parcely a sloučena do finální vrstvy dle priority.
+- **nově: Dočasné vrstvy nejsou přidávány do projektu."
 
 ## Popis konfiguračních souborů
 Tyto soubory se nachází ve složce *config* <br>

@@ -28,11 +28,6 @@ from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.core import Qgis, QgsMapLayerProxyModel, QgsProject, QgsApplication, QgsTask
 
-import contextlib
-import os
-import shutil
-import tempfile
-
 from .function import *
 from .LPISdownloader import GetLPISLayer
 
@@ -45,13 +40,13 @@ class TASK_process_wfs_layer(QgsTask):
     QgsTask subclass to process (download and clip) WFS layers.
     Task updates GUI in czech_land_use_and_CN_AnalyzerDockWidget.
     """
-    progressChanged = pyqtSignal(int)   # Signal emitted to update the progress bar
-    taskFinished = pyqtSignal(bool)     # Signal emitted when the downloading is finished
-    taskCanceled = pyqtSignal(bool)     # Signal emitted when the task is canceled by user in GUI and ends loop in run method
-    taskError = pyqtSignal(str)         # Signal emitted when an error occurs during the task
+    progressChanged = pyqtSignal(int)         # Signal emitted to update the progress bar
+    taskCanceled = pyqtSignal(bool)           # Signal emitted when the task is canceled by user in GUI and ends loop in run method
+    taskError = pyqtSignal(str)               # Signal emitted when an error occurs during the task
+    taskFinished = pyqtSignal(list)           # Signal to pass LandUseLayers
 
     def __init__(self, wfs_layers, ymin, xmin, ymax, xmax, current_extent, polygon, flag, label, progress_bar,
-                 run_button, abort_button, polygon_button, extent_button, temp_dir):
+                 run_button, abort_button, polygon_button, extent_button, LandUseLayers):
         super().__init__("Process WFS Layers", QgsTask.CanCancel)
         self.wfs_layers = wfs_layers
         self.ymin, self.xmin, self.ymax, self.xmax = ymin, xmin, ymax, xmax
@@ -60,7 +55,9 @@ class TASK_process_wfs_layer(QgsTask):
         self.runButton, self.abortButton = run_button, abort_button  # to enable/disable them
         self.polygonButton, self.extentButton = polygon_button, extent_button  # to enable/disable them
         self._is_canceled, self.plus_one_index, self.layer = False, 0, None
-        self.temp_dir = temp_dir
+
+        self.LandUseLayers = LandUseLayers # List of LandUse layers for merge in the end
+
         # Connect the abort button to the cancel method
         self.abortButton.clicked.connect(self.cancel)
 
@@ -79,12 +76,12 @@ class TASK_process_wfs_layer(QgsTask):
 
     def finished(self, result):
         """Handle the WFS layer task completion."""
-        self.taskFinished.emit(True)
+        print("Task finished. " + str(len(self.LandUseLayers)) )
+        self.taskFinished.emit(self.LandUseLayers)  # Emit layers when task completes
+
 
     def run(self):
         """Run the task of downloading WFS layers."""
-        if not os.path.exists(self.temp_dir):
-            raise FileNotFoundError(f"!Temporary directory not found: {self.temp_dir}")
 
         print("Downloading LPIS layer ...")
 
@@ -93,12 +90,13 @@ class TASK_process_wfs_layer(QgsTask):
         # Load the LPIS layer name from config file
         LPISlayername = load_one_line_config("LPIS_layer_name.conf")
 
-        # Load yaml file with LPIS LandUse codes nad attributes from config file
+        # Load yaml file with LPIS LandUse codes nad atributtes from config file
         LPISLandUseCodes = os.path.join(os.path.dirname(__file__), 'config', 'LPIS_atr_to_LandUse.yaml')
 
-        # Run function to download LPIS from wfs in LPISdownloader.py
-        GetLPISLayer(LPISURL, LPISlayername, LPISLandUseCodes, self.ymin, self.xmin, self.ymax, self.xmax,
-                     self.current_extent, self.polygon, self.AreaFlag, self.temp_dir)
+        # Run fucntion to download LPIS from wfs in LPISdownloader.py
+        self.LandUseLayers = GetLPISLayer(LPISURL, LPISlayername, LPISLandUseCodes, self.ymin, self.xmin, self.ymax, self.xmax,
+                     self.current_extent, self.polygon,
+                     self.AreaFlag, self.LandUseLayers)
 
         try:
             print("Task started...")
@@ -124,10 +122,14 @@ class TASK_process_wfs_layer(QgsTask):
 
                 # Clip the layer to the polygon if the AreaFlag is set
                 if self.AreaFlag and self.polygon:
-                    ClipByPolygon(wfsLayer, self.polygon, self.temp_dir)
+                    clippedLayer  = ClipByPolygon(wfsLayer, self.polygon)
+                    if clippedLayer is None:
+                        print("POLYGON CLIPPING ERROR")
+                        continue
+                    self.LandUseLayers.append(clippedLayer)
                 else:
                     # Add the unclipped layer to the map if it contains features based on the AreaFlag
-                    save_layer_as_geojson(wfsLayer, self.temp_dir, wfsLayer.name())
+                    self.LandUseLayers.append(wfsLayer)
                     print(f"Added unclipped layer: {wfsLayer.name()}")
 
             print("List of layers processed.")
@@ -138,12 +140,10 @@ class TASK_process_wfs_layer(QgsTask):
         except Exception as e:
             print(f"Error occurred: {e}")
             self.taskError.emit(str(e))
-            return False
+            return None
 
     def cancel(self):
         """Handles task cancellation."""
-        if os.path.exists(self.temp_dir):
-            shutil.rmtree(self.temp_dir)
         super().cancel()
         self._is_canceled = True  # Flag to stop the loop in the run method
         self.taskCanceled.emit(True)
@@ -153,7 +153,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
     """Dock widget class for the czech_land_use_and_CN_Analyzer plugin."""
     closingPlugin = pyqtSignal()
 
-    def __init__(self, polygon=None, ymin=None, ymax=None, xmin=None, xmax=None, AreaFlag=False, temp_dir=None, parent=None):
+    def __init__(self, polygon=None, ymin=None, ymax=None, xmin=None, xmax=None, AreaFlag=False,LandUseLayers=None, parent=None):
         """Constructor."""
         super(czech_land_use_and_CN_AnalyzerDockWidget, self).__init__(parent)
         self.setupUi(self)
@@ -166,7 +166,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         self.xmax = xmax
         self.AreaFlag = AreaFlag
 
-        self.temp_dir = temp_dir
+        self.LandUseLayers = LandUseLayers# List of LandUse layers for merge in the end
 
         # Set filter to map combobox to select only polygons
         self.mMapLayerComboBox.setFilters(QgsMapLayerProxyModel.PolygonLayer)
@@ -174,27 +174,6 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         self.extentButton.toggled.connect(self.ToggleChangeToPolygon)
         self.polygonButton.toggled.connect(self.ToggleChangeToExtent)
         self.runButton.clicked.connect(self.Run)
-
-    @contextlib.contextmanager
-    def cd(self, newdir, cleanup=lambda: True):
-        prevdir = os.getcwd()
-        os.chdir(os.path.expanduser(newdir))
-        try:
-            yield
-        finally:
-            os.chdir(prevdir)
-            cleanup()
-
-    @contextlib.contextmanager
-    def tempdir(self):
-        dirpath = tempfile.mkdtemp()
-
-        def cleanup():
-            if os.path.exists(dirpath):
-                shutil.rmtree(dirpath)
-
-        with self.cd(dirpath, cleanup):
-            yield dirpath
 
     def closeEvent(self, event):
         """Emit the closingPlugin signal when the dock widget is closed."""
@@ -287,33 +266,33 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
                 -920000 <= xmin <= -420000) or not (-920000 <= xmax <= -420000):
             return False
 
+
     def Run(self):
         """
         Run the processing.
         Starts upon clicking the Run button in UI.
         """
-        print("Run button clicked..")
-        print("Creating temporary directory..")
-        # Create temporary directory for downloaded files if it does not exist
+        print("Run button clicked...............")
 
-        self.temp_dir = tempfile.mkdtemp()
-        print(f"Temporary directory created: {self.temp_dir}")
+        self.label.setStyleSheet("QLabel { color : black; }") # Set the label color to black
+        self.progressBar.setValue(0) # Reset progress bar
 
-        self.label.setStyleSheet("QLabel { color : black; }")  # Set the label color to black
-        self.progressBar.setValue(0)  # Reset progress bar
+        self.LandUseLayers = [] # List of LandUse layers for merge in the end
 
         try:
             # Check if the CRS is set to EPSG:5514
             if not self._validate_crs():
                 print("CRS validation failed.")
-                return
+                self.ErrorMsg("Set EPSG to 5514")
+                raise ValueError("Invalid CRS")
 
             # Get the polygon layer if AreaFlag is set
             if self.AreaFlag:
                 self.polygon = self._get_polygon_layer()
                 if self.polygon is None:
                     print("Polygon layer is None.")
-                    return
+                    self.ErrorMsg("Invalid polygon layer")
+                    raise ValueError("Invalid polygon layer")
 
             self.LoadingMsg("Loading data, please wait...")
             # Freeze the UI elements during processing
@@ -323,7 +302,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config", "zabagedlayers.conf")
 
             # Get info for WFS service input based on extent or polygon
-            wfs_layers = get_ZABAGED_layers_list(config_path)  # load WFS layers from config file
+            wfs_layers = get_ZABAGED_layers_list(config_path) # load WFS layers from config file
             self.ymin, self.xmin, self.ymax, self.xmax, current_extent = get_wfs_info(self.AreaFlag, wfs_layers,
                                                                                       self.polygon)
 
@@ -349,7 +328,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             task = TASK_process_wfs_layer(wfs_layers, self.ymin, self.xmin, self.ymax, self.xmax, current_extent,
                                           self.polygon, self.AreaFlag,
                                           self.label, self.progressBar, self.runButton, self.abortButton,
-                                          self.polygonButton, self.extentButton, self.temp_dir)
+                                          self.polygonButton, self.extentButton, self.LandUseLayers)
             print("Task created.")
 
             # Connect signals from Task to update the progress bar and handle task completion
@@ -368,7 +347,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             print(f"Exception occurred: {e}")
             self.ErrorMsg(f"Error occurred: {e}")
             self.setButtonstoDefault()
-
+            return None
 
     def updateProgressBar(self, value):
         """Signaled by task - Update the progress bar value based on the task progress."""
@@ -386,9 +365,12 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         iface.messageBar().clearWidgets()
         iface.messageBar().pushMessage("Exiting", message, level=Qgis.Critical, duration=5)
 
-    def TaskFinished(self):
-        """Signaled by task - Handle the completion of the processing task."""
+    def TaskFinished(self, layers):
+        """Handle task completion and update LandUseLayers."""
+        self.LandUseLayers = layers
+        print(f"Updated LandUseLayers with {len(layers)} layers.")
 
+        print("EDITING LAYERS.. " + str(len(self.LandUseLayers)))
         self.label.setText("Editing ZABAGED layers...")
         # Get the path to the config file with base LandUse codes and keywords for zabaged layers
         attribute_template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config",
@@ -398,23 +380,28 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         # Get the path to the config file with attribute values for LandUse code updates
         ATR_config_path = os.path.join(os.path.dirname(__file__), 'config', 'zabaged_atr_to_LandUse.yaml')
 
-        # Add LandUse attribute to all layers in temporary directory
-        add_landuse_attribute( self.temp_dir, attribute_template_path)
+        print("before adding atr--" + str(len(self.LandUseLayers )))
+        # Add LandUse attribute to all layers in list
+        self.LandUseLayers = add_landuse_attribute(self.LandUseLayers, attribute_template_path)
 
-        # Add buffer line features to all layers in temporary directory
-        buffer_layers( self.temp_dir, BUF_config_path)
+        print(len(self.LandUseLayers))
+        # Add buffer line features to all layers in list
+        self.LandUseLayers = buffer_layers(self.LandUseLayers, BUF_config_path)
 
+        print(len(self.LandUseLayers))
         # Update LandUse code based on its attributes
-        edit_landuse_code( self.temp_dir, ATR_config_path)
+        self.LandUseLayers = edit_landuse_code(self.LandUseLayers, ATR_config_path)
 
-        # Clip all layer in temporary directory to the polygon or extent by AreaFlag (Used as clip after buffering)
-        clip_layers_in_tempdir( self.temp_dir, self.AreaFlag, self.polygon,
+        print(len(self.LandUseLayers))
+        # Clip all layer to the polygon or extent by AreaFlag (Used as clip after buffering)
+        self.LandUseLayers = clip_layers_after_edits(self.LandUseLayers, self.AreaFlag, self.polygon,
                                        self.ymin, self.xmin, self.ymax, self.xmax)
 
+        print(len(self.LandUseLayers))
         # Stack layers with LandUse code into one
         stacking_template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config",
                                                "layers_merging_order.conf")
-        stack_layers(self.temp_dir, stacking_template_path)
+        stack_layers(QgsProject.instance(), self.LandUseLayers, stacking_template_path)
 
         # Modify the UI elements after task completion
         print("Task finished.")
@@ -428,9 +415,8 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         self.extentButton.setEnabled(True)
         iface.messageBar().pushMessage("Success", "Task completed successfully", level=Qgis.Success, duration=5)
 
-    def TaskCanceled(self, temp_dir):
+    def TaskCanceled(self):
         """Signaled by task - Handle the cancellation of the processing task."""
-
         iface.messageBar().clearWidgets()
         iface.messageBar().pushMessage("Warning", "Process was canceled by user", level=Qgis.Warning, duration=5)
         self._reset_ui("Task was canceled by user.", 0)
@@ -438,11 +424,6 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
     def TaskError(self, e):
         """Signaled by task - Handle errors that occurred during the processing task."""
-        # Remove temporary folder with files:
-        for file in os.listdir(self.temp_dir ):
-            os.remove(os.path.join(self.temp_dir, file))
-        os.rmdir(self.temp_dir)
-
         print(f"Error occurred in task: {e}")
         iface.messageBar().pushMessage("ERROR", str(e), level=Qgis.Critical, duration=5)
         self._reset_ui("Error occurred during processing.", 0)

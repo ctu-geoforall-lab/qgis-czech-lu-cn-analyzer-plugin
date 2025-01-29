@@ -14,18 +14,17 @@ from qgis.core import (
 )
 from qgis.utils import iface
 from PyQt5.QtCore import Qt
-from typing import Optional
 
 
 def attribute_layer_edit(layer: QgsVectorLayer, base_use_code: int,
-                         controlling_attribute: str, value_increments: dict) -> None:
+                         controlling_attribute: str, value_increments: dict) -> QgsVectorLayer:
     """
     Edit the layer based on the controlling attribute
     Add a more specific code to the LandUse_code field based on attribute values
     set in the value_increments dictionary
     """
     if controlling_attribute not in layer.fields().names():
-        return  # Exit the function if the attribute is missing
+        raise ValueError(f"Attribute '{controlling_attribute}' not found in layer fields.")
 
     layer.startEditing()
     for feature in layer.getFeatures():
@@ -47,9 +46,11 @@ def attribute_layer_edit(layer: QgsVectorLayer, base_use_code: int,
                 f"{feature.id()} in layer '{layer.name()}'")
 
     layer.commitChanges()
+    return layer
 
 
-def attribute_layer_buffer(layer: QgsVectorLayer, controlling_atr_name: str, default_buffer: float, priorities: list, values: list, distances: list, input_layer_name: str, temp_dir: str) -> Optional[QgsVectorLayer]:
+def attribute_layer_buffer(layer: QgsVectorLayer, controlling_atr_name: str, default_buffer: float, priorities: list,
+                           values: list, distances: list, input_layer_name: str) -> QgsVectorLayer:
 
     """
     Edit the line or point layer (layer)
@@ -75,7 +76,7 @@ def attribute_layer_buffer(layer: QgsVectorLayer, controlling_atr_name: str, def
     if controlling_atr_name not in layer.fields().names():
         print(f"Attribute '{controlling_atr_name}' not found in layer fields.")
         print(f"Layer fields: {layer.fields().names()}")
-        return  # Exit the function if the attribute is missing
+        raise ValueError(f"Attribute '{controlling_atr_name}' not found in layer fields.")
 
     # Create a new memory layer to store the buffered features
     buffer_layer = QgsVectorLayer(f"Polygon?crs={layer.crs().authid()}", f"{input_layer_name}", "memory")
@@ -113,11 +114,6 @@ def attribute_layer_buffer(layer: QgsVectorLayer, controlling_atr_name: str, def
     if not buffer_layer.commitChanges():
         print("Failed to commit changes to the buffer layer.")
     else:
-        # Remove the original geojson file
-        if os.path.exists(f"{temp_dir}/{layer.name()}.geojson"):
-            os.remove(f"{temp_dir}/{layer.name()}.geojson")
-            print("Original geojson file removed from the temporary directory.")
-
         return buffer_layer
 
 

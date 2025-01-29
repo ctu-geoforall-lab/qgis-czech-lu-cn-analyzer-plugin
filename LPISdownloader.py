@@ -3,29 +3,27 @@ This file focuses on downloading the LPIS data.
 """
 from typing import Type
 
-
-
-from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsProject, QgsField, QgsVectorDataProvider, QgsVectorFileWriter
+from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsProject, QgsField, QgsVectorDataProvider
 from PyQt5.QtCore import QVariant
 import yaml
 
 
-from .function import process_wfs_layer, ClipByPolygon, save_layer_as_geojson
+from .function import process_wfs_layer, ClipByPolygon
 from .layereditor import attribute_layer_edit
 
 
 def GetLPISLayer(LPISURL: str, layer_name: str, LPISLandUseCodes: str, ymin: float, xmin: float, ymax: float, xmax:
-float, current_extent: QgsGeometry, polygon: QgsVectorLayer, AreaFlag: bool, temp_dir: str) -> QgsVectorLayer:
+float, current_extent: QgsGeometry, polygon: QgsVectorLayer, AreaFlag: bool, LayerList: list) -> list:
 
     """
-    Downloads and processes an LPIS layer, optionally clips it by a polygon, and adds it to the QGIS project.
+    Downloads and processes an LPIS layer, optionally clips it by a polygon, and returns updated list of layers.
     """
 
     LPISlayer = process_wfs_layer(layer_name, ymin, xmin, ymax, xmax, current_extent, LPISURL)
 
     if LPISlayer is None:
         print("Layer not found")
-        return QgsVectorLayer()
+        return LayerList
 
     # Set LPIS layer name to "LPIS_layer"
     LPISlayer.setName("LPIS_layer")
@@ -51,27 +49,22 @@ float, current_extent: QgsGeometry, polygon: QgsVectorLayer, AreaFlag: bool, tem
 
     except FileNotFoundError:
         print(f"Error: File not found --- possibly corrupted LPIS_atr_to_LandUse.yaml file")
-        return QgsVectorLayer()
+        return LayerList
 
     except yaml.YAMLError as e:
         print(f"Error: YAML error --- {e}")
-        return QgsVectorLayer()
+        return LayerList
 
     except Exception as e:
         print(f"Error: {e}")
-        return QgsVectorLayer()
+        return LayerList
 
         # Clip the layer to the polygon if the AreaFlag is set
     if AreaFlag and polygon:
         # Clip the layer to the polygon
-        ClipByPolygon(LPISlayer, polygon, temp_dir)
+        ClipByPolygon(LPISlayer, polygon)
     else:
-        # Add the unclipped layer to the temp_dir if it contains features based on the AreaFlag
-        # Save the layer to the specified temp_dir
-        file_path, error_message = save_layer_as_geojson(LPISlayer, temp_dir, "LPIS_layer")
-        if error_message:
-            print(error_message)
-        else:
-            print(f"Layer saved successfully at {file_path}")
+        # Add the unclipped layer to the map if it contains features based on the AreaFlag
+        LayerList.append(LPISlayer)
 
-    return LPISlayer
+    return LayerList

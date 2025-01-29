@@ -1,4 +1,6 @@
 import os
+from csv import excel
+
 import processing
 import yaml
 from typing import Optional, List, Tuple, Union
@@ -14,42 +16,14 @@ from qgis.core import (
     QgsRasterLayer,
     QgsField,
     QgsVectorLayerUtils,
-    QgsProcessingFeatureSourceDefinition,
-    QgsVectorFileWriter
+    QgsProcessingFeatureSourceDefinition
+
 )
 from qgis.utils import iface
 
 from .layereditor import *
 
 # WARNING: This script only works with EPSG:5514
-def save_layer_as_geojson(layer, temp_dir, layer_name):
-    """
-    Saves a QGIS layer as a GeoJSON file in the specified directory.
-
-    :param layer: The QGIS layer to be saved.
-    :param temp_dir: The directory where the GeoJSON file will be saved.
-    :param layer_name: The name to use for the GeoJSON file (without extension).
-    :return: A tuple containing the file path and any error message.
-    """
-    # Remove any existing .geojson extension from the layer_name
-    if layer_name.endswith(".geojson"):
-        layer_name = layer_name[:-8]
-
-    temp_file_path = f"{temp_dir}/{layer_name}.geojson"
-    options = QgsVectorFileWriter.SaveVectorOptions()
-    options.driverName = "GeoJSON"
-
-    error = QgsVectorFileWriter.writeAsVectorFormatV3(
-        layer,
-        temp_file_path,
-        QgsProject.instance().transformContext(),
-        options
-    )
-
-    if error[0] != QgsVectorFileWriter.NoError:
-        return temp_file_path, f"Error: {error[1]}"
-
-    return temp_file_path, None
 
 def get_ZABAGED_layers_list(config_path: str) -> List[str]:
     """ Load WFS layers from the configuration file"""
@@ -139,7 +113,7 @@ def process_wfs_layer(layer_name: str, ymin: float, xmin: float, ymax: float, xm
     vlayer = QgsVectorLayer(uri, f"Layer: {layer_name}", "WFS")
     if not vlayer.isValid() or not vlayer.featureCount():
         print(f"Failed to load or empty layer: {layer_name}")
-        return None
+        return
 
     clipped_layer = clip_layer(vlayer, extent, layer_name)
     if clipped_layer.isValid():
@@ -147,7 +121,7 @@ def process_wfs_layer(layer_name: str, ymin: float, xmin: float, ymax: float, xm
         return clipped_layer
 
 
-def ClipByPolygon(layer: QgsVectorLayer, polygon: QgsVectorLayer, temp_dir: str) -> None:
+def ClipByPolygon(layer: QgsVectorLayer, polygon: QgsVectorLayer) -> QgsVectorLayer:
     print("Clipping layer to polygon...")
     params = {
         'INPUT': layer,
@@ -160,189 +134,136 @@ def ClipByPolygon(layer: QgsVectorLayer, polygon: QgsVectorLayer, temp_dir: str)
     # Add the clipped layer to the map if it contains features
     if final_clipped_layer and final_clipped_layer.featureCount() > 0:
         final_clipped_layer.setName(layer.name())
-        file_path, error_message = save_layer_as_geojson(final_clipped_layer, temp_dir, layer.name())
-        if error_message:
-            print(error_message)
-        else:
-            print(f"Layer saved successfully at {file_path}")
         print(
             f"Added clipped layer: {final_clipped_layer.name()}, feature count: {final_clipped_layer.featureCount()}")
+        return final_clipped_layer # Return the clipped layer
 
 
+def add_landuse_attribute(layers: list, attribute_template_path: str) -> list:
+    """Add LandUse attribute to layers with the common string."""
+    updated_layers = []
 
-def add_landuse_attribute(temp_dir: str, attribute_template_path: str) -> None:
-    """Add LandUse attribute to layers in temporary folder."""
-    # Retrieve all GeoJSON files in the temp_dir
-    geojson_files = [f for f in os.listdir(temp_dir) if f.endswith(".geojson")]
+    for layer in layers:
+        layer_name = layer.name()
+        data_provider = layer.dataProvider()
+        data_provider.addAttributes([QgsField("LandUse_code", QVariant.Int)])
+        layer.updateFields()
 
-    for file_name in geojson_files:
-        file_path = os.path.join(temp_dir, file_name)
-        geojson_layer = QgsVectorLayer(file_path, file_name, "ogr")
-        if geojson_layer.isValid():
-            data_provider = geojson_layer.dataProvider()
-            data_provider.addAttributes([QgsField("LandUse_code", QVariant.Int)])
-            geojson_layer.updateFields()
+        with open(attribute_template_path, "r") as file:
+            for line in file:
+                names = line.split(";")[:-2]
+                code = int(line.split(";")[-2])
 
-            with open(attribute_template_path, "r") as file:
-                for line in file:
-                    names = line.split(";")[:-2]
-                    code = int(line.split(";")[-2])
+                if any(name.lower() in layer_name.lower() for name in names):
+                    layer.startEditing()
+                    for feature in layer.getFeatures():
+                        feature["LandUse_code"] = code
+                        layer.updateFeature(feature)
+                    layer.commitChanges()
 
-                    if any(name.lower() in file_name.lower() for name in names):
-                        geojson_layer.startEditing()
-                        for feature in geojson_layer.getFeatures():
-                            feature["LandUse_code"] = code
-                            geojson_layer.updateFeature(feature)
-                        geojson_layer.commitChanges()
+        updated_layers.append(layer)  # Always append the layer
 
+    return updated_layers
 
+def buffer_layers(layers: list, BUF_config_path: str) -> list:
+    """Buffer line layers based on configuration."""
+    new_layers = []
 
-def buffer_layers( temp_dir: str, BUF_config_path: str) -> None:
-    """Buffer line/point layers frmo temporary directory based on configuration."""
-    # Retrieve all GeoJSON files in the temp_dir
-    geojson_files = [f for f in os.listdir(temp_dir) if f.endswith(".geojson")]
+    for layer in layers:
+        layer_name = layer.name()
+        try:
+            with open(BUF_config_path, 'r') as BUFfile:
+                BUFconfig = yaml.safe_load(BUFfile)
 
-    for file_name in geojson_files:
-        file_path = os.path.join(temp_dir, file_name)
-        geojson_layer = QgsVectorLayer(file_path, file_name, "ogr")
-        if geojson_layer.isValid():
-            try:
-                with open(BUF_config_path, 'r') as BUFfile:
-                    BUFconfig = yaml.safe_load(BUFfile)
-
-                    for layer_config in BUFconfig['buffer_layers']:
-                        default_buffer = layer_config['default_buffer']
-                        buffer_levels = layer_config['buffer_levels']
-                        controlling_atr_name = layer_config['controlling_atr_name']
-                        input_layer_name = layer_config['input_layer_name']
-
-                        priorities = []
-                        values = []
-                        distances = []
-                        for buffer_level in buffer_levels:
-                            priorities.append(buffer_level['priority'])
-                            values.append(buffer_level['values'])
-                            distances.append(buffer_level['distance'])
-
-                        input_layer_name = input_layer_name+".geojson"
-                        if input_layer_name == file_name:
-                            buffered_layer = attribute_layer_buffer(
-                                geojson_layer,
-                                controlling_atr_name=controlling_atr_name,
-                                default_buffer=default_buffer,
-                                priorities=priorities,
-                                values=values,
-                                distances=distances,
-                                input_layer_name=input_layer_name,
-                                temp_dir=temp_dir
-                            )
-                            if buffered_layer:
-                                # Remove the original layer from the temp_dir
-                                os.remove(file_path)
-                                # Save the buffered layer to the temp_dir
-                                save_layer_as_geojson(buffered_layer, temp_dir, file_name)
-
-            except Exception as e:
-                print(f"Failed to buffer layer attributes: {e}")
-                print("Please check the zabaged_atr_to_Buffer.yaml file for errors!")
-
-def edit_landuse_code(temp_dir: str, ATR_config_path: str) -> None:
-    """Edit ZABAGED layers LandUse code by its attributes."""
-    # Retrieve all GeoJSON files in the temp_dir
-    geojson_files = [f for f in os.listdir(temp_dir) if f.endswith(".geojson")]
-
-    for file_name in geojson_files:
-        file_path = os.path.join(temp_dir, file_name)
-        geojson_layer = QgsVectorLayer(file_path, file_name, "ogr")
-        if geojson_layer.isValid():
-            try:
-                with open(ATR_config_path, 'r') as ATRfile:
-                    ATRconfig = yaml.safe_load(ATRfile)
-
-                    for layer_config in ATRconfig['layers']:
-                        base_use_code = layer_config['base_use_code']
-                        controlling_attribute = layer_config['controlling_attribute']
-                        value_increments = layer_config['value_increments']
-
-                        attribute_layer_edit(
-                            geojson_layer,
-                            base_use_code=base_use_code,
-                            controlling_attribute=controlling_attribute,
-                            value_increments=value_increments
+                for layer_config in BUFconfig['buffer_layers']:
+                    if layer_config['input_layer_name'] == layer_name:
+                        buffered_layer = attribute_layer_buffer(
+                            layer,
+                            controlling_atr_name=layer_config['controlling_atr_name'],
+                            default_buffer=layer_config['default_buffer'],
+                            priorities=[b['priority'] for b in layer_config['buffer_levels']],
+                            values=[b['values'] for b in layer_config['buffer_levels']],
+                            distances=[b['distance'] for b in layer_config['buffer_levels']],
+                            input_layer_name=layer_name
                         )
-            except Exception as e:
-                print(f"Failed to edit layer attributes: {e}")
-                print("Please check the zabaged_atr_to_LandUse.yaml file for errors!")
-
-
-def clip_layers_in_tempdir(temp_dir: str, AreaFlag: bool,
-                                   polygon: Optional[QgsVectorLayer], ymin: float, xmin: float, ymax: float,
-                                   xmax: float) -> None:
-    """
-    (Used to clip final layers after buffering.)
-    Clip all GeoJSON files  to the given extent or polygon.
-    Save the clipped layers back to the temp_dir.
-    """
-    # Retrieve all GeoJSON files in the temp_dir
-    geojson_files = [f for f in os.listdir(temp_dir) if f.endswith(".geojson")]
-    for file_name in geojson_files:
-            file_path = os.path.join(temp_dir, file_name)
-            geojson_layer = QgsVectorLayer(file_path, file_name, "ogr")
-            if geojson_layer.isValid():
-                clipped_layer = None  # Initialize clipped_layer to None
-                if not AreaFlag:  # Clip by extent
-                    extent = QgsRectangle(xmin, ymin, xmax, ymax)
-                    clipped_layer = clip_layer(geojson_layer, extent, f"{file_name}")
-                else:  # Clip by polygon
-                    if polygon:
-                        extent = polygon.extent()
-                        clipped_layer = clip_layer(geojson_layer, extent, f"{file_name}")
-                        clipped_layer = clip_layer_by_polygon(clipped_layer, polygon, f"{file_name}")
-
-                if clipped_layer and clipped_layer.isValid():
-                    save_layer_as_geojson(clipped_layer, temp_dir, file_name)
-                    print(f"Successfully clipped and saved layer: {file_name}")
+                        if buffered_layer:
+                            new_layers.append(buffered_layer)
+                        else:
+                            new_layers.append(layer)  # Keep original if buffering fails
+                        break
                 else:
-                    print(f"Failed to clip layer: {file_name}")
+                    new_layers.append(layer)  # If no config matches, keep the original
+
+        except Exception as e:
+            print(f"Failed to buffer layer {layer_name}: {e}")
+            new_layers.append(layer)  # Keep the original if error occurs
+
+    return new_layers
 
 
-def clip_layer_by_polygon(layer: QgsVectorLayer, polygon: QgsVectorLayer, layer_name: str) -> QgsVectorLayer:
-    """Clip the layer to the given polygon."""
-    clipped_layer = QgsVectorLayer(
-        f"{QgsWkbTypes.displayString(layer.wkbType())}?crs={layer.crs().authid()}",
-        layer_name,
-        "memory"
-    )
+def edit_landuse_code(layers: list, ATR_config_path: str) -> list:
+    """Edit ZABAGED layers LandUse code by its attributes."""
+    new_layers = []
 
-    clipped_layer.dataProvider().addAttributes(layer.fields())
-    clipped_layer.updateFields()
+    for layer in layers:
+        try:
+            with open(ATR_config_path, 'r') as ATRfile:
+                ATRconfig = yaml.safe_load(ATRfile)
 
-    # Get the geometry of the polygon layer's first feature
-    polygon_geom = None
-    for poly_feature in polygon.getFeatures():
-        polygon_geom = poly_feature.geometry()
-        break  # Assuming a single polygon feature
+                for layer_config in ATRconfig['layers']:
+                    if layer.name() == layer_config.get('input_layer_name', ''):
+                        edited_layer = attribute_layer_edit(
+                            layer,
+                            base_use_code=layer_config['base_use_code'],
+                            controlling_attribute=layer_config['controlling_attribute'],
+                            value_increments=layer_config['value_increments']
+                        )
+                        if edited_layer:
+                            new_layers.append(edited_layer)
+                        else:
+                            new_layers.append(layer)  # Keep original if editing fails
+                        break
+                else:
+                    new_layers.append(layer)  # If no match, keep original
 
-    if not polygon_geom:
-        print("Polygon geometry not found!")
-        return clipped_layer
+        except Exception as e:
+            print(f"Failed to edit layer {layer.name()}: {e}")
+            new_layers.append(layer)  # Keep original if error occurs
 
-    for feature in layer.getFeatures():
-        geom = feature.geometry()
-        if geom.intersects(polygon_geom):
-            clipped_feature = QgsFeature()
-            clipped_feature.setGeometry(geom.intersection(polygon_geom))
-            clipped_feature.setAttributes(feature.attributes())
-            clipped_layer.dataProvider().addFeature(clipped_feature)
+    return new_layers
 
-    clipped_layer.commitChanges()
-    if not clipped_layer.featureCount():
-        print("No features added to the clipped layer.")
+def clip_layers_after_edits(layers: list, AreaFlag: bool,
+                            polygon: Optional[QgsVectorLayer], ymin: float, xmin: float, ymax: float,
+                            xmax: float) -> list:
+    """
+    Clip all layers in list to the given extent or polygon.
+    Ensures the number of layers in the output matches the input.
+    """
 
-    return clipped_layer
+    clipped_layers = []
 
+    for layer in layers:
+        layer_name = layer.name()
+        clipped_layer = None
 
-def stack_layers(temp_dir: str, stacking_template_path: str) -> None:
+        if not AreaFlag:  # Clip by extent
+            extent = QgsRectangle(xmin, ymin, xmax, ymax)
+            clipped_layer = clip_layer(layer, extent, f"{layer_name}")
+
+        else:  # Clip by polygon
+            if polygon:
+                clipped_layer = ClipByPolygon(layer, polygon)
+
+        # Ensure clipped layer is valid, else keep the original
+        if clipped_layer and clipped_layer.isValid():
+            clipped_layers.append(clipped_layer)
+        else:
+            print(f"Warning: Clipping failed for {layer_name}, keeping original.")
+            clipped_layers.append(layer)  # Keep original if clipping fails
+
+    return clipped_layers
+
+def stack_layers(qgs_project: QgsProject, layers: list, stacking_template_path: str) -> None:
     """
     Merge polygon layers by their priority from the stacking list - layers_merging_order.conf
     Also removes original input layers
@@ -358,27 +279,27 @@ def stack_layers(temp_dir: str, stacking_template_path: str) -> None:
                 {'LAYERS': level_layers, 'CRS': level_layers[0].crs(), 'OUTPUT': 'memory:'}
             )['OUTPUT']
             merged_layer.setName(output_name)
+            QgsProject.instance().addMapLayer(merged_layer)  # Add merged layer to the project
             return merged_layer
         return None
 
     with open(stacking_template_path, 'r') as STCfile:
         # Skip first line and read others in order and put them in a list
         STClines = STCfile.readlines()[1:]
-        STClist = [line.strip()+".geojson" for line in STClines]
+        STClist = [line.strip() for line in STClines]
         print(f"Ordering layers by priority: {STClist} - editable in layers_merging_order.conf")
 
-        # Retrieve all GeoJSON files in the temp_dir
-        geojson_files = [f for f in os.listdir(temp_dir) if f.endswith(".geojson")]
         LayerOrderedList = []
 
-        for file_name in geojson_files:
-            file_path = os.path.join(temp_dir, file_name)
-            geojson_layer = QgsVectorLayer(file_path, file_name, "ogr")
+        for layer in layers:
+            # Only process vector layers and polygons
+            if isinstance(layer, QgsVectorLayer) and layer.geometryType() == 2:
+                layer_name = layer.name()
 
-            if geojson_layer.isValid() and geojson_layer.geometryType() == 2:
-                layer_name = geojson_layer.name()
+
+                # Check if the layer is in the stacking list
                 if layer_name in STClist:
-                    LayerOrderedList.append(geojson_layer)
+                    LayerOrderedList.append(layer)
                 else:
                     print(f"Layer '{layer_name}' not found in the stacking list.")
                     continue
@@ -401,13 +322,12 @@ def stack_layers(temp_dir: str, stacking_template_path: str) -> None:
         # Add the final merged layer to the project
         if final_merged_layer:
             QgsProject.instance().addMapLayer(final_merged_layer)
-            print("Layers merged by priority and added to the project as Final_Merged_Layer.")
         else:
             print("Failed to merge layers.")
 
-        # Remove temporary folder with files:
-        for file in os.listdir(temp_dir):
-            os.remove(os.path.join(temp_dir, file))
-        os.rmdir(temp_dir)
-        print("Temporary directory removed.")
-        print("Process of creating LandUse Layer finished successfully.")
+        # Remove partial Marged_Layer layers
+        for layer in priority_merged_layers:
+            QgsProject.instance().removeMapLayer(layer.id())
+
+        print("Layers merged by priority and added to the project as Final_Merged_Layer.")
+        return None
