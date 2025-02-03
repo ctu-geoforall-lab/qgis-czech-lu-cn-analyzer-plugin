@@ -1,4 +1,6 @@
 import os
+from csv import excel
+
 import processing
 import yaml
 from typing import Optional, List, Tuple, Union
@@ -14,8 +16,9 @@ from qgis.core import (
     QgsRasterLayer,
     QgsField,
     QgsVectorLayerUtils,
-    QgsProcessingFeatureSourceDefinition
-
+    QgsProcessingFeatureSourceDefinition,
+    QgsMessageLog,
+    Qgis
 )
 from qgis.utils import iface
 
@@ -30,7 +33,7 @@ def get_ZABAGED_layers_list(config_path: str) -> List[str]:
         with open(config_path, "r") as file:
             return [line.strip() for line in file]
     except Exception as e:
-        print(f"Failed to load WFS layers: {e}")
+        QgsMessageLog.logMessage(f"Failed to load WFS layers: {e}", "CzLandUse&CN ", level=Qgis.Warning)
         return []
 
 
@@ -56,8 +59,6 @@ def clip_layer(layer: QgsVectorLayer, extent: QgsRectangle, layer_name: str) -> 
             clipped_layer.dataProvider().addFeature(clipped_feature)
 
     clipped_layer.commitChanges()
-    if not clipped_layer.featureCount():
-        print("No features added to the clipped layer.")
 
     return clipped_layer
 
@@ -66,15 +67,17 @@ def get_wfs_info(use_polygon, wfs_layers, polygon=None):
     """ Get WFS layers and extent information"""
 
     if not wfs_layers:
-        return "ERR_missingconffile", 0, 0, 0, 0, None  # return error code for later handling
+        QgsMessageLog.logMessage("Corupted WFS setting, see config file", "CzLandUse&CN ",
+                                 level=Qgis.Warning)
+        return
 
     if not use_polygon:
         extent = iface.mapCanvas().extent()
     elif polygon and polygon.isValid():
         extent = polygon.extent()
     else:
-        print("Invalid polygon layer")
-        return "ERR_plg", 0, 0, 0, 0, None  # return error code for later handling
+        QgsMessageLog.logMessage("Invalid polygon layer!", "CzLandUse&CN ", level=Qgis.Warning)
+
 
     return extent.yMinimum(), extent.xMinimum(), extent.yMaximum(), extent.xMaximum(), extent
 
@@ -85,7 +88,8 @@ def load_one_line_config(file_name: str) -> Optional[str]:
         config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config", file_name)
         return getOneLineConfig(config_path)
     except Exception as e:
-        print(f"Failed to load configuration file {file_name}: {e}")
+        QgsMessageLog.logMessage(f"Failed to load configuration file {file_name}: {e}", "CzLandUse&CN ",
+                                 level=Qgis.Warning)
         return None
 
 
@@ -110,17 +114,16 @@ def process_wfs_layer(layer_name: str, ymin: float, xmin: float, ymax: float, xm
 
     vlayer = QgsVectorLayer(uri, f"Layer: {layer_name}", "WFS")
     if not vlayer.isValid() or not vlayer.featureCount():
-        print(f"Failed to load or empty layer: {layer_name}")
-        return None
+        QgsMessageLog.logMessage(f"Failed to load or empty layer: {layer_name}", "CzLandUse&CN ",
+                                 level=Qgis.Warning)
+        return
 
     clipped_layer = clip_layer(vlayer, extent, layer_name)
     if clipped_layer.isValid():
-        print(f"Successfully clipped layer: {layer_name}, feature count: {clipped_layer.featureCount()}")
         return clipped_layer
 
 
-def ClipByPolygon(layer: QgsVectorLayer, polygon: QgsVectorLayer) -> None:
-    print("Clipping layer to polygon...")
+def ClipByPolygon(layer: QgsVectorLayer, polygon: QgsVectorLayer) -> QgsVectorLayer:
     params = {
         'INPUT': layer,
         'OVERLAY': polygon,
@@ -132,221 +135,147 @@ def ClipByPolygon(layer: QgsVectorLayer, polygon: QgsVectorLayer) -> None:
     # Add the clipped layer to the map if it contains features
     if final_clipped_layer and final_clipped_layer.featureCount() > 0:
         final_clipped_layer.setName(layer.name())
-        QgsProject.instance().addMapLayer(final_clipped_layer)
-        print(
-            f"Added clipped layer: {final_clipped_layer.name()}, feature count: {final_clipped_layer.featureCount()}")
+        return final_clipped_layer # Return the clipped layer
 
 
-def common_prefix(lines: List[str]) -> str:
-    """ Find the common prefix for a list of strings"""
-    if not lines:
-        return ""
-
-    # Take the first line as the reference
-    prefix = lines[0].strip()
-
-    # Compare the prefix with each subsequent line
-    for line in lines[1:]:
-        line = line.strip()  # remove any surrounding whitespace or newline
-        i = 0
-        while i < len(prefix) and i < len(line) and prefix[i] == line[i]:
-            i += 1
-        # Shorten the prefix to the common part found
-        prefix = prefix[:i]
-
-        # If the prefix becomes empty, stop early
-        if not prefix:
-            break
-
-    return prefix
-
-
-def get_common_string(config_path) -> str:
-    """ Get the common string part for each line in zabaged.conf file"""
-
-    try:
-        with open(config_path, "r") as file:
-            lines = file.readlines()
-            if not lines:
-                return "conf_file_err"
-            # Get the common string part from all lines
-            common_part = common_prefix(lines)
-            return common_part if common_part else "no_common_prefix"
-    except Exception as e:
-        return f"conf_file_err: {str(e)}"
-
-
-def add_landuse_attribute(common_string: str, qgs_project: QgsProject, attribute_template_path: str) -> None:
+def add_landuse_attribute(layers: list, attribute_template_path: str) -> list:
     """Add LandUse attribute to layers with the common string."""
-    # Retrieve all map layers in the project
-    layers = qgs_project.mapLayers().values()
+    updated_layers = []
 
     for layer in layers:
         layer_name = layer.name()
-        if common_string in layer_name:
-            # Add a new attribute "LandUse_code" of type integer
-            data_provider = layer.dataProvider()
-            data_provider.addAttributes([QgsField("LandUse_code", QVariant.Int)])
-            layer.updateFields()
+        data_provider = layer.dataProvider()
+        data_provider.addAttributes([QgsField("LandUse_code", QVariant.Int)])
+        layer.updateFields()
 
-            # Open the template file and read attributes to update features
-            with open(attribute_template_path, "r") as file:
-                for line in file:
-                    # Process template lines
-                    names = line.split(";")[:-2]
-                    code = int(line.split(";")[-2])
+        with open(attribute_template_path, "r") as file:
+            for line in file:
+                names = line.split(";")[:-2]
+                code = int(line.split(";")[-2])
 
-                    # Check if any name matches the layer name
-                    if any(name.lower() in layer_name.lower() for name in names):
-                        layer.startEditing()
-                        for feature in layer.getFeatures():
-                            feature["LandUse_code"] = code
-                            layer.updateFeature(feature)
-                        layer.commitChanges()
+                if any(name.lower() in layer_name.lower() for name in names):
+                    layer.startEditing()
+                    for feature in layer.getFeatures():
+                        feature["LandUse_code"] = code
+                        layer.updateFeature(feature)
+                    layer.commitChanges()
 
+        updated_layers.append(layer)  # Always append the layer
 
-def buffer_layers(common_string: str, qgs_project: QgsProject, BUF_config_path: str) -> None:
+    return updated_layers
+
+def buffer_layers(layers: list, BUF_config_path: str) -> list:
     """Buffer line layers based on configuration."""
-    # Retrieve all map layers in the project
-    layers = qgs_project.mapLayers().values()
+    new_layers = []
 
     for layer in layers:
         layer_name = layer.name()
-        if common_string in layer_name:
-            try:
-                with open(BUF_config_path, 'r') as BUFfile:
-                    BUFconfig = yaml.safe_load(BUFfile)
+        try:
+            with open(BUF_config_path, 'r') as BUFfile:
+                BUFconfig = yaml.safe_load(BUFfile)
 
-                    for layer_config in BUFconfig['buffer_layers']:
-                        default_buffer = layer_config['default_buffer']
-                        buffer_levels = layer_config['buffer_levels']
-                        controlling_atr_name = layer_config['controlling_atr_name']
-                        input_layer_name = layer_config['input_layer_name']
-
-                        priorities = []
-                        values = []
-                        distances = []
-                        for buffer_level in buffer_levels:
-                            priorities.append(buffer_level['priority'])
-                            values.append(buffer_level['values'])
-                            distances.append(buffer_level['distance'])
-
-                        if input_layer_name == layer_name:
-                            attribute_layer_buffer(
-                                layer,
-                                controlling_atr_name=controlling_atr_name,
-                                default_buffer=default_buffer,
-                                priorities=priorities,
-                                values=values,
-                                distances=distances,
-                                input_layer_name=input_layer_name
-                            )
-            except Exception as e:
-                print(f"Failed to buffer layer attributes: {e}")
-                print("Please check the zabaged_atr_to_Buffer.yaml file for errors!")
-
-
-def edit_landuse_code(common_string: str, qgs_project: QgsProject, ATR_config_path: str) -> None:
-    """Edit ZABAGED layers LandUse code by its attributes."""
-    # Retrieve all map layers in the project
-    layers = qgs_project.mapLayers().values()
-
-    for layer in layers:
-        layer_name = layer.name()
-        if common_string in layer_name:
-            try:
-                with open(ATR_config_path, 'r') as ATRfile:
-                    ATRconfig = yaml.safe_load(ATRfile)
-
-                    for layer_config in ATRconfig['layers']:
-                        base_use_code = layer_config['base_use_code']
-                        controlling_attribute = layer_config['controlling_attribute']
-                        value_increments = layer_config['value_increments']
-
-                        attribute_layer_edit(
+                for layer_config in BUFconfig['buffer_layers']:
+                    if layer_config['input_layer_name'] == layer_name:
+                        buffered_layer = attribute_layer_buffer(
                             layer,
-                            base_use_code=base_use_code,
-                            controlling_attribute=controlling_attribute,
-                            value_increments=value_increments
+                            controlling_atr_name=layer_config['controlling_atr_name'],
+                            default_buffer=layer_config['default_buffer'],
+                            priorities=[b['priority'] for b in layer_config['buffer_levels']],
+                            values=[b['values'] for b in layer_config['buffer_levels']],
+                            distances=[b['distance'] for b in layer_config['buffer_levels']],
+                            input_layer_name=layer_name
                         )
-            except Exception as e:
-                print(f"Failed to edit layer attributes: {e}")
-                print("Please check the zabaged_atr_to_LandUse.yaml file for errors!")
+                        if buffered_layer:
+                            new_layers.append(buffered_layer)
+                        else:
+                            new_layers.append(layer)  # Keep original if buffering fails
+                        break
+                else:
+                    new_layers.append(layer)  # If no config matches, keep the original
+
+        except Exception as e:
+            QgsMessageLog.logMessage(f"Failed to buffer layer {layer_name}: {e}", "CzLandUse&CN ",
+                                     level=Qgis.Warning)
+            new_layers.append(layer)  # Keep the original if error occurs
+
+    return new_layers
 
 
-def clip_layers_with_common_string(common_string: str, qgs_project: QgsProject, AreaFlag: bool,
-                                   polygon: Optional[QgsVectorLayer], ymin: float, xmin: float, ymax: float,
-                                   xmax: float) -> None:
+def edit_landuse_code(layers: list, ATR_config_path: str) -> list:
+    """Edit ZABAGED layers LandUse code by its attributes."""
+    new_layers = []
+
+    for layer in layers:
+        try:
+            with open(ATR_config_path, 'r') as ATRfile:
+                ATRconfig = yaml.safe_load(ATRfile)
+
+                for layer_config in ATRconfig['layers']:
+                    if layer.name() == layer_config.get('name', ''):
+                        edited_layer = attribute_layer_edit(
+                            layer,
+                            base_use_code=layer_config['base_use_code'],
+                            controlling_attribute=layer_config['controlling_attribute'],
+                            value_increments=layer_config['value_increments']
+                        )
+                        if edited_layer:
+                            new_layers.append(edited_layer)
+
+                        else:
+                            new_layers.append(layer)  # Keep original if editing fails
+                            QgsMessageLog.logMessage(f"/ERROR/ Layer {layer.name()} trashed.", "CzLandUse&CN"
+                                                     , level=Qgis.Warning)
+
+                        break
+                    else:
+                        new_layers.append(layer)  # If no match, keep original
+                        QgsMessageLog.logMessage("No edits at" + layer.name(), "CzLandUse&CN"
+                                                     , level=Qgis.Warning)
+
+        except Exception as e:
+            QgsMessageLog.logMessage(f"Failed to edit layer {layer.name()}: {e}", "CzLandUse&CN"
+                                     , level=Qgis.Warning)
+            new_layers.append(layer)  # Keep original if error occurs
+
+    return new_layers
+
+def clip_layers_after_edits(layers: list, AreaFlag: bool,
+                            polygon: Optional[QgsVectorLayer], ymin: float, xmin: float, ymax: float,
+                            xmax: float) -> list:
     """
-    (Used to clip final layers after buffering.)
-    Clip all layers with the common string to the given extent or polygon.
-    Remove the original layers after clipping.
+    Clip all layers in list to the given extent or polygon.
+    Ensures the number of layers in the output matches the input.
     """
-    layers = qgs_project.values()
+
+    clipped_layers = []
+
     for layer in layers:
         layer_name = layer.name()
-        if common_string in layer_name:
-            clipped_layer = None  # Initialize clipped_layer to None
-            if not AreaFlag:  # Clip by extent
-                extent = QgsRectangle(xmin, ymin, xmax, ymax)
-                clipped_layer = clip_layer(layer, extent, f"{layer_name}")
-            else:  # Clip by polygon
-                if polygon:
-                    extent = polygon.extent()
-                    clipped_layer = clip_layer(layer, extent, f"{layer_name}")
-                    clipped_layer = clip_layer_by_polygon(clipped_layer, polygon, f"{layer_name}")
+        clipped_layer = None
 
-            if clipped_layer and clipped_layer.isValid():
-                QgsProject.instance().addMapLayer(clipped_layer)
-                QgsProject.instance().removeMapLayer(layer.id())  # Remove the original unclipped layer
-                print(f"Successfully clipped and removed original layer: {layer_name}")
-            else:
-                print(f"Failed to clip layer: {layer_name}")
+        if not AreaFlag:  # Clip by extent
+            extent = QgsRectangle(xmin, ymin, xmax, ymax)
+            clipped_layer = clip_layer(layer, extent, f"{layer_name}")
 
+        else:  # Clip by polygon
+            if polygon:
+                clipped_layer = ClipByPolygon(layer, polygon)
 
-def clip_layer_by_polygon(layer: QgsVectorLayer, polygon: QgsVectorLayer, layer_name: str) -> QgsVectorLayer:
-    """Clip the layer to the given polygon."""
-    clipped_layer = QgsVectorLayer(
-        f"{QgsWkbTypes.displayString(layer.wkbType())}?crs={layer.crs().authid()}",
-        layer_name,
-        "memory"
-    )
+        # Ensure clipped layer is valid, else keep the original
+        if clipped_layer and clipped_layer.isValid():
+            clipped_layers.append(clipped_layer)
+        else:
+            QgsMessageLog.logMessage(f"Warning: Clipping failed for {layer_name}, keeping original.", "CzLandUse&CN",
+                                     level=Qgis.Warning)
+            clipped_layers.append(layer)  # Keep original if clipping fails
 
-    clipped_layer.dataProvider().addAttributes(layer.fields())
-    clipped_layer.updateFields()
+    return clipped_layers
 
-    # Get the geometry of the polygon layer's first feature
-    polygon_geom = None
-    for poly_feature in polygon.getFeatures():
-        polygon_geom = poly_feature.geometry()
-        break  # Assuming a single polygon feature
-
-    if not polygon_geom:
-        print("Polygon geometry not found!")
-        return clipped_layer
-
-    for feature in layer.getFeatures():
-        geom = feature.geometry()
-        if geom.intersects(polygon_geom):
-            clipped_feature = QgsFeature()
-            clipped_feature.setGeometry(geom.intersection(polygon_geom))
-            clipped_feature.setAttributes(feature.attributes())
-            clipped_layer.dataProvider().addFeature(clipped_feature)
-
-    clipped_layer.commitChanges()
-    if not clipped_layer.featureCount():
-        print("No features added to the clipped layer.")
-
-    return clipped_layer
-
-
-def stack_layers(qgs_project: QgsProject, common_string: str, stacking_template_path: str) -> None:
+def stack_layers(qgs_project: QgsProject, layers: list, stacking_template_path: str) -> None:
     """
     Merge polygon layers by their priority from the stacking list - layers_merging_order.conf
     Also removes original input layers
     """
-
-    print("--- Merging polygon layers ---")
 
     # Function to merge layers
     def merge_layers(level_layers: List[QgsVectorLayer], output_name: str) -> Optional[QgsVectorLayer]:
@@ -364,9 +293,7 @@ def stack_layers(qgs_project: QgsProject, common_string: str, stacking_template_
         # Skip first line and read others in order and put them in a list
         STClines = STCfile.readlines()[1:]
         STClist = [line.strip() for line in STClines]
-        print(f"Ordering layers by priority: {STClist} - editable in layers_merging_order.conf")
 
-        layers = qgs_project.mapLayers().values()
         LayerOrderedList = []
 
         for layer in layers:
@@ -374,13 +301,14 @@ def stack_layers(qgs_project: QgsProject, common_string: str, stacking_template_
             if isinstance(layer, QgsVectorLayer) and layer.geometryType() == 2:
                 layer_name = layer.name()
 
-                if common_string in layer_name or "LPIS" in layer_name:
-                    # Check if the layer is in the stacking list
-                    if layer_name in STClist:
-                        LayerOrderedList.append(layer)
-                    else:
-                        print(f"Layer '{layer_name}' not found in the stacking list.")
-                        continue
+
+                # Check if the layer is in the stacking list
+                if layer_name in STClist:
+                    LayerOrderedList.append(layer)
+                else:
+                    QgsMessageLog.logMessage(f"Layer '{layer_name}' not found in the stacking list.", "CzLandUse&CN",
+                                                level=Qgis.Warning)
+                    continue
 
         # Order layers by STClist, filtering only layers found in STClist
         LayerOrderedList = sorted(LayerOrderedList, key=lambda x: STClist.index(x.name()))
@@ -401,18 +329,11 @@ def stack_layers(qgs_project: QgsProject, common_string: str, stacking_template_
         if final_merged_layer:
             QgsProject.instance().addMapLayer(final_merged_layer)
         else:
-            print("Failed to merge layers.")
+            QgsMessageLog.logMessage("Failed to merge layers.", "CzLandUse&CN", level=Qgis.Critical)
 
         # Remove partial Marged_Layer layers
         for layer in priority_merged_layers:
             QgsProject.instance().removeMapLayer(layer.id())
 
-        # Remove original layers after merging
-        for layer in layers:
-            layer_name = layer.name()
-            if isinstance(layer, QgsVectorLayer) and layer.geometryType() == 2 and (
-                    common_string in layer_name or "LPIS" in layer_name):
-                QgsProject.instance().removeMapLayer(layer.id())
-
-        print("Layers merged by priority and added to the project as Final_Merged_Layer.")
+        QgsMessageLog.logMessage("Stacking layers completed.", "CzLandUse&CN", level=Qgis.Info)
         return None
