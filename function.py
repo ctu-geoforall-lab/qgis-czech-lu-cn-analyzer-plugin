@@ -16,8 +16,9 @@ from qgis.core import (
     QgsRasterLayer,
     QgsField,
     QgsVectorLayerUtils,
-    QgsProcessingFeatureSourceDefinition
-
+    QgsProcessingFeatureSourceDefinition,
+    QgsMessageLog,
+    Qgis
 )
 from qgis.utils import iface
 
@@ -32,7 +33,7 @@ def get_ZABAGED_layers_list(config_path: str) -> List[str]:
         with open(config_path, "r") as file:
             return [line.strip() for line in file]
     except Exception as e:
-        print(f"Failed to load WFS layers: {e}")
+        QgsMessageLog.logMessage(f"Failed to load WFS layers: {e}", "CzLandUse&CN ", level=Qgis.Warning)
         return []
 
 
@@ -58,8 +59,6 @@ def clip_layer(layer: QgsVectorLayer, extent: QgsRectangle, layer_name: str) -> 
             clipped_layer.dataProvider().addFeature(clipped_feature)
 
     clipped_layer.commitChanges()
-    if not clipped_layer.featureCount():
-        print("No features added to the clipped layer.")
 
     return clipped_layer
 
@@ -68,15 +67,17 @@ def get_wfs_info(use_polygon, wfs_layers, polygon=None):
     """ Get WFS layers and extent information"""
 
     if not wfs_layers:
-        return "ERR_missingconffile", 0, 0, 0, 0, None  # return error code for later handling
+        QgsMessageLog.logMessage("Corupted WFS setting, see config file", "CzLandUse&CN ",
+                                 level=Qgis.Warning)
+        return
 
     if not use_polygon:
         extent = iface.mapCanvas().extent()
     elif polygon and polygon.isValid():
         extent = polygon.extent()
     else:
-        print("Invalid polygon layer")
-        return "ERR_plg", 0, 0, 0, 0, None  # return error code for later handling
+        QgsMessageLog.logMessage("Invalid polygon layer!", "CzLandUse&CN ", level=Qgis.Warning)
+
 
     return extent.yMinimum(), extent.xMinimum(), extent.yMaximum(), extent.xMaximum(), extent
 
@@ -87,7 +88,8 @@ def load_one_line_config(file_name: str) -> Optional[str]:
         config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config", file_name)
         return getOneLineConfig(config_path)
     except Exception as e:
-        print(f"Failed to load configuration file {file_name}: {e}")
+        QgsMessageLog.logMessage(f"Failed to load configuration file {file_name}: {e}", "CzLandUse&CN ",
+                                 level=Qgis.Warning)
         return None
 
 
@@ -112,17 +114,16 @@ def process_wfs_layer(layer_name: str, ymin: float, xmin: float, ymax: float, xm
 
     vlayer = QgsVectorLayer(uri, f"Layer: {layer_name}", "WFS")
     if not vlayer.isValid() or not vlayer.featureCount():
-        print(f"Failed to load or empty layer: {layer_name}")
+        QgsMessageLog.logMessage(f"Failed to load or empty layer: {layer_name}", "CzLandUse&CN ",
+                                 level=Qgis.Warning)
         return
 
     clipped_layer = clip_layer(vlayer, extent, layer_name)
     if clipped_layer.isValid():
-        print(f"Successfully clipped layer: {layer_name}, feature count: {clipped_layer.featureCount()}")
         return clipped_layer
 
 
 def ClipByPolygon(layer: QgsVectorLayer, polygon: QgsVectorLayer) -> QgsVectorLayer:
-    print("Clipping layer to polygon...")
     params = {
         'INPUT': layer,
         'OVERLAY': polygon,
@@ -134,8 +135,6 @@ def ClipByPolygon(layer: QgsVectorLayer, polygon: QgsVectorLayer) -> QgsVectorLa
     # Add the clipped layer to the map if it contains features
     if final_clipped_layer and final_clipped_layer.featureCount() > 0:
         final_clipped_layer.setName(layer.name())
-        print(
-            f"Added clipped layer: {final_clipped_layer.name()}, feature count: {final_clipped_layer.featureCount()}")
         return final_clipped_layer # Return the clipped layer
 
 
@@ -195,7 +194,8 @@ def buffer_layers(layers: list, BUF_config_path: str) -> list:
                     new_layers.append(layer)  # If no config matches, keep the original
 
         except Exception as e:
-            print(f"Failed to buffer layer {layer_name}: {e}")
+            QgsMessageLog.logMessage(f"Failed to buffer layer {layer_name}: {e}", "CzLandUse&CN ",
+                                     level=Qgis.Warning)
             new_layers.append(layer)  # Keep the original if error occurs
 
     return new_layers
@@ -211,7 +211,7 @@ def edit_landuse_code(layers: list, ATR_config_path: str) -> list:
                 ATRconfig = yaml.safe_load(ATRfile)
 
                 for layer_config in ATRconfig['layers']:
-                    if layer.name() == layer_config.get('input_layer_name', ''):
+                    if layer.name() == layer_config.get('name', ''):
                         edited_layer = attribute_layer_edit(
                             layer,
                             base_use_code=layer_config['base_use_code'],
@@ -220,14 +220,21 @@ def edit_landuse_code(layers: list, ATR_config_path: str) -> list:
                         )
                         if edited_layer:
                             new_layers.append(edited_layer)
+
                         else:
                             new_layers.append(layer)  # Keep original if editing fails
+                            QgsMessageLog.logMessage(f"/ERROR/ Layer {layer.name()} trashed.", "CzLandUse&CN"
+                                                     , level=Qgis.Warning)
+
                         break
-                else:
-                    new_layers.append(layer)  # If no match, keep original
+                    else:
+                        new_layers.append(layer)  # If no match, keep original
+                        QgsMessageLog.logMessage("No edits at" + layer.name(), "CzLandUse&CN"
+                                                     , level=Qgis.Warning)
 
         except Exception as e:
-            print(f"Failed to edit layer {layer.name()}: {e}")
+            QgsMessageLog.logMessage(f"Failed to edit layer {layer.name()}: {e}", "CzLandUse&CN"
+                                     , level=Qgis.Warning)
             new_layers.append(layer)  # Keep original if error occurs
 
     return new_layers
@@ -258,7 +265,8 @@ def clip_layers_after_edits(layers: list, AreaFlag: bool,
         if clipped_layer and clipped_layer.isValid():
             clipped_layers.append(clipped_layer)
         else:
-            print(f"Warning: Clipping failed for {layer_name}, keeping original.")
+            QgsMessageLog.logMessage(f"Warning: Clipping failed for {layer_name}, keeping original.", "CzLandUse&CN",
+                                     level=Qgis.Warning)
             clipped_layers.append(layer)  # Keep original if clipping fails
 
     return clipped_layers
@@ -268,8 +276,6 @@ def stack_layers(qgs_project: QgsProject, layers: list, stacking_template_path: 
     Merge polygon layers by their priority from the stacking list - layers_merging_order.conf
     Also removes original input layers
     """
-
-    print("--- Merging polygon layers ---")
 
     # Function to merge layers
     def merge_layers(level_layers: List[QgsVectorLayer], output_name: str) -> Optional[QgsVectorLayer]:
@@ -287,7 +293,6 @@ def stack_layers(qgs_project: QgsProject, layers: list, stacking_template_path: 
         # Skip first line and read others in order and put them in a list
         STClines = STCfile.readlines()[1:]
         STClist = [line.strip() for line in STClines]
-        print(f"Ordering layers by priority: {STClist} - editable in layers_merging_order.conf")
 
         LayerOrderedList = []
 
@@ -301,7 +306,8 @@ def stack_layers(qgs_project: QgsProject, layers: list, stacking_template_path: 
                 if layer_name in STClist:
                     LayerOrderedList.append(layer)
                 else:
-                    print(f"Layer '{layer_name}' not found in the stacking list.")
+                    QgsMessageLog.logMessage(f"Layer '{layer_name}' not found in the stacking list.", "CzLandUse&CN",
+                                                level=Qgis.Warning)
                     continue
 
         # Order layers by STClist, filtering only layers found in STClist
@@ -323,11 +329,11 @@ def stack_layers(qgs_project: QgsProject, layers: list, stacking_template_path: 
         if final_merged_layer:
             QgsProject.instance().addMapLayer(final_merged_layer)
         else:
-            print("Failed to merge layers.")
+            QgsMessageLog.logMessage("Failed to merge layers.", "CzLandUse&CN", level=Qgis.Critical)
 
         # Remove partial Marged_Layer layers
         for layer in priority_merged_layers:
             QgsProject.instance().removeMapLayer(layer.id())
 
-        print("Layers merged by priority and added to the project as Final_Merged_Layer.")
+        QgsMessageLog.logMessage("Stacking layers completed.", "CzLandUse&CN", level=Qgis.Info)
         return None
