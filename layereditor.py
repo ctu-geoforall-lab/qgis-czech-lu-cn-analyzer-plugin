@@ -27,7 +27,7 @@ def attribute_layer_edit(layer: QgsVectorLayer, base_use_code: int,
     """
 
     if controlling_attribute not in layer.fields().names():
-        QgsMessageLog.logMessage(f"Attribute '{controlling_attribute}' not found in layer fields.", "CzLandUse&CN",
+        QgsMessageLog.logMessage(f"Attribute '{controlling_attribute}' not found in layer fields.", "CzLandUseCN",
                                     level=Qgis.Warning)
         raise ValueError(f"Attribute '{controlling_attribute}' not found in layer fields.")
 
@@ -50,7 +50,7 @@ def attribute_layer_edit(layer: QgsVectorLayer, base_use_code: int,
         else:
             QgsMessageLog.logMessage(
                 f"Attribute '{controlling_attribute}' missing for feature ID {feature.id()} in layer '{layer.name()}'.",
-                "CzLandUse&CN", level=Qgis.Warning)
+                "CzLandUseCN", level=Qgis.Warning)
 
     layer.commitChanges()
     return layer
@@ -99,8 +99,8 @@ def attribute_layer_buffer(layer: QgsVectorLayer, controlling_atr_name: str, def
             buffer = geom.buffer(buffer_distance, 2)
         else:
             QgsMessageLog.logMessage(f"Unsupported geometry type for feature ID {feature.id()}",
-                                     "CzLandUse&CN",
-                                    level=Qgis.Warning)
+                                    level=Qgis.Warning,
+                                    notifyUser = True)
             continue
 
         # Create a new feature with the buffered geometry and add it to the buffer layer
@@ -109,13 +109,14 @@ def attribute_layer_buffer(layer: QgsVectorLayer, controlling_atr_name: str, def
         new_feature.setAttributes(feature.attributes())
         if not buffer_layer.addFeature(new_feature):
             QgsMessageLog.logMessage(f"Failed to add feature ID {feature.id()} to the buffer layer.",
-                                     "CzLandUse&CN",
-                                    level=Qgis.Warning)
+                                    level=Qgis.Warning,
+                                    notifyUser = True)
 
     # Commit changes to the buffer layer and add it to the project
     if not buffer_layer.commitChanges():
-        QgsMessageLog.logMessage("Failed to commit changes to the buffer layer.", "CzLandUse&CN",
-                                 level=Qgis.Warning)
+        QgsMessageLog.logMessage("Failed to commit changes to the buffer layer.",
+                                 level=Qgis.Warning,
+                                    notifyUser = True)
     else:
         return buffer_layer
 

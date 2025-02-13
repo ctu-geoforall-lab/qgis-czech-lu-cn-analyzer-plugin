@@ -33,7 +33,7 @@ def get_ZABAGED_layers_list(config_path: str) -> List[str]:
         with open(config_path, "r") as file:
             return [line.strip() for line in file]
     except Exception as e:
-        QgsMessageLog.logMessage(f"Failed to load WFS layers: {e}", "CzLandUse&CN ", level=Qgis.Warning)
+        QgsMessageLog.logMessage(f"Failed to load WFS layers: {e}","CzLandUseCN",  level=Qgis.Warning, notifyUser=True)
         return []
 
 
@@ -67,8 +67,8 @@ def get_wfs_info(use_polygon, wfs_layers, polygon=None):
     """ Get WFS layers and extent information"""
 
     if not wfs_layers:
-        QgsMessageLog.logMessage("Corupted WFS setting, see config file", "CzLandUse&CN ",
-                                 level=Qgis.Warning)
+        QgsMessageLog.logMessage("Corupted WFS setting, see config file","CzLandUseCN",
+                                 level=Qgis.Warning, notifyUser=True)
         return
 
     if not use_polygon:
@@ -76,7 +76,7 @@ def get_wfs_info(use_polygon, wfs_layers, polygon=None):
     elif polygon and polygon.isValid():
         extent = polygon.extent()
     else:
-        QgsMessageLog.logMessage("Invalid polygon layer!", "CzLandUse&CN ", level=Qgis.Warning)
+        QgsMessageLog.logMessage("Invalid polygon layer!", "CzLandUseCN", level=Qgis.Warning, notifyUser=True)
 
 
     return extent.yMinimum(), extent.xMinimum(), extent.yMaximum(), extent.xMaximum(), extent
@@ -88,8 +88,8 @@ def load_one_line_config(file_name: str) -> Optional[str]:
         config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config", file_name)
         return getOneLineConfig(config_path)
     except Exception as e:
-        QgsMessageLog.logMessage(f"Failed to load configuration file {file_name}: {e}", "CzLandUse&CN ",
-                                 level=Qgis.Warning)
+        QgsMessageLog.logMessage(f"Failed to load configuration file {file_name}: {e}","CzLandUseCN",
+                                 level=Qgis.Warning, notifyUser=True)
         return None
 
 
@@ -114,8 +114,8 @@ def process_wfs_layer(layer_name: str, ymin: float, xmin: float, ymax: float, xm
 
     vlayer = QgsVectorLayer(uri, f"Layer: {layer_name}", "WFS")
     if not vlayer.isValid() or not vlayer.featureCount():
-        QgsMessageLog.logMessage(f"Failed to load or empty layer: {layer_name}", "CzLandUse&CN ",
-                                 level=Qgis.Warning)
+        QgsMessageLog.logMessage(f"Failed to load or empty layer: {layer_name}","CzLandUseCN",
+                                 level=Qgis.Warning, notifyUser=True)
         return
 
     clipped_layer = clip_layer(vlayer, extent, layer_name)
@@ -194,8 +194,8 @@ def buffer_layers(layers: list, BUF_config_path: str) -> list:
                     new_layers.append(layer)  # If no config matches, keep the original
 
         except Exception as e:
-            QgsMessageLog.logMessage(f"Failed to buffer layer {layer_name}: {e}", "CzLandUse&CN ",
-                                     level=Qgis.Warning)
+            QgsMessageLog.logMessage(f"Failed to buffer layer {layer_name}: {e}","CzLandUseCN",
+                                     level=Qgis.Warning, notifyUser=True)
             new_layers.append(layer)  # Keep the original if error occurs
 
     return new_layers
@@ -223,18 +223,16 @@ def edit_landuse_code(layers: list, ATR_config_path: str) -> list:
 
                         else:
                             new_layers.append(layer)  # Keep original if editing fails
-                            QgsMessageLog.logMessage(f"/ERROR/ Layer {layer.name()} trashed.", "CzLandUse&CN"
-                                                     , level=Qgis.Warning)
+                            QgsMessageLog.logMessage(f"/ERROR/ Layer {layer.name()} trashed.","CzLandUseCN", level=Qgis.Warning, notifyUser=True)
 
                         break
                     else:
                         new_layers.append(layer)  # If no match, keep original
-                        QgsMessageLog.logMessage("No edits at" + layer.name(), "CzLandUse&CN"
-                                                     , level=Qgis.Warning)
+                        QgsMessageLog.logMessage("No edits at" + layer.name(),"CzLandUseCN", level=Qgis.Warning, notifyUser=True)
 
         except Exception as e:
-            QgsMessageLog.logMessage(f"Failed to edit layer {layer.name()}: {e}", "CzLandUse&CN"
-                                     , level=Qgis.Warning)
+            QgsMessageLog.logMessage(f"Failed to edit layer {layer.name()}: {e}","CzLandUseCN",
+                                     level=Qgis.Warning, notifyUser=True)
             new_layers.append(layer)  # Keep original if error occurs
 
     return new_layers
@@ -265,8 +263,8 @@ def clip_layers_after_edits(layers: list, AreaFlag: bool,
         if clipped_layer and clipped_layer.isValid():
             clipped_layers.append(clipped_layer)
         else:
-            QgsMessageLog.logMessage(f"Warning: Clipping failed for {layer_name}, keeping original.", "CzLandUse&CN",
-                                     level=Qgis.Warning)
+            QgsMessageLog.logMessage(f"Warning: Clipping failed for {layer_name}, keeping original.","CzLandUseCN",
+                                     level=Qgis.Warning, notifyUser=True)
             clipped_layers.append(layer)  # Keep original if clipping fails
 
     return clipped_layers
@@ -274,14 +272,18 @@ def clip_layers_after_edits(layers: list, AreaFlag: bool,
 def apply_symbology(layer: QgsVectorLayer, symbology_path: str) -> None:
     """Apply symbology to the layer from the specified file."""
     if not layer.isValid():
-        QgsMessageLog.logMessage("Invalid layer", "CzLandUse&CN", level=Qgis.Warning)
+        QgsMessageLog.logMessage("Invalid layer for symbology", "CzLandUseCN", level=Qgis.Warning, notifyUser=True)
         return
 
     # Load the symbology from the file
     success = layer.loadSldStyle(symbology_path)
     if not success:
-        QgsMessageLog.logMessage("Failed to load symbology", "CzLandUse&CN", level=Qgis.Warning)
+        QgsMessageLog.logMessage("Failed to load symbology", "CzLandUseCN",  level=Qgis.Warning, notifyUser=True)
         return
+
+
+
+
 
 def stack_layers(qgs_project: QgsProject, layers: list, stacking_template_path: str) -> None:
     """
@@ -318,8 +320,8 @@ def stack_layers(qgs_project: QgsProject, layers: list, stacking_template_path: 
                 if layer_name in STClist:
                     LayerOrderedList.append(layer)
                 else:
-                    QgsMessageLog.logMessage(f"Layer '{layer_name}' not found in the stacking list.", "CzLandUse&CN",
-                                                level=Qgis.Warning)
+                    QgsMessageLog.logMessage(f"Layer '{layer_name}' not found in the stacking list.","CzLandUseCN",
+                                                level=Qgis.Warning, notifyUser=True)
                     continue
 
         # Order layers by STClist, filtering only layers found in STClist
@@ -346,11 +348,14 @@ def stack_layers(qgs_project: QgsProject, layers: list, stacking_template_path: 
         if final_merged_layer:
             QgsProject.instance().addMapLayer(final_merged_layer)
         else:
-            QgsMessageLog.logMessage("Failed to merge layers.", "CzLandUse&CN", level=Qgis.Critical)
+            QgsMessageLog.logMessage("Failed to merge layers.","CzLandUseCN", level=Qgis.Critical, notifyUser=True)
 
         # Remove partial Marged_Layer layers
         for layer in priority_merged_layers:
             QgsProject.instance().removeMapLayer(layer.id())
 
-        QgsMessageLog.logMessage("Stacking layers completed.", "CzLandUse&CN", level=Qgis.Info)
+        QgsMessageLog.logMessage("Stacking layers completed.", "CzLandUseCN", level=Qgis.Info, notifyUser=False)
         return None
+
+
+

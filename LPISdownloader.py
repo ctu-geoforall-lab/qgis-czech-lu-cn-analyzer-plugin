@@ -22,7 +22,7 @@ float, current_extent: QgsGeometry, polygon: QgsVectorLayer, AreaFlag: bool, Lay
     LPISlayer = process_wfs_layer(layer_name, ymin, xmin, ymax, xmax, current_extent, LPISURL)
 
     if LPISlayer is None:
-        QgsMessageLog.logMessage("Unavailable LPIS Layer", "CzLandUse&CN ", level=Qgis.Warning)
+        QgsMessageLog.logMessage("Unavailable LPIS Layer", "CzLandUseCN",level=Qgis.Warning, notifyUser=True)
         return LayerList
 
     # Set LPIS layer name to "LPIS_layer"
