@@ -271,6 +271,18 @@ def clip_layers_after_edits(layers: list, AreaFlag: bool,
 
     return clipped_layers
 
+def apply_symbology(layer: QgsVectorLayer, symbology_path: str) -> None:
+    """Apply symbology to the layer from the specified file."""
+    if not layer.isValid():
+        QgsMessageLog.logMessage("Invalid layer", "CzLandUse&CN", level=Qgis.Warning)
+        return
+
+    # Load the symbology from the file
+    success = layer.loadSldStyle(symbology_path)
+    if not success:
+        QgsMessageLog.logMessage("Failed to load symbology", "CzLandUse&CN", level=Qgis.Warning)
+        return
+
 def stack_layers(qgs_project: QgsProject, layers: list, stacking_template_path: str) -> None:
     """
     Merge polygon layers by their priority from the stacking list - layers_merging_order.conf
@@ -324,6 +336,11 @@ def stack_layers(qgs_project: QgsProject, layers: list, stacking_template_path: 
         priority_merged_layers.reverse()
         # Merge all priority layers together in the specified order
         final_merged_layer = merge_layers(priority_merged_layers, "LandUse_Layer")
+
+        # Apply symbology to the merged layer
+        path_to_sld = os.path.join(os.path.dirname(os.path.realpath(__file__)), "colortables", "landuse.sld")
+        apply_symbology(final_merged_layer, path_to_sld)
+        final_merged_layer.triggerRepaint()
 
         # Add the final merged layer to the project
         if final_merged_layer:
