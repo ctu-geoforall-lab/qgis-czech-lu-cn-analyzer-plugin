@@ -30,10 +30,13 @@ def get_ZABAGED_layers_list(config_path: str) -> List[str]:
     """ Load WFS layers from the configuration file"""
 
     try:
-        with open(config_path, "r") as file:
-            return [line.strip() for line in file]
+        with open(config_path, mode='r', encoding='utf-8') as file:
+            lines = file.readlines()
+
+        processed_lines = [line.strip() for line in lines if line.strip() != "LPIS_layer"]
+        return processed_lines
     except Exception as e:
-        QgsMessageLog.logMessage(f"Failed to load WFS layers: {e}","CzLandUseCN",  level=Qgis.Warning, notifyUser=True)
+        QgsMessageLog.logMessage(f"Failed to load WFS layers (layers_merging_order.csv): {e}", "CzLandUseCN", level=Qgis.Warning, notifyUser=True)
         return []
 
 
@@ -81,17 +84,16 @@ def get_wfs_info(use_polygon, wfs_layers, polygon=None):
 
     return extent.yMinimum(), extent.xMinimum(), extent.yMaximum(), extent.xMaximum(), extent
 
-
-def load_one_line_config(file_name: str) -> Optional[str]:
-    """Helper function to load a configuration file."""
+def get_string_from_yaml(path: str, key: str) -> Optional[str]:
+    """ Get a string from a YAML file"""
     try:
-        config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config", file_name)
-        return getOneLineConfig(config_path)
+        with open(path, 'r') as file:
+            config = yaml.safe_load(file)
+            return config.get(key)
     except Exception as e:
-        QgsMessageLog.logMessage(f"Failed to load configuration file {file_name}: {e}","CzLandUseCN",
+        QgsMessageLog.logMessage(f"Failed to load {key} from {path}: {e}","CzLandUseCN",
                                  level=Qgis.Warning, notifyUser=True)
         return None
-
 
 def getOneLineConfig(path: str) -> Optional[str]:
     """
@@ -106,6 +108,7 @@ def getOneLineConfig(path: str) -> Optional[str]:
 def process_wfs_layer(layer_name: str, ymin: float, xmin: float, ymax: float, xmax: float, extent: QgsGeometry,
                       URL: str) -> Optional[QgsVectorLayer]:
     """ Load and clip a WFS layer to the given extent"""
+
     uri = (
         f"{URL}?"
         f"&version=2.0.0&request=GetFeature&typename={layer_name}"
@@ -113,7 +116,7 @@ def process_wfs_layer(layer_name: str, ymin: float, xmin: float, ymax: float, xm
     )
 
     vlayer = QgsVectorLayer(uri, f"Layer: {layer_name}", "WFS")
-    if not vlayer.isValid() or not vlayer.featureCount():
+    if not vlayer.isValid() or not vlayer.featureCount() or vlayer is None:
         QgsMessageLog.logMessage(f"Failed to load or empty layer: {layer_name}","CzLandUseCN",
                                  level=Qgis.Warning, notifyUser=True)
         return
@@ -137,8 +140,34 @@ def ClipByPolygon(layer: QgsVectorLayer, polygon: QgsVectorLayer) -> QgsVectorLa
         final_clipped_layer.setName(layer.name())
         return final_clipped_layer # Return the clipped layer
 
+def add_LPIS_LandUse_code(layer: QgsVectorLayer, LPIS_path: str) -> None:
+    """Add LandUse code to LPIS layer based on its attributes."""
+    try:
+        with open(LPIS_path, 'r') as file:
+            config = yaml.safe_load(file)
+            lpis_layer_config = next((layer for layer in config['layers'] if layer['name'] == 'LPIS_layer'), None)
+            if not lpis_layer_config:
+                QgsMessageLog.logMessage("LPIS layer configuration not found in YAML.", "CzLandUseCN", level=Qgis.Warning, notifyUser=True)
+                return
 
-def add_landuse_attribute(layers: list, attribute_template_path: str) -> list:
+            base_use_code = lpis_layer_config['base_use_code']
+            controlling_attribute = lpis_layer_config['controlling_attribute']
+            value_increments = lpis_layer_config['value_increments']
+
+            layer.startEditing()
+            for feature in layer.getFeatures():
+                attribute_value = feature[controlling_attribute]
+                increment = value_increments.get(attribute_value, 0)
+                feature["LandUse_code"] = base_use_code + increment
+                layer.updateFeature(feature)
+            layer.commitChanges()
+
+    except Exception as e:
+        QgsMessageLog.logMessage(f"Failed to add LandUse code to LPIS layer: {e}", "CzLandUseCN", level=Qgis.Warning, notifyUser=True)
+
+
+
+def add_landuse_attribute(layers: list, attribute_template_path: str, LPIS_path: str) -> list:
     """Add LandUse attribute to layers with the common string."""
     updated_layers = []
 
@@ -148,10 +177,16 @@ def add_landuse_attribute(layers: list, attribute_template_path: str) -> list:
         data_provider.addAttributes([QgsField("LandUse_code", QVariant.Int)])
         layer.updateFields()
 
-        with open(attribute_template_path, "r") as file:
+        if layer_name == "LPIS_layer":
+            # Skip LPIS layer
+            add_LPIS_LandUse_code(layer,LPIS_path)
+            continue
+
+        with open(attribute_template_path, "r", encoding="utf-8") as file:
             for line in file:
-                names = line.split(";")[:-2]
-                code = int(line.split(";")[-2])
+                parts = line.strip().split(",")  # Use comma as the delimiter
+                names = parts[:-1]  # All but the last value are names
+                code = int(parts[-1])  # Last value is the code
 
                 if any(name.lower() in layer_name.lower() for name in names):
                     layer.startEditing()
@@ -160,22 +195,23 @@ def add_landuse_attribute(layers: list, attribute_template_path: str) -> list:
                         layer.updateFeature(feature)
                     layer.commitChanges()
 
-        updated_layers.append(layer)  # Always append the layer
+            updated_layers.append(layer)  # Always append the layer
 
     return updated_layers
 
-def buffer_layers(layers: list, BUF_config_path: str) -> list:
-    """Buffer line layers based on configuration."""
+def buffer_layers(layers: list, buffer_config_path: str) -> list:
+    """Buffer layers based on the configuration in the YAML file."""
     new_layers = []
 
-    for layer in layers:
-        layer_name = layer.name()
-        try:
-            with open(BUF_config_path, 'r') as BUFfile:
-                BUFconfig = yaml.safe_load(BUFfile)
+    try:
+        with open(buffer_config_path, 'r') as file:
+            config = yaml.safe_load(file)
+            buffer_layers_config = config.get('buffer_layers', [])
 
-                for layer_config in BUFconfig['buffer_layers']:
-                    if layer_config['input_layer_name'] == layer_name:
+            for layer in layers:
+                for layer_config in buffer_layers_config:
+                    if layer.name() == layer_config.get('input_layer_name', ''):
+
                         buffered_layer = attribute_layer_buffer(
                             layer,
                             controlling_atr_name=layer_config['controlling_atr_name'],
@@ -183,9 +219,11 @@ def buffer_layers(layers: list, BUF_config_path: str) -> list:
                             priorities=[b['priority'] for b in layer_config['buffer_levels']],
                             values=[b['values'] for b in layer_config['buffer_levels']],
                             distances=[b['distance'] for b in layer_config['buffer_levels']],
-                            input_layer_name=layer_name
+                            input_layer_name=layer_config['input_layer_name']
                         )
                         if buffered_layer:
+                            QgsMessageLog.logMessage("Successful buffering: " + layer.name(), "CzLandUseCN",
+                                                     level=Qgis.Info, notifyUser=False)
                             new_layers.append(buffered_layer)
                         else:
                             new_layers.append(layer)  # Keep original if buffering fails
@@ -193,10 +231,9 @@ def buffer_layers(layers: list, BUF_config_path: str) -> list:
                 else:
                     new_layers.append(layer)  # If no config matches, keep the original
 
-        except Exception as e:
-            QgsMessageLog.logMessage(f"Failed to buffer layer {layer_name}: {e}","CzLandUseCN",
-                                     level=Qgis.Warning, notifyUser=True)
-            new_layers.append(layer)  # Keep the original if error occurs
+    except Exception as e:
+        QgsMessageLog.logMessage(f"Failed to buffer layers: {e}", "CzLandUseCN", level=Qgis.Warning, notifyUser=True)
+        new_layers.extend(layers)  # Keep original layers if error occurs
 
     return new_layers
 
@@ -220,19 +257,18 @@ def edit_landuse_code(layers: list, ATR_config_path: str) -> list:
                         )
                         if edited_layer:
                             new_layers.append(edited_layer)
-
+                            QgsMessageLog.logMessage("LandUse code attribute edit at: " + layer.name(), "CzLandUseCN",
+                                                     level=Qgis.Info, notifyUser=False)
                         else:
                             new_layers.append(layer)  # Keep original if editing fails
-                            QgsMessageLog.logMessage(f"/ERROR/ Layer {layer.name()} trashed.","CzLandUseCN", level=Qgis.Warning, notifyUser=True)
-
+                            QgsMessageLog.logMessage(f"/ERROR/ Layer {layer.name()} trashed.", "CzLandUseCN", level=Qgis.Warning, notifyUser=True)
                         break
                     else:
                         new_layers.append(layer)  # If no match, keep original
-                        QgsMessageLog.logMessage("No edits at" + layer.name(),"CzLandUseCN", level=Qgis.Warning, notifyUser=True)
+
 
         except Exception as e:
-            QgsMessageLog.logMessage(f"Failed to edit layer {layer.name()}: {e}","CzLandUseCN",
-                                     level=Qgis.Warning, notifyUser=True)
+            QgsMessageLog.logMessage(f"Failed to edit layer {layer.name()}: {e}", "CzLandUseCN", level=Qgis.Warning, notifyUser=True)
             new_layers.append(layer)  # Keep original if error occurs
 
     return new_layers
@@ -304,8 +340,8 @@ def stack_layers(qgs_project: QgsProject, layers: list, stacking_template_path: 
         return None
 
     with open(stacking_template_path, 'r') as STCfile:
-        # Skip first line and read others in order and put them in a list
-        STClines = STCfile.readlines()[1:]
+        # Read lines in order and put them in a list
+        STClines = STCfile.readlines()
         STClist = [line.strip() for line in STClines]
 
         LayerOrderedList = []
