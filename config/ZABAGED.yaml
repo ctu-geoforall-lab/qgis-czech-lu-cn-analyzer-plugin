@@ -1,0 +1,29 @@
+URL: https://ags.cuzk.cz/arcgis/services/ZABAGED_POLOHOPIS/MapServer/WFSServer
+# This list contains buffer options, values in controlling_atr_name change length of buffers for point/line objects. distance is in meters.
+buffer_layers:
+  - input_layer_name: "ZABAGED_POLOHOPIS:Silnice__dálnice"
+    controlling_atr_name: "typsil_k"
+    buffer_levels:
+      - priority: "1"
+        values: ["D1", "D2", "M", "D1p", "Mp", "Mv"]
+        distance: 20
+      - priority: "2"
+        values: ["S1", "S1v", "S1p"]
+        distance: 12.5
+      - priority: "3"
+        values: ["S2", "S3", "D2p", "S2p", "S2v", "S3p", "S3v"]
+        distance: 10
+    default_buffer: 7.5
+# This list contains settings for ZABAGED layers where their LandUse code is updated by some value in its attribute.
+# base_use_code is the LandUse code for the whole layer, and numbers from values in the controlling attribute are added to base_use_code.
+layers:
+  - name: "ZABAGED_POLOHOPIS:Lesní_půda_se_stromy_kategorizovaná__plocha_"
+    base_use_code: 30000
+    controlling_attribute: "druh_k"
+    value_increments:
+      N: 0
+      J: 3200
+      L: 3100
+      S: 3300
+
+

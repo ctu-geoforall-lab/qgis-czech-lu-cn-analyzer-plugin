@@ -1,4 +1,3 @@
-# Layers order from top to bottom to be merged by. Make sure that all layers from zabagedlayers.conf are listed here in correct order (and LPIS layer).
 ZABAGED_POLOHOPIS:Silnice__dálnice
 ZABAGED_POLOHOPIS:Silnice_neevidovaná
 ZABAGED_POLOHOPIS:Silnice_ve_výstavbě
