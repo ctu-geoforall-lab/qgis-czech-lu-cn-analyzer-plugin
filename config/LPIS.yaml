@@ -1,4 +1,7 @@
-# This file contains settings for LPIS layer where their LandUse code is updated by some value in its attribute.
+URL: https://mze.gov.cz/public/app/wms/plpis_wfs.fcgi
+# LPIS WFS layer name with desired polygons.
+layer_name: LPIS_DPB_UCINNE
+# This list contains settings for LPIS layer where their LandUse code is updated by some value in its attribute.
 # base_use_code is the LandUse code for the whole layer, and numbers from values in the controlling attribute are added to base_use_code.
 layers:
   - name: "LPIS_layer"

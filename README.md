@@ -22,15 +22,11 @@ Tyto soubory se nachází ve složce *config* <br>
 Slouží k uchování paramterů webových služeb (a k jejich editaci pro případ změn na straně poskytovatele) <br>
 a pro případnou změnu některých výpočetních postupů <br> <br>
 
-- **zabaged_WFS_URL.conf** - uchovává URL adresu, kde se nachází WFS služba poskytující ZABAGED data.
-- **zabagedlayers.conf** - uchovává názvy stahovaných ZABAGED vrstev, které jsou dány poskytovatelem. Nachází se zde pouze vrstvy relevantní pro výpočet.
-- **zabaged_to_LandUseCode_table.conf** - uchovává sadu čtyř klíčových slov, která pokud jsou obsažena v názvu ZABAGED vrstvy, tak jí je přiřazena Hodnota LandUse kódu z páté pozice řádku.
-- **zabaged_atr_to_Buffer.yaml** - obsahuje názvy vrstev, které je potřeba bufferovat (liniové a bodové). Ty se bufferují dle nějakého atributu a jeho hodnoty v ZABAGED vrstvě. Pro jednotlivé hodnoty tohoto atributu jsou zvoleny vzdálenosti bufferů. (Šířka vozovky je dvojnásobek hodnoty *distance*)
-- **zabaged_atr_to_LandUse.yaml** - obsahuje informace pro zpřesnění LandUse kódu ZABAGED vrstvy dle nějakého jejího atributu. K definované hlavní hodnotě LandUse kódu jsou přičítány definované přírůstky dle hodnot řídícího atributu.
-- **layers_merging_order.conf** - obsahuje prioritu sloučení ZABAGED vrstev do jedné. Vrstvy uvedeny v souboru výše budou i ve finální vrstvě výše a díky tomu nemohou být překryty vrstvami uvedenými pod nimi. (soubor musí pro správnou funkci obsahovat stejné názvy jako v *zabagedlayers.conf* však v jinak definovaném pořadí a také umístění LPIS vrstvy)
-- **LPIS_WFS_URL.conf** - obsahuje URL adresu, kde se nachází WFS služba poskytující LPIS data.
-- **LPIS_layer_name.conf** - obsahuje název stahované LPIS vrstvy.
-- **LPIS_atr_to_LandUse.yaml** - obsahuje řídící atribut pro změnu hodnoty LandUse kódu, typy atributů, základní hodnotu LandUse kódu a definované přírůstky.
+- **layers_merging_order.csv** - uchovává názvy stahovaných ZABAGED vrstev, které jsou dány poskytovatelem. Nachází se zde pouze vrstvy relevantní pro výpočet. Jsou uchovávány v pořadí dle priority sloučení do LandUse vrstvy. Priorita LPIS vrstvy je zde uvedena pod klíčovým slovem _LPIS_layer_.
+- **LPIS.yaml** - obsahuje URL adresu, kde se nachází WFS služba poskytující LPIS data. Také název stahované LPIS vrstvy a  řídící atribut pro změnu hodnoty LandUse kódu, typy atributů, základní hodnotu LandUse kódu a definované přírůstky.
+- **ZABAGED.yaml** -  obsahuje URL adresu, kde se nachází WFS služba poskytující ZABAGED data. Také  názvy vrstev, které je potřeba bufferovat (liniové a bodové). Ty se bufferují dle nějakého atributu a jeho hodnoty v ZABAGED vrstvě. Pro jednotlivé hodnoty tohoto atributu jsou zvoleny vzdálenosti bufferů. (Šířka vozovky je dvojnásobek hodnoty *distance*)
+- **zabaged_to_LandUseCode_table.csv** - uchovává sadu čtyř klíčových slov, která pokud jsou obsažena v názvu ZABAGED vrstvy, tak jí je přiřazena Hodnota LandUse kódu z páté pozice řádku.
+
   
 ## Další informace
 - na další bodové a linové prvky je potřeba zvolit buffer

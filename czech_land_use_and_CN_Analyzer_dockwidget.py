@@ -85,23 +85,22 @@ class TASK_process_wfs_layer(QgsTask):
 
         self._update_progress_bar()
 
+        LPISconfigpath = os.path.join(os.path.dirname(__file__), 'config', 'LPIS.yaml')
         # Load the LPIS URL from config file
-        LPISURL = load_one_line_config("LPIS_WFS_URL.conf")
+        LPISURL = get_string_from_yaml(LPISconfigpath,"URL")
         # Load the LPIS layer name from config file
-        LPISlayername = load_one_line_config("LPIS_layer_name.conf")
-
-        # Load yaml file with LPIS LandUse codes nad atributtes from config file
-        LPISLandUseCodes = os.path.join(os.path.dirname(__file__), 'config', 'LPIS_atr_to_LandUse.yaml')
+        LPISlayername = get_string_from_yaml(LPISconfigpath,"layer_name")
 
         # Run fucntion to download LPIS from wfs in LPISdownloader.py
-        self.LandUseLayers = GetLPISLayer(LPISURL, LPISlayername, LPISLandUseCodes, self.ymin, self.xmin, self.ymax, self.xmax,
+        self.LandUseLayers = GetLPISLayer(LPISURL, LPISlayername, LPISconfigpath,self.ymin, self.xmin, self.ymax, self.xmax,
                      self.current_extent, self.polygon,
                      self.AreaFlag, self.LandUseLayers)
 
         try:
 
             # Load the WFS URL from config file
-            zabaged_URL = load_one_line_config("zabaged_WFS_URL.conf")
+            zabaged_URL = get_string_from_yaml(os.path.join(os.path.dirname(__file__), 'config', 'ZABAGED.yaml'),"URL")
+
             i = 1
             for self.layer in self.wfs_layers:
 
@@ -300,8 +299,8 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             # Freeze the UI elements during processing
             self._freeze_ui()
 
-            # Get the list of WFS layers to process from config file
-            config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config", "zabagedlayers.conf")
+            # Get the list of WFS layers to process from merging config file
+            config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config", "layers_merging_order.csv")
 
             # Get info for WFS service input based on extent or polygon
             wfs_layers = get_ZABAGED_layers_list(config_path) # load WFS layers from config file
@@ -376,20 +375,21 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         self.label.setText("Editing ZABAGED layers...")
         # Get the path to the config file with base LandUse codes and keywords for zabaged layers
         attribute_template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config",
-                                               "zabaged_to_LandUseCode_table.conf")
-        # Get the path to the config file with buffers for points and lines
-        BUF_config_path = os.path.join(os.path.dirname(__file__), 'config', 'zabaged_atr_to_Buffer.yaml')
-        # Get the path to the config file with attribute values for LandUse code updates
-        ATR_config_path = os.path.join(os.path.dirname(__file__), 'config', 'zabaged_atr_to_LandUse.yaml')
+                                               "zabaged_to_LandUseCode_table.csv")
+
+        # Get the path to the config file for ZABAGED data
+        ZABAGED_config_path = os.path.join(os.path.dirname(__file__), 'config', 'ZABAGED.yaml')
+        LPIS_config_path = os.path.join(os.path.dirname(__file__), 'config', 'LPIS.yaml')
+
 
         # Add LandUse attribute to all layers in list
-        self.LandUseLayers = add_landuse_attribute(self.LandUseLayers, attribute_template_path)
+        self.LandUseLayers = add_landuse_attribute(self.LandUseLayers, attribute_template_path, LPIS_config_path )
 
         # Add buffer line features to all layers in list
-        self.LandUseLayers = buffer_layers(self.LandUseLayers, BUF_config_path)
+        self.LandUseLayers = buffer_layers(self.LandUseLayers, ZABAGED_config_path)
 
         # Update LandUse code based on its attributes
-        self.LandUseLayers = edit_landuse_code(self.LandUseLayers, ATR_config_path)
+        self.LandUseLayers = edit_landuse_code(self.LandUseLayers, ZABAGED_config_path)
 
         # Clip all layer to the polygon or extent by AreaFlag (Used as clip after buffering)
         self.LandUseLayers = clip_layers_after_edits(self.LandUseLayers, self.AreaFlag, self.polygon,
@@ -397,7 +397,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
         # Stack layers with LandUse code into one
         stacking_template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config",
-                                               "layers_merging_order.conf")
+                                               "layers_merging_order.csv")
         stack_layers(QgsProject.instance(), self.LandUseLayers, stacking_template_path)
 
 

@@ -12,7 +12,7 @@ from .function import process_wfs_layer, ClipByPolygon
 from .layereditor import attribute_layer_edit
 
 
-def GetLPISLayer(LPISURL: str, layer_name: str, LPISLandUseCodes: str, ymin: float, xmin: float, ymax: float, xmax:
+def GetLPISLayer(LPISURL: str, layer_name: str, LPISconfigpath: str, ymin: float, xmin: float, ymax: float, xmax:
 float, current_extent: QgsGeometry, polygon: QgsVectorLayer, AreaFlag: bool, LayerList: list) -> list:
 
     """
