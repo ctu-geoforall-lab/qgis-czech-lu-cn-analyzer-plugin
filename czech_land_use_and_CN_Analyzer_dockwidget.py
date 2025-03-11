@@ -21,7 +21,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-
+import os
 import processing
 
 from qgis.PyQt import QtWidgets, uic
@@ -31,8 +31,8 @@ from qgis.core import Qgis, QgsMapLayerProxyModel, QgsProject, QgsApplication, Q
 from .UIupdater import UIUpdater
 from .WFSdownloader import WFSDownloader
 from .InputChecker import InputChecker
-from .function import *
 from .WFStask import TASK_process_wfs_layer
+from .LayerEditor import LayerEditor
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'czech_land_use_and_CN_Analyzer_dockwidget_base.ui'))
@@ -110,7 +110,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
             # Check input by user, Qgis project settings and integrity of configuration files
 
-            input_checker = InputChecker(iface, self.polygon, self.ymin, self.xmin, self.ymax, self.xmax, wfs_layers,
+            input_checker = InputChecker(self.polygon, self.ymin, self.xmin, self.ymax, self.xmax, wfs_layers,
                                          QgsProject.instance(), self.mMapLayerComboBox, self.ui_updater, self.AreaFlag)
 
             check_list = [input_checker.check_crs() ,input_checker.check_CR_boundary() ,
@@ -164,25 +164,29 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         # Get the path to the config file for ZABAGED data
         ZABAGED_config_path = os.path.join(os.path.dirname(__file__), 'config', 'ZABAGED.yaml')
         LPIS_config_path = os.path.join(os.path.dirname(__file__), 'config', 'LPIS.yaml')
+        stacking_template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config",
+                                              "layers_merging_order.csv")
+        # Get a symbology (.sld) path for the final stacked layer
+        symbology_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "colortables", "landuse.sld")
 
+        layer_editor = LayerEditor(attribute_template_path,LPIS_config_path,ZABAGED_config_path, stacking_template_path,
+                                   symbology_path, self.AreaFlag, self.polygon, self.ymin, self.xmin, self.ymax,
+                                   self.xmax)
 
         # Add LandUse attribute to all layers in list
-        self.LandUseLayers = add_landuse_attribute(self.LandUseLayers, attribute_template_path, LPIS_config_path )
+        self.LandUseLayers = layer_editor.add_landuse_attribute(self.LandUseLayers)
 
         # Add buffer line features to all layers in list
-        self.LandUseLayers = buffer_layers(self.LandUseLayers, ZABAGED_config_path)
+        self.LandUseLayers = layer_editor.buffer_layers(self.LandUseLayers)
 
         # Update LandUse code based on its attributes
-        self.LandUseLayers = edit_landuse_code(self.LandUseLayers, ZABAGED_config_path)
+        self.LandUseLayers = layer_editor.edit_landuse_code(self.LandUseLayers)
 
         # Clip all layer to the polygon or extent by AreaFlag (Used as clip after buffering)
-        self.LandUseLayers = clip_layers_after_edits(self.LandUseLayers, self.AreaFlag, self.polygon,
-                                       self.ymin, self.xmin, self.ymax, self.xmax)
+        self.LandUseLayers = layer_editor.clip_layers_after_edits(self.LandUseLayers)
 
         # Stack layers with LandUse code into one
-        stacking_template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config",
-                                               "layers_merging_order.csv")
-        stack_layers(QgsProject.instance(), self.LandUseLayers, stacking_template_path)
+        layer_editor.stack_layers(self.LandUseLayers)
 
         # Show success in the UI elements after completion
         self.ui_updater.PluginSuccess()
