@@ -4,8 +4,7 @@ from qgis.core import QgsMessageLog, Qgis
 
 class InputChecker:
     """Class to check the input from the user and state of Qgis project"""
-    def __init__(self, iface, polygon, ymin, xmin, ymax, xmax, wfs_layers, qgs_project,map_combo_box, ui_updater, area_flag):
-        self.iface = iface
+    def __init__(self, polygon, ymin, xmin, ymax, xmax, wfs_layers, qgs_project,map_combo_box, ui_updater, area_flag):
         self.polygon = polygon
         self.ymin, self.xmin, self.ymax, self.xmax = ymin, xmin, ymax, xmax
         self.wfs_layers = wfs_layers

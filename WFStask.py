@@ -13,7 +13,7 @@ class TASK_process_wfs_layer(QgsTask):
 
     def __init__(self, wfs_layers, ymin, xmin, ymax, xmax, current_extent, polygon, flag, label, progress_bar,
                  run_button, abort_button, polygon_button, extent_button, LandUseLayers):
-        
+
         super().__init__("Process WFS Layers", QgsTask.CanCancel)
         self.wfs_layers = wfs_layers
         self.ymin, self.xmin, self.ymax, self.xmax = ymin, xmin, ymax, xmax
