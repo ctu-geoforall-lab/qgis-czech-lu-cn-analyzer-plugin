@@ -28,126 +28,17 @@ from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.core import Qgis, QgsMapLayerProxyModel, QgsProject, QgsApplication, QgsTask, QgsMessageLog
 
+from .UIupdater import UIUpdater
+from .WFSdownloader import WFSDownloader
+from .InputChecker import InputChecker
 from .function import *
-from .LPISdownloader import GetLPISLayer
+from .WFStask import TASK_process_wfs_layer
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'czech_land_use_and_CN_Analyzer_dockwidget_base.ui'))
 
 
-class TASK_process_wfs_layer(QgsTask):
-    """
-    QgsTask subclass to process (download and clip) WFS layers.
-    Task updates GUI in czech_land_use_and_CN_AnalyzerDockWidget.
-    """
-    progressChanged = pyqtSignal(int)         # Signal emitted to update the progress bar
-    taskCanceled = pyqtSignal(bool)           # Signal emitted when the task is canceled by user in GUI and ends loop in run method
-    taskError = pyqtSignal(str)               # Signal emitted when an error occurs during the task
-    taskFinished = pyqtSignal(list)           # Signal to pass LandUseLayers
 
-    def __init__(self, wfs_layers, ymin, xmin, ymax, xmax, current_extent, polygon, flag, label, progress_bar,
-                 run_button, abort_button, polygon_button, extent_button, LandUseLayers):
-        super().__init__("Process WFS Layers", QgsTask.CanCancel)
-        self.wfs_layers = wfs_layers
-        self.ymin, self.xmin, self.ymax, self.xmax = ymin, xmin, ymax, xmax
-        self.current_extent, self.polygon, self.AreaFlag = current_extent, polygon, flag
-        self.label, self.progressBar = label, progress_bar  # to update them
-        self.runButton, self.abortButton = run_button, abort_button  # to enable/disable them
-        self.polygonButton, self.extentButton = polygon_button, extent_button  # to enable/disable them
-        self._is_canceled, self.plus_one_index, self.layer = False, 0, None
-
-        self.LandUseLayers = LandUseLayers # List of LandUse layers for merge in the end
-
-        # Connect the abort button to the cancel method
-        self.abortButton.clicked.connect(self.cancel)
-
-    def _update_progress_bar(self):
-        """
-        Update progress bar incrementally, ensuring it does not exceed 99.
-        #Every second iteration (controlled by plus_one_index) adds 1 to the percentage
-        to ensure the progress bar reaches 100.
-        Changes the progress bar in GUI.
-        """
-        percentage = int(round(100 / len(self.wfs_layers)))
-        increment = percentage + (1 if self.plus_one_index % 2 else 0)
-        new_value = min(self.progressBar.value() + increment, 99)
-        self.progressChanged.emit(new_value)
-        self.plus_one_index += 1
-
-    def finished(self, result):
-        """Handle the WFS layer task completion."""
-        QgsMessageLog.logMessage("Task of processing layers completed.","CzLandUseCN",  level=Qgis.Info, notifyUser=False)
-        self.taskFinished.emit(self.LandUseLayers)  # Emit layers when task completes
-
-
-    def run(self):
-        """Run the task of downloading WFS layers."""
-
-        self._update_progress_bar()
-
-        LPISconfigpath = os.path.join(os.path.dirname(__file__), 'config', 'LPIS.yaml')
-        # Load the LPIS URL from config file
-        LPISURL = get_string_from_yaml(LPISconfigpath,"URL")
-        # Load the LPIS layer name from config file
-        LPISlayername = get_string_from_yaml(LPISconfigpath,"layer_name")
-
-        # Run fucntion to download LPIS from wfs in LPISdownloader.py
-        self.LandUseLayers = GetLPISLayer(LPISURL, LPISlayername, LPISconfigpath,self.ymin, self.xmin, self.ymax, self.xmax,
-                     self.current_extent, self.polygon,
-                     self.AreaFlag, self.LandUseLayers)
-
-        try:
-
-            # Load the WFS URL from config file
-            zabaged_URL = get_string_from_yaml(os.path.join(os.path.dirname(__file__), 'config', 'ZABAGED.yaml'),"URL")
-
-            i = 1
-            for self.layer in self.wfs_layers:
-
-                # Check if the task was canceled by the user by checking the _is_canceled flag
-                if self._is_canceled:
-                    return False
-
-                # Update the progress bar value
-                if i > 1:
-                    self._update_progress_bar()
-                i=i+1
-
-                # Process the WFS layer (function.py)
-                wfsLayer = process_wfs_layer(self.layer, self.ymin, self.xmin, self.ymax, self.xmax,
-                                             self.current_extent, zabaged_URL)
-
-                # Skip empty layers
-                if wfsLayer.featureCount() == 0:
-                    continue
-
-                # Clip the layer to the polygon if the AreaFlag is set
-                if self.AreaFlag and self.polygon:
-                    clippedLayer  = ClipByPolygon(wfsLayer, self.polygon)
-                    if clippedLayer is None:
-                        QgsMessageLog.logMessage("Invalid input polygon layer!","CzLandUseCN", level=Qgis.Warning, notifyUser=True)
-                        continue
-                    self.LandUseLayers.append(clippedLayer)
-                else:
-                    # Add the unclipped layer to the map if it contains features based on the AreaFlag
-                    self.LandUseLayers.append(wfsLayer)
-
-
-
-            self.finished(True)
-            return True
-
-        # Handle exceptions
-        except Exception as e:
-            QgsMessageLog.logMessage(f"Error occurred: {e}","CzLandUseCN", level=Qgis.Warning, notifyUser=True)
-            self.taskError.emit(str(e))
-            return None
-
-    def cancel(self):
-        """Handles task cancellation."""
-        super().cancel()
-        self._is_canceled = True  # Flag to stop the loop in the run method
-        self.taskCanceled.emit(True)
 
 
 class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
@@ -158,6 +49,9 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         """Constructor."""
         super(czech_land_use_and_CN_AnalyzerDockWidget, self).__init__(parent)
         self.setupUi(self)
+
+        self.ui_updater = UIUpdater(self.runButton, self.progressBar, self.abortButton, self.label, self.polygonButton,
+                                    self.extentButton, self.polygonLabel, self.mMapLayerComboBox)
 
         # Initialize attributes from arguments
         self.polygon = polygon
@@ -172,101 +66,22 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         # Set filter to map combobox to select only polygons
         self.mMapLayerComboBox.setFilters(QgsMapLayerProxyModel.PolygonLayer)
 
-        self.extentButton.toggled.connect(self.ToggleChangeToPolygon)
-        self.polygonButton.toggled.connect(self.ToggleChangeToExtent)
+        self.extentButton.toggled.connect(self.toggle_to_extent)
+        self.polygonButton.toggled.connect(self.toggle_to_polygon)
         self.runButton.clicked.connect(self.Run)
+
+    def toggle_to_extent(self):
+        self.AreaFlag = False
+        self.ui_updater.ToggleChangeToExtent()
+
+    def toggle_to_polygon(self):
+        self.AreaFlag = True
+        self.ui_updater.ToggleChangeToPolygon()
 
     def closeEvent(self, event):
         """Emit the closingPlugin signal when the dock widget is closed."""
         self.closingPlugin.emit()
         event.accept()
-
-    def ToggleChangeToExtent(self):
-        """Toggle the computation to the extent of the map canvas."""
-        self.AreaFlag = True
-        self.extentButton.setChecked(False)
-        self.polygonLabel.setEnabled(True)
-        self.mMapLayerComboBox.setEnabled(True)
-
-    def ToggleChangeToPolygon(self):
-        """Toggle the computation to the polygon layer."""
-        self.AreaFlag = False
-        self.polygonButton.setChecked(False)
-        self.polygonLabel.setEnabled(False)
-        self.mMapLayerComboBox.setEnabled(False)
-
-    def ErrorMsg(self, message):
-        """Display an error message."""
-        iface.messageBar().pushMessage("Error", message, level=Qgis.Critical, duration=5)
-
-    def LoadingMsg(self, msg):
-        """Display a loading message."""
-        iface.messageBar().pushMessage("Loading", msg, level=Qgis.Info, duration=0)
-
-    def CloseLoadingMsg(self):
-        """Close messages."""
-        iface.messageBar().clearWidgets()
-
-    def setButtonstoDefault(self):
-        """Set the UI buttons to their default state."""
-        self.runButton.setEnabled(True)
-        self.progressBar.setEnabled(False)
-        self.abortButton.setEnabled(False)
-        self.progressBar.setValue(0)
-        self.label.setText("")
-        self.polygonButton.setEnabled(True)
-        self.extentButton.setEnabled(True)
-
-    def _validate_crs(self):
-        """Check if the CRS is set to EPSG:5514."""
-        crs = QgsProject.instance().crs().authid()
-        if crs != 'EPSG:5514':
-            self.ErrorMsg("Please change CRS to EPSG:5514")
-            self.setButtonstoDefault()
-            return False
-        return True
-
-    def _get_polygon_layer(self):
-        """Get the polygon layer if AreaFlag is set."""
-        polygon = self.mMapLayerComboBox.currentLayer()
-        if polygon and polygon.crs().authid() != 'EPSG:5514':
-            self.ErrorMsg("Please change the polygon layer CRS to EPSG:5514")
-            self.setButtonstoDefault()
-            return None
-        return polygon
-
-    def _handle_wfs_errors(self, wfs_layers):
-        """Handle errors related to WFS layers."""
-        if wfs_layers == "ERR_missingconffile":
-            self.CloseLoadingMsg()
-            self.ErrorMsg("Missing or corrupted configuration file (zabagedlayers.conf)")
-            self.setButtonstoDefault()
-            return False
-
-        if wfs_layers == "ERR_plg":
-            self.CloseLoadingMsg()
-            self.ErrorMsg("Please select a polygon layer")
-            self.setButtonstoDefault()
-            return False
-
-        return True
-
-    def _freeze_ui(self):
-        """Freeze the UI elements during processing."""
-        self.runButton.setEnabled(False)
-        self.extentButton.setEnabled(False)
-        self.polygonButton.setEnabled(False)
-        self.abortButton.setEnabled(True)
-        self.progressBar.setEnabled(True)
-        self.progressBar.setValue(0)
-        self.label.setText("Downloading WFS layers...")
-
-    def _check_CR_boundary(self, ymin, xmin, ymax, xmax):
-        # Check if the extent is out of bounds od Czech Republic
-        if not (-1230000 <= ymin <= -920000) or not (-1230000 <= ymax <= -920000) or not (
-                -920000 <= xmin <= -420000) or not (-920000 <= xmax <= -420000):
-            return False
-
 
     def Run(self):
         """
@@ -275,52 +90,34 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         """
         QgsMessageLog.logMessage("Plugin is running.", "CzLandUseCN", level=Qgis.Info, notifyUser=False)
 
-        self.label.setStyleSheet("QLabel { color : black; }") # Set the label color to black
-        self.progressBar.setValue(0) # Reset progress bar
+        self.ui_updater.reset_panel() # Reset UI elements
 
         self.LandUseLayers = [] # List of LandUse layers for merge in the end
 
         try:
-            # Check if the CRS is set to EPSG:5514
-            if not self._validate_crs():
-                QgsMessageLog.logMessage("CRS validation failed.","CzLandUseCN", level=Qgis.Critical, notifyUser=True)
-                self.ErrorMsg("Set EPSG to 5514")
-                raise ValueError("Invalid CRS")
-
-            # Get the polygon layer if AreaFlag is set
-            if self.AreaFlag:
-                self.polygon = self._get_polygon_layer()
-                if self.polygon is None:
-                    QgsMessageLog.logMessage("Polygon layer is None.", "CzLandUseCN",level=Qgis.Critical, notifyUser=False)
-                    self.ErrorMsg("Invalid polygon layer")
-                    raise ValueError("Invalid polygon layer")
-
-            self.LoadingMsg("Loading data, please wait...")
+            self.polygon = self.mMapLayerComboBox.currentLayer()
+            self.ui_updater.LoadingMsg("Loading data, please wait...")
             # Freeze the UI elements during processing
-            self._freeze_ui()
+            self.ui_updater.freeze_ui()
 
             # Get the list of WFS layers to process from merging config file
             config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config", "layers_merging_order.csv")
 
+            wfs_downloader = WFSDownloader(config_path,self.AreaFlag, self.polygon)
             # Get info for WFS service input based on extent or polygon
-            wfs_layers = get_ZABAGED_layers_list(config_path) # load WFS layers from config file
-            self.ymin, self.xmin, self.ymax, self.xmax, current_extent = get_wfs_info(self.AreaFlag, wfs_layers,
-                                                                                      self.polygon)
+            wfs_layers = wfs_downloader.get_ZABAGED_layers_list() # load WFS layers from config file
+            self.ymin, self.xmin, self.ymax, self.xmax, current_extent = wfs_downloader.get_wfs_info(wfs_layers)
 
+            # Check input by user, Qgis project settings and integrity of configuration files
 
-            # check if the extent is out of bounds od Czech Republic
-            if self._check_CR_boundary(self.ymin, self.xmin, self.ymax, self.xmax):
-                QgsMessageLog.logMessage("Extent is out of Czech Republic boundaries","CzLandUseCN",
-                                         level=Qgis.Critical, notifyUser=True)
-                self.ErrorMsg("Extent is out of Czech Republic boundaries")
-                self.setButtonstoDefault()
-                return
+            input_checker = InputChecker(iface, self.polygon, self.ymin, self.xmin, self.ymax, self.xmax, wfs_layers,
+                                         QgsProject.instance(), self.mMapLayerComboBox, self.ui_updater, self.AreaFlag)
 
-            # Handle errors related to WFS layers
-            if not self._handle_wfs_errors(wfs_layers):
-                QgsMessageLog.logMessage("WFS layer error handling failed.","CzLandUseCN",
-                                         level=Qgis.Critical, notifyUser=True)
-                return
+            check_list = [input_checker.check_crs() ,input_checker.check_CR_boundary() ,
+                          input_checker.check_polygon_layer() ,input_checker.check_wfs_errors()]
+
+            if not all(check_list): # If any of the checks failed, return None
+                return None
 
             self.progressBar.setEnabled(True)
 
@@ -332,12 +129,12 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
 
             # Connect signals from Task to update the progress bar and handle task completion
-            task.progressChanged.connect(self.updateProgressBar)
+            task.progressChanged.connect(self.ui_updater.updateProgressBar)
             task.taskFinished.connect(self.TaskFinished)
-            task.taskCanceled.connect(self.TaskCanceled)
-            task.taskError.connect(self.TaskError)
+            task.taskCanceled.connect(self.ui_updater.TaskCanceled)
+            task.taskError.connect(self.ui_updater.TaskError)
 
-
+            # Add the task to the task manager
             QgsApplication.taskManager().addTask(task)
             QgsMessageLog.logMessage("Task created.","CzLandUseCN",
                                      level=Qgis.Info, notifyUser=False)
@@ -347,32 +144,19 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
                 e = "Extent is out of Czech Republic boundaries"
             QgsMessageLog.logMessage(e,"CzLandUseCN",
                                      level=Qgis.Critical, notifyUser=True)
-            self.ErrorMsg(f"Error occurred: {e}")
-            self.setButtonstoDefault()
+            self.ui_updater.ErrorMsg(f"Error occurred: {e}")
+            self.ui_updater.setButtonstoDefault()
             return None
 
-    def updateProgressBar(self, value):
-        """Signaled by task - Update the progress bar value based on the task progress."""
-        self.progressBar.setValue(value)
 
-    def _reset_ui(self, message, progress_value):
-        """Reset the UI elements after task cancellation or completion."""
-        self.progressBar.setValue(progress_value)
-        self.runButton.setEnabled(True)
-        self.abortButton.setEnabled(False)
-        self.progressBar.setEnabled(False)
-        self.polygonButton.setEnabled(True)
-        self.extentButton.setEnabled(True)
-        self.label.setText(message)
-        iface.messageBar().clearWidgets()
-        iface.messageBar().pushMessage("Exiting", message, level=Qgis.Critical, duration=5)
+
 
     def TaskFinished(self, layers):
-        """Handle task completion and update LandUseLayers."""
+        """Handle task completion(WFStask) and update LandUseLayers."""
         self.LandUseLayers = layers
 
-        QgsMessageLog.logMessage("Editing layers.","CzLandUseCN",level=Qgis.Info, notifyUser=False)
-        self.label.setText("Editing ZABAGED layers...")
+        self.ui_updater.TaskSuccess()
+
         # Get the path to the config file with base LandUse codes and keywords for zabaged layers
         attribute_template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config",
                                                "zabaged_to_LandUseCode_table.csv")
@@ -400,29 +184,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
                                                "layers_merging_order.csv")
         stack_layers(QgsProject.instance(), self.LandUseLayers, stacking_template_path)
 
+        # Show success in the UI elements after completion
+        self.ui_updater.PluginSuccess()
 
 
-        # Modify the UI elements after task completion
-        QgsMessageLog.logMessage("Success!","CzLandUseCN", level=Qgis.Info, notifyUser=False)
-        self.progressBar.setValue(100)
-        iface.messageBar().clearWidgets()
-        self.runButton.setEnabled(True)
-        self.abortButton.setEnabled(False)
-        self.label.setStyleSheet("QLabel { color : green; }")
-        self.label.setText("Completed :)")
-        self.polygonButton.setEnabled(True)
-        self.extentButton.setEnabled(True)
-        iface.messageBar().pushMessage("Success", "Task completed successfully", level=Qgis.Success, duration=5)
-
-    def TaskCanceled(self):
-        """Signaled by task - Handle the cancellation of the processing task."""
-        iface.messageBar().clearWidgets()
-        iface.messageBar().pushMessage("Warning", "Process was canceled by user", level=Qgis.Warning, duration=5)
-        self._reset_ui("Task was canceled by user.", 0)
-        QgsMessageLog.logMessage("Task was canceled by user.","CzLandUseCN", level=Qgis.Info, notifyUser=False)
-
-    def TaskError(self, e):
-        """Signaled by task - Handle errors that occurred during the processing task."""
-        QgsMessageLog.logMessage(e,"CzLandUseCN",  level=Qgis.Critical, notifyUser=True)
-        iface.messageBar().pushMessage("ERROR", str(e), level=Qgis.Critical, duration=5)
-        self._reset_ui("Error occurred during processing.", 0)

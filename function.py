@@ -21,124 +21,10 @@ from qgis.core import (
     Qgis
 )
 from qgis.utils import iface
-
+from .WFSdownloader import  WFSDownloader
 from .layereditor import *
 
 # WARNING: This script only works with EPSG:5514
-
-def get_ZABAGED_layers_list(config_path: str) -> List[str]:
-    """ Load WFS layers from the configuration file"""
-
-    try:
-        with open(config_path, mode='r', encoding='utf-8') as file:
-            lines = file.readlines()
-
-        processed_lines = [line.strip() for line in lines if line.strip() != "LPIS_layer"]
-        return processed_lines
-    except Exception as e:
-        QgsMessageLog.logMessage(f"Failed to load WFS layers (layers_merging_order.csv): {e}", "CzLandUseCN", level=Qgis.Warning, notifyUser=True)
-        return []
-
-
-def clip_layer(layer: QgsVectorLayer, extent: QgsRectangle, layer_name: str) -> QgsVectorLayer:
-    """ Clip the layer to the given extent"""
-
-    extent_geom = QgsGeometry.fromRect(extent)
-    clipped_layer = QgsVectorLayer(
-        f"{QgsWkbTypes.displayString(layer.wkbType())}?crs={layer.crs().authid()}",
-        layer_name,
-        "memory"
-    )
-
-    clipped_layer.dataProvider().addAttributes(layer.fields())
-    clipped_layer.updateFields()
-
-    for feature in layer.getFeatures(QgsFeatureRequest().setFilterRect(extent)):
-        geom = feature.geometry()
-        if geom.intersects(extent_geom):
-            clipped_feature = QgsFeature()
-            clipped_feature.setGeometry(geom.intersection(extent_geom))
-            clipped_feature.setAttributes(feature.attributes())
-            clipped_layer.dataProvider().addFeature(clipped_feature)
-
-    clipped_layer.commitChanges()
-
-    return clipped_layer
-
-
-def get_wfs_info(use_polygon, wfs_layers, polygon=None):
-    """ Get WFS layers and extent information"""
-
-    if not wfs_layers:
-        QgsMessageLog.logMessage("Corupted WFS setting, see config file","CzLandUseCN",
-                                 level=Qgis.Warning, notifyUser=True)
-        return
-
-    if not use_polygon:
-        extent = iface.mapCanvas().extent()
-    elif polygon and polygon.isValid():
-        extent = polygon.extent()
-    else:
-        QgsMessageLog.logMessage("Invalid polygon layer!", "CzLandUseCN", level=Qgis.Warning, notifyUser=True)
-
-
-    return extent.yMinimum(), extent.xMinimum(), extent.yMaximum(), extent.xMaximum(), extent
-
-def get_string_from_yaml(path: str, key: str) -> Optional[str]:
-    """ Get a string from a YAML file"""
-    try:
-        with open(path, 'r') as file:
-            config = yaml.safe_load(file)
-            return config.get(key)
-    except Exception as e:
-        QgsMessageLog.logMessage(f"Failed to load {key} from {path}: {e}","CzLandUseCN",
-                                 level=Qgis.Warning, notifyUser=True)
-        return None
-
-def getOneLineConfig(path: str) -> Optional[str]:
-    """
-    Get the configuration from a file with only one line. and skip comments.
-    Used for URLs and other one-line configurations.
-    """
-    with open(path, 'r') as file:
-        lines = [line for line in file if not line.startswith('#')]
-        return lines[0].strip()
-
-
-def process_wfs_layer(layer_name: str, ymin: float, xmin: float, ymax: float, xmax: float, extent: QgsGeometry,
-                      URL: str) -> Optional[QgsVectorLayer]:
-    """ Load and clip a WFS layer to the given extent"""
-
-    uri = (
-        f"{URL}?"
-        f"&version=2.0.0&request=GetFeature&typename={layer_name}"
-        f"&bbox={xmin},{ymin},{xmax},{ymax},EPSG:5514"
-    )
-
-    vlayer = QgsVectorLayer(uri, f"Layer: {layer_name}", "WFS")
-    if not vlayer.isValid() or not vlayer.featureCount() or vlayer is None:
-        QgsMessageLog.logMessage(f"Failed to load or empty layer: {layer_name}","CzLandUseCN",
-                                 level=Qgis.Warning, notifyUser=True)
-        return
-
-    clipped_layer = clip_layer(vlayer, extent, layer_name)
-    if clipped_layer.isValid():
-        return clipped_layer
-
-
-def ClipByPolygon(layer: QgsVectorLayer, polygon: QgsVectorLayer) -> QgsVectorLayer:
-    params = {
-        'INPUT': layer,
-        'OVERLAY': polygon,
-        'OUTPUT': 'memory:'
-    }
-    clipped_result = processing.run("native:clip", params)
-    final_clipped_layer = clipped_result['OUTPUT']
-
-    # Add the clipped layer to the map if it contains features
-    if final_clipped_layer and final_clipped_layer.featureCount() > 0:
-        final_clipped_layer.setName(layer.name())
-        return final_clipped_layer # Return the clipped layer
 
 def add_LPIS_LandUse_code(layer: QgsVectorLayer, LPIS_path: str) -> None:
     """Add LandUse code to LPIS layer based on its attributes."""
@@ -281,6 +167,8 @@ def clip_layers_after_edits(layers: list, AreaFlag: bool,
     Ensures the number of layers in the output matches the input.
     """
 
+    wfs_downloader = WFSDownloader(None, AreaFlag, polygon)
+
     clipped_layers = []
 
     for layer in layers:
@@ -289,11 +177,11 @@ def clip_layers_after_edits(layers: list, AreaFlag: bool,
 
         if not AreaFlag:  # Clip by extent
             extent = QgsRectangle(xmin, ymin, xmax, ymax)
-            clipped_layer = clip_layer(layer, extent, f"{layer_name}")
+            clipped_layer = wfs_downloader.clip_layer(layer, extent, f"{layer_name}")
 
         else:  # Clip by polygon
             if polygon:
-                clipped_layer = ClipByPolygon(layer, polygon)
+                clipped_layer = wfs_downloader.ClipByPolygon(layer)
 
         # Ensure clipped layer is valid, else keep the original
         if clipped_layer and clipped_layer.isValid():
