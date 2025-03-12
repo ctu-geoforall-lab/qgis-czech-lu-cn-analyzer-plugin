@@ -111,7 +111,11 @@ class WFSDownloader:
         wfs_downloader = WFSDownloader(LPISconfigpath, self.AreaFlag, self.polygon)
         LPISlayer = wfs_downloader.process_wfs_layer(layer_name, ymin, xmin, ymax, xmax, current_extent, LPISURL)
         if LPISlayer is None:
-            QgsMessageLog.logMessage("Unavailable LPIS Layer", "CzLandUseCN", level=Qgis.Warning, notifyUser=True)
+            QgsMessageLog.logMessage("Unavailable LPIS Layer", "CzLandUseCN", level=Qgis.Warning,
+                                     notifyUser=True)
             return LayerList
         LPISlayer.setName("LPIS_layer")
+        LayerList.append(LPISlayer)
         return LayerList
+
+
