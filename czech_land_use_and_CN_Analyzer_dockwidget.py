@@ -159,7 +159,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
         # Get the path to the config file with base LandUse codes and keywords for zabaged layers
         attribute_template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config",
-                                               "zabaged_to_LandUseCode_table.csv")
+                                               "zabaged_to_LandUseCode_table.yaml")
 
         # Get the path to the config file for ZABAGED data
         ZABAGED_config_path = os.path.join(os.path.dirname(__file__), 'config', 'ZABAGED.yaml')

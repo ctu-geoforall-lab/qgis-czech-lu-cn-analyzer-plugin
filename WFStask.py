@@ -1,7 +1,7 @@
 from .WFSdownloader import WFSDownloader
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.core import QgsTask, QgsMessageLog, Qgis
-from .utils import get_string_from_yaml
+from .PluginUtils import get_string_from_yaml
 import os
 
 class TASK_process_wfs_layer(QgsTask):

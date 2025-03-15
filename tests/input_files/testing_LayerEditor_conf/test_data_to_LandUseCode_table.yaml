@@ -1,0 +1,7 @@
+land_use:
+  - keywords: [low, Low]
+    code: 10000
+  - keywords: [mid, Mid]
+    code: 20000
+  - keywords: [top, Top]
+    code: 30000

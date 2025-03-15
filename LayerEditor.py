@@ -14,7 +14,11 @@ from qgis.core import (
     QgsMessageLog
 )
 
-from .WFSdownloader import WFSDownloader
+# Based on the environment, import the WFSdownloader module
+try:
+    from .WFSdownloader import WFSDownloader
+except ImportError:
+    from WFSdownloader import WFSDownloader
 
 
 def attribute_layer_edit(layer: QgsVectorLayer, base_use_code: int, controlling_attribute: str,
@@ -176,10 +180,11 @@ class LayerEditor:
                 continue
 
             with open(self.attribute_template_path, "r", encoding="utf-8") as file:
-                for line in file:
-                    parts = line.strip().split(",")  # Use comma as the delimiter
-                    names = parts[:-1]  # All but the last value are names
-                    code = int(parts[-1])  # Last value is the code
+                data = yaml.safe_load(file)  # Load YAML data
+
+                for entry in data["land_use"]:
+                    names = entry["keywords"]  # Get keyword list
+                    code = entry["code"]  # Get land use code
 
                     if any(name.lower() in layer_name.lower() for name in names):
                         layer.startEditing()

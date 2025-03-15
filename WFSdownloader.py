@@ -117,5 +117,3 @@ class WFSDownloader:
         LPISlayer.setName("LPIS_layer")
         LayerList.append(LPISlayer)
         return LayerList
-
-
