@@ -37,6 +37,7 @@ jobs:
 
         echo "Running pytest with verbose output..."
         pytest -s tests/test_WFSdownloader.py  
+        pytest -s tests/test_LayerEditor.py 
 
     - name: Capture system logs on failure
       if: failure()
