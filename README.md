@@ -1,6 +1,6 @@
 ![plugin icon](https://github.com/ctu-geoforall-lab/qgis-zabaged-plugin/blob/main/docs/images/baner.png?raw=true) <br>
 
-[![WFS and Layer editing test](https://github.com/ctu-geoforall-lab/qgis-zabaged-plugin/actions/workflows/main.yml/badge.svg)](https://github.com/ctu-geoforall-lab/qgis-zabaged-plugin/actions/workflows/main.yml)
+[![WFS test](https://github.com/ctu-geoforall-lab/qgis-zabaged-plugin/actions/workflows/main.yml/badge.svg)](https://github.com/ctu-geoforall-lab/qgis-zabaged-plugin/actions/workflows/main.yml)
 
 Pro správnou funkci je potřeba mít v projektu nastaven CRS na EPSG:5514 <br>
 Testováno na MS Windows a Linux(Ubuntu). <br> <br>
@@ -40,6 +40,3 @@ Některé požadované ZABAGED vrstvy není možné zahrnout kvůli následujíc
 - Usazovací nádrž - 2024-01-01: 1.07 USAZOVACÍ NÁDRŽ - objekt zrušen z kategorie 1. SÍDELNÍ, HOSPODÁŘSKÉ A KULTURNÍ OBJEKTY <br>
 - Dobývací prostor - (*) Typ objektu bude publikován po smluvním zajištění dat od správce. <br>
 - Chráněné ložiskové území -   (*) Typ objektu bude publikován po smluvním zajištění dat od správce. <br> <br>
-
-**Zdroje dat pro jednotlivé atributy SoilVeg:** <br>
-https://docs.google.com/spreadsheets/d/e/2PACX-1vTbRsC8YWkru4Eo5AAMdMwHh9P26WF7v6L3tRfg7hfBfB_dThkh3UN75LjTpiH177f-kNv2c5BtGxxq/pubhtml

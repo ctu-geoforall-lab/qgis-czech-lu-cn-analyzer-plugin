@@ -1,5 +1,6 @@
 URL: https://ags.cuzk.cz/arcgis/services/ZABAGED_POLOHOPIS/MapServer/WFSServer
-# This list contains buffer options, values in controlling_atr_name change length of buffers for point/line objects. distance is in meters.
+
+# This list contains buffer options, values in controlling_atr_name change length of buffers for point/line objects. Distance is in meters.
 buffer_layers:
   - input_layer_name: "ZABAGED_POLOHOPIS:Silnice__dálnice"
     controlling_atr_name: "typsil_k"
@@ -14,6 +15,15 @@ buffer_layers:
         values: ["S2", "S3", "D2p", "S2p", "S2v", "S3p", "S3v"]
         distance: 10
     default_buffer: 7.5
+
+  - input_layer_name: "ZABAGED_POLOHOPIS:Silnice_neevidovaná"
+    controlling_atr_name: "NaN"
+    default_buffer: 7.5
+
+  - input_layer_name: "ZABAGED_POLOHOPIS:Ulice"
+    controlling_atr_name: "NaN"
+    default_buffer: 3.5
+
 # This list contains settings for ZABAGED layers where their LandUse code is updated by some value in its attribute.
 # base_use_code is the LandUse code for the whole layer, and numbers from values in the controlling attribute are added to base_use_code.
 layers:
@@ -26,4 +36,122 @@ layers:
       L: 3100
       S: 3300
 
+  - name: "ZABAGED_POLOHOPIS:Heliport"
+    base_use_code: 44100
+    controlling_attribute: "povrfato_k"
+    value_increments:
+      Z: 0
+      P: 100
+      H: 100
+      S: 100
+
+  - name: "ZABAGED_POLOHOPIS:Orná_půda_a_ostatní_dále_nespecifikované_plochy"
+    base_use_code: 10000  
+    controlling_attribute: "TYP_PUDY_K"
+    value_increments:
+      OR: 0
+      OSN: 34200
+
+  - name: "ZABAGED_POLOHOPIS:Elektrárna__plocha_"
+    base_use_code: 44200
+    controlling_attribute: "PODTYPEL_K"
+    value_increments:
+      "003": 0
+      "001": 100
+      "008": 100
+      "009": 100
+      "010": 100
+      "011": 100
+
+  - name: "ZABAGED_POLOHOPIS:Rozvalina__zřícenina"
+    base_use_code: 44200
+    controlling_attribute: "podytypob_k"
+    value_increments:
+      R: 0
+      Z: 100
+      ZH: 100
+      ZZ: 100
+  - name: "ZABAGED_POLOHOPIS:Areál_účelové_zástavby" # while selecting from INTRAVILAN/EXTRAVILAN temporary was selected the lower number (more water resilient Land Use code)
+    base_use_code: 44100
+    controlling_attribute: "typzast_k"
+    value_increments:
+      101: 100
+      102: 0
+      103: 0
+      104: 0
+      105: 0
+      106: 0
+      107: 0
+      108: 0
+      109: 0
+      110: 0
+      111: 100
+      112: 0
+      113: 0
+      201: 100
+      202: 100
+      203: 100
+      204: 100
+      205: 0
+      206: 100
+      207: 0
+      208: 0
+      209: 100
+      210: 100
+      211: 0
+      212: 100
+      213: 100
+      214: 100
+      215: 100
+      301: 100
+      302: 0
+      303: 0
+      304: 100
+      305: 100
+      307: 100
+      309: 0
+      310: 200
+      311: 100
+      312: 100
+      313: 100
+      314: 100
+      315: 0
+      316: 100
+      401: 0
+      402: 0
+      403: 100
+      404: 0
+      405: 100
+      406: 100
+      407: 0
+      408: 0
+      409: 0
+      410: 100
+      411: 0
+      412: 100
+      413: 100
+      414: 0
+      415: 100
+      416: 0
+      417: 0
+      418: 100
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
 

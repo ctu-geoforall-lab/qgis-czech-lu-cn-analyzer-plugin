@@ -42,7 +42,7 @@ class TestWFSDownloader:
         config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config", "layers_merging_order.csv")
         assert os.path.exists(config_path), f"Configuration file not found: {config_path}"
 
-        wfs_downloader = WFSDownloader(config_path, True, polygon_layer)
+        wfs_downloader = WFSDownloader(config_path, True, polygon_layer, False)
         layer_list = wfs_downloader.get_ZABAGED_layers_list()
 
         # Ensure the layer list is not empty
