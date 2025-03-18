@@ -1,0 +1,16 @@
+land_use:
+  - keywords: [Orná, orná, Orna, orna]
+    code: 10000
+  - keywords: [Travní, travní, Travni, travni]
+    code: 20000
+  - keywords: [Lesní, lesní, Lesni, lesni]
+    code: 30000
+  - keywords: [Křovinatým, křovinatým, Krovinatym, krovinatym]
+    code: 3500
+  - keywords: [Vodní_plocha, "Vodní plocha", vodní_plocha, "vodní plocha", Vodni_plocha, "Vodni plocha", vodni_plocha, "vodni plocha"]
+    code: 77200
+  - keywords: [Vodní_tok, "Vodní tok", vodní_tok, "vodní tok", Vodni_tok, "Vodni tok", vodni_tok, "vodni tok"]
+    code: 77100
+  - keywords: [Skalní, skalní, Skalni, skalni]
+    code: 88200
+

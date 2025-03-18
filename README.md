@@ -1,5 +1,7 @@
 ![plugin icon](https://github.com/ctu-geoforall-lab/qgis-zabaged-plugin/blob/main/docs/images/baner.png?raw=true) <br>
-Načítání vrstev není úplně nejrychlejší. <br>
+
+[![WFS and Layer editing test](https://github.com/ctu-geoforall-lab/qgis-zabaged-plugin/actions/workflows/main.yml/badge.svg)](https://github.com/ctu-geoforall-lab/qgis-zabaged-plugin/actions/workflows/main.yml)
+
 Pro správnou funkci je potřeba mít v projektu nastaven CRS na EPSG:5514 <br>
 Testováno na MS Windows a Linux(Ubuntu). <br> <br>
 

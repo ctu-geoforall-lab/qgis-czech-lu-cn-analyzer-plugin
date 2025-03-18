@@ -1,0 +1,28 @@
+# This list contains buffer options, values in controlling_atr_name change length of buffers for point/line objects. distance is in meters.
+buffer_layers:
+  - input_layer_name: "top"
+    controlling_atr_name: "buf_atr"
+    buffer_levels:
+      - priority: "1"
+        values: ["fat", "also_fat"]
+        distance: 3
+      - priority: "2"
+        values: ["full-figured"]
+        distance: 2
+      - priority: "3"
+        values: ["thin", "even_thiner"]
+        distance: 1
+    default_buffer: 1
+# This list contains settings for testing data layers where their LandUse code is updated by some value in its attribute.
+# base_use_code is the LandUse code for the whole layer, and numbers from values in the controlling attribute are added to base_use_code.
+layers:
+  - name: "mid"
+    base_use_code: 20000
+    controlling_attribute: "this_atribute"
+    value_increments:
+      A: 1
+      B: 2
+      C: 3
+
+
+
