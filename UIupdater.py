@@ -9,10 +9,11 @@ class UIUpdater(QObject):
     progressChanged = pyqtSignal(int)
 
     def __init__(self, run_button, progress_bar, abort_button, label, polygon_button, extent_button, polygon_label,
-                 mMapLayerComboBox, mMapLayerComboBox_Soil ,progressBar_Soil, abortButton_Soil, label_Soil, runButton_Soil):
+                 mMapLayerComboBox, LUandSoilSelectButton, SoilSelectButton, LUSelectButton, mMapLayerComboBox_LU, mMapLayerComboBox_HSG):
         super().__init__()
+        # tab_1
         self.runButton = run_button
-        self.runButton_Soil = runButton_Soil
+
         self.progressBar = progress_bar
         self.abortButton = abort_button
         self.label = label
@@ -20,14 +21,19 @@ class UIUpdater(QObject):
         self.extentButton = extent_button
         self.polygonLabel = polygon_label
         self.mMapLayerComboBox = mMapLayerComboBox
+        self.LUandSoilSelectButton = LUandSoilSelectButton
+        self.SoilSelectButton = SoilSelectButton
+        self.LUSelectButton = LUSelectButton
+
+        # tab_2
+        self.mapLayerComboBox_LU = mMapLayerComboBox_LU
+        self.mapLayerComboBox_HSG = mMapLayerComboBox_HSG
+
         self.AreaFlag = False
         self.plus_one_index = 0
         self.wfs_layers = []
 
-        self.mMapLayerComboBox_Soil = mMapLayerComboBox_Soil
-        self.progressBar_Soil = progressBar_Soil
-        self.abortButton_Soil = abortButton_Soil
-        self.label_Soil = label_Soil
+
 
 
     def ToggleChangeToPolygon(self):
@@ -71,6 +77,10 @@ class UIUpdater(QObject):
         self.runButton.setEnabled(False)
         self.extentButton.setEnabled(False)
         self.polygonButton.setEnabled(False)
+        self.LUandSoilSelectButton.setEnabled(False)
+        self.mMapLayerComboBox.setEnabled(False)
+        self.SoilSelectButton.setEnabled(False)
+        self.LUSelectButton.setEnabled(False)
         self.abortButton.setEnabled(True)
         self.progressBar.setEnabled(True)
         self.progressBar.setValue(0)
@@ -92,6 +102,10 @@ class UIUpdater(QObject):
         self.progressBar.setEnabled(False)
         self.polygonButton.setEnabled(True)
         self.extentButton.setEnabled(True)
+        self.LUandSoilSelectButton.setEnabled(True)
+        self.mMapLayerComboBox.setEnabled(True)
+        self.SoilSelectButton.setEnabled(True)
+        self.LUSelectButton.setEnabled(True)
         self.label.setText(message)
         iface.messageBar().clearWidgets()
         iface.messageBar().pushMessage("Exiting", message, level=Qgis.Critical, duration=5)
@@ -100,14 +114,14 @@ class UIUpdater(QObject):
         """Signaled by task - Handle the cancellation of the processing task."""
         iface.messageBar().clearWidgets()
         iface.messageBar().pushMessage("Warning", "Process was canceled by user", level=Qgis.Warning, duration=5)
-        self._reset_ui("Task was canceled by user.", 0)
-        QgsMessageLog.logMessage("Task was canceled by user.","CzLandUseCN", level=Qgis.Info, notifyUser=False)
+        self._reset_ui("Land Use Task was canceled by user.", 0)
+        QgsMessageLog.logMessage("Land Use Task was canceled by user.","CzLandUseCN", level=Qgis.Info, notifyUser=False)
 
     def TaskError(self, e):
         """Signaled by task - Handle errors that occurred during the processing task."""
         QgsMessageLog.logMessage(e,"CzLandUseCN",  level=Qgis.Critical, notifyUser=True)
-        iface.messageBar().pushMessage("ERROR", str(e), level=Qgis.Critical, duration=5)
-        self._reset_ui("Error occurred during processing.", 0)
+        iface.messageBar().pushMessage("ERROR - LandUse:", str(e), level=Qgis.Critical, duration=5)
+        self._reset_ui("Error occurred during LandUse processing.", 0)
 
     def TaskSuccess(self):
         """ Handle the successful completion of the processing task."""
@@ -116,7 +130,7 @@ class UIUpdater(QObject):
 
     def PluginSuccess(self):
         """ Modify the UI elements after task completion."""
-        QgsMessageLog.logMessage("LandUse - Success!", "CzLandUseCN", level=Qgis.Info, notifyUser=False)
+        QgsMessageLog.logMessage("Plugin - Success!", "CzLandUseCN", level=Qgis.Info, notifyUser=False)
         self.progressBar.setValue(100)
         iface.messageBar().clearWidgets()
         self.runButton.setEnabled(True)
@@ -125,53 +139,23 @@ class UIUpdater(QObject):
         self.label.setText("Completed :)")
         self.polygonButton.setEnabled(True)
         self.extentButton.setEnabled(True)
+        self.LUandSoilSelectButton.setEnabled(True)
+        if self.AreaFlag:
+            self.mMapLayerComboBox.setEnabled(True)
+        self.SoilSelectButton.setEnabled(True)
+        self.LUSelectButton.setEnabled(True)
         iface.messageBar().pushMessage("Success", "Task completed successfully", level=Qgis.Success, duration=5)
 
-    def PluginSuccess_Soil(self):
-        """ Modify the UI elements after task completion in Soil Layers panel."""
-        QgsMessageLog.logMessage("Soil Layer - Success!", "CzLandUseCN", level=Qgis.Info, notifyUser=False)
-        self.progressBar_Soil.setValue(100)
-        iface.messageBar().clearWidgets()
-        self.runButton_Soil.setEnabled(True)
-        self.abortButton_Soil.setEnabled(False)
-        self.label_Soil.setStyleSheet("QLabel { color : green; }")
-        self.label_Soil.setText("Completed :)")
-        iface.messageBar().pushMessage("Success - Soil Layer ", "Task completed successfully", level=Qgis.Success, duration=5)
-
-
-    def reset_panel_Soil(self):
-        """Reset the UI elements for the soil processing task."""
-        self.label_Soil.setStyleSheet("QLabel { color : black; }")    # Set the label color to black
-        self.progressBar_Soil.setValue(0)
-        self.label_Soil.setText("")
-        self.progressBar_Soil.setEnabled(False)
-        self.abortButton_Soil.setEnabled(False)
-        self.runButton_Soil.setEnabled(True)
-
-    def freeze_ui_Soil(self):
-        """Freeze the UI elements during soil processing."""
-        self.runButton_Soil.setEnabled(False)
-        self.abortButton_Soil.setEnabled(True)
-        self.progressBar_Soil.setEnabled(True)
-        self.progressBar_Soil.setValue(0)
-        self.label_Soil.setText("Downloading Soil layers...")
-
-    def updateProgressBar_Soil(self, value):
-        """Signaled by soil task - Update the progress bar value based on the task progress."""
-        self.progressBar_Soil.setValue(value)
-
-
     def TaskCanceled_Soil(self):
-        """Signaled by soil task - Handle the cancellation of the soil processing task."""
+        """Signaled by task - Handle the cancellation of the HSG processing task."""
         iface.messageBar().clearWidgets()
-        iface.messageBar().pushMessage("Warning", "Process (soil) was canceled by user", level=Qgis.Warning, duration=5)
-        self.reset_panel_Soil()
-        QgsMessageLog.logMessage("Task (soil) was canceled by user.", "CzLandUseCN", level=Qgis.Info,
-                                 notifyUser=False)
+        iface.messageBar().pushMessage("Warning", "Process was canceled by user", level=Qgis.Warning, duration=5)
+        self._reset_ui("Soil Task was canceled by user.", 0)
+        QgsMessageLog.logMessage("Soil Task was canceled by user.","CzLandUseCN", level=Qgis.Info, notifyUser=False)
 
-    def TaskError_Soil(self, e):
-        """Signaled by soil task - Handle errors that occurred during the soil processing task."""
-        QgsMessageLog.logMessage(e, "CzLandUseCN", level=Qgis.Critical, notifyUser=True)
-        iface.messageBar().pushMessage("ERROR", str(e), level=Qgis.Critical, duration=5)
-        self.reset_panel_Soil()
+    def TaskError_Soil(self):
+        """Signaled by task - Handle errors that occurred during the HSG processing task."""
+        iface.messageBar().pushMessage("ERROR Soil", "Error occurred during processing.", level=Qgis.Critical, duration=5)
+        self._reset_ui("Error occurred during HSG processing.", 0)
+
 

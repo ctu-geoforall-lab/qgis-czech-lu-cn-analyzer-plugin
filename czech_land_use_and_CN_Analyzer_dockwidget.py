@@ -23,6 +23,7 @@
 """
 import os
 import processing
+from PyQt5.QtWidgets import QButtonGroup
 
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal
@@ -34,7 +35,7 @@ from .UIupdater import UIUpdater
 from .WFSdownloader import WFSDownloader
 from .InputChecker import InputChecker
 from .WFStask import TASK_process_wfs_layer
-from .LayerEditor import LayerEditor, buffer_QgsVectorLayer
+from .LayerEditor import LayerEditor, buffer_QgsVectorLayer, get_polygon_from_extent, dissolve_polygon
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'czech_land_use_and_CN_Analyzer_dockwidget_base.ui'))
@@ -48,41 +49,76 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
     closingPlugin = pyqtSignal()
 
     def __init__(self, polygon=None, ymin=None, ymax=None, xmin=None, xmax=None, AreaFlag=False,LandUseLayers=None, parent=None,
-                 polygon_Soil=None, SoilFlag=False, ymin_s=None, ymax_s=None, xmin_s=None, xmax_s=None):
+                 SoilFlag=False, not_buffered_plg=None ):
         """Constructor."""
         super(czech_land_use_and_CN_AnalyzerDockWidget, self).__init__(parent)
         self.setupUi(self)
 
         self.ui_updater = UIUpdater(self.runButton, self.progressBar, self.abortButton, self.label, self.polygonButton,
-                                    self.extentButton, self.polygonLabel, self.mMapLayerComboBox, self.mMapLayerComboBox_Soil
-                                    ,self.progressBar_Soil, self.abortButton_Soil, self.label_Soil, self.runButton_Soil)
+                                    self.extentButton, self.polygonLabel, self.mMapLayerComboBox, self.LUandSoilSelectButton,
+                                    self.SoilSelectButton, self.LUSelectButton,  self.mMapLayerComboBox_LU,
+                                    self.mMapLayerComboBox_HSG)
 
         # Initialize attributes from arguments
         self.polygon = polygon
-        self.polygon_Soil = polygon_Soil
+        self.not_buffered_plg = not_buffered_plg # for clipping after buffering in Soil process
+
         self.ymin = ymin
         self.ymax = ymax
         self.xmin = xmin
         self.xmax = xmax
 
-        self.ymin_s = ymin_s
-        self.ymax_s = ymax_s
-        self.xmin_s = xmin_s
-        self.xmax_s = xmax_s
+        self.extent = None
+        self.merged_layer = None
 
         self.AreaFlag = AreaFlag # Set AreaFlag to True > processing inside polygon
         self.SoilFlag = SoilFlag # Set SoilFlag to True > Soil type processing
+        self.DownloadFlag = 0 # 0 == LandUse and Soil, 1 == only LandUse, 2 == only Soil
 
         self.LandUseLayers = LandUseLayers# List of LandUse layers for merge in the end
 
+        self.extentButton.setChecked(True)
+        self.LUandSoilSelectButton.setChecked(True)
+
         # Set filter to map combobox to select only polygons
         self.mMapLayerComboBox.setFilters(QgsMapLayerProxyModel.PolygonLayer)
-        self.mMapLayerComboBox_Soil.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+        self.mMapLayerComboBox_LU.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+        self.mMapLayerComboBox_HSG.setFilters(QgsMapLayerProxyModel.PolygonLayer)
 
+        # Create a button group for the download options
+        self.downloadButtonGroup = QButtonGroup(self)
+        self.downloadButtonGroup.addButton(self.LUandSoilSelectButton)
+        self.downloadButtonGroup.addButton(self.SoilSelectButton)
+        self.downloadButtonGroup.addButton(self.LUSelectButton)
+        self.downloadButtonGroup.setExclusive(True)
+
+        # Create a button group for the area selection options
+        self.areaButtonGroup = QButtonGroup(self)
+        self.areaButtonGroup.addButton(self.extentButton)
+        self.areaButtonGroup.addButton(self.polygonButton)
+        self.areaButtonGroup.setExclusive(True)
+
+        # Set default checked states (one must always be checked)
+        self.extentButton.setChecked(True)
+        self.LUandSoilSelectButton.setChecked(True)
+
+        # Connect toggled signals to your slots
         self.extentButton.toggled.connect(self.toggle_to_extent)
         self.polygonButton.toggled.connect(self.toggle_to_polygon)
-        self.runButton.clicked.connect(self.Run)
-        self.runButton_Soil.clicked.connect(self.RunSoil)
+        self.LUandSoilSelectButton.toggled.connect(self.toggle_to_LUandSoil)
+        self.SoilSelectButton.toggled.connect(self.toggle_to_Soil)
+        self.LUSelectButton.toggled.connect(self.toggle_to_LU)
+
+        self.runButton.clicked.connect(self.Download)
+
+    def toggle_to_LUandSoil(self):
+        self.DownloadFlag = 0
+
+    def toggle_to_LU(self):
+        self.DownloadFlag = 1
+
+    def toggle_to_Soil(self):
+        self.DownloadFlag = 2
 
     def toggle_to_extent(self):
         self.AreaFlag = False
@@ -96,6 +132,16 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         """Emit the closingPlugin signal when the dock widget is closed."""
         self.closingPlugin.emit()
         event.accept()
+
+    def Download(self):
+        """  """
+        if self.DownloadFlag == 0:
+            self.Run()
+        elif self.DownloadFlag == 1:
+            self.Run()
+        elif self.DownloadFlag == 2:
+            self.RunSoil()
+
 
     def Run(self):
         """
@@ -111,6 +157,13 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
         try:
             self.polygon = self.mMapLayerComboBox.currentLayer()
+            try:
+                self.polygon = dissolve_polygon(self.polygon)
+            except Exception as e:
+                QgsMessageLog.logMessage(f"Failed to dissolve polygon: {e}", "CzLandUseCN",
+                                         level=Qgis.Info, notifyUser=False)
+
+
             self.ui_updater.LoadingMsg("Loading data, please wait...")
             # Freeze the UI elements during processing
             self.ui_updater.freeze_ui()
@@ -121,7 +174,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             wfs_downloader = WFSDownloader(config_path,self.AreaFlag, self.polygon, self.SoilFlag)
             # Get info for WFS service input based on extent or polygon
             wfs_layers = wfs_downloader.get_ZABAGED_layers_list() # load WFS layers from config file
-            self.ymin, self.xmin, self.ymax, self.xmax, current_extent = wfs_downloader.get_wfs_info(wfs_layers)
+            self.ymin, self.xmin, self.ymax, self.xmax, self.extent = wfs_downloader.get_wfs_info(wfs_layers)
 
             # Check input by user, Qgis project settings and integrity of configuration files
 
@@ -142,7 +195,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             self.progressBar.setEnabled(True)
 
             # Create a task to process WFS layers
-            task = TASK_process_wfs_layer(wfs_layers, self.ymin, self.xmin, self.ymax, self.xmax, current_extent,
+            task = TASK_process_wfs_layer(wfs_layers, self.ymin, self.xmin, self.ymax, self.xmax, self.extent,
                                           self.polygon, self.AreaFlag,
                                           self.label, self.progressBar, self.runButton, self.abortButton,
                                           self.polygonButton, self.extentButton, self.LandUseLayers)
@@ -169,8 +222,6 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             return None
 
 
-
-
     def TaskFinished(self, layers):
         """Handle task completion(WFStask) and update LandUseLayers."""
         self.LandUseLayers = layers
@@ -191,7 +242,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
         layer_editor = LayerEditor(attribute_template_path,LPIS_config_path,ZABAGED_config_path, stacking_template_path,
                                    symbology_path, self.AreaFlag, self.polygon, self.ymin, self.xmin, self.ymax,
-                                   self.xmax)
+                                   self.xmax, self.mMapLayerComboBox_LU)
 
         # Add LandUse attribute to all layers in list
         self.LandUseLayers = layer_editor.add_landuse_attribute(self.LandUseLayers)
@@ -205,11 +256,28 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         # Clip all layer to the polygon or extent by AreaFlag (Used as clip after buffering)
         self.LandUseLayers = layer_editor.clip_layers_after_edits(self.LandUseLayers)
 
-        # Stack layers with LandUse code into one
-        layer_editor.stack_layers(self.LandUseLayers)
+        # Store the merged layer as an instance attribute to keep it in scope
+        self.merged_layer = layer_editor.stack_layers(self.LandUseLayers)
 
-        # Show success in the UI elements after completion
-        self.ui_updater.PluginSuccess()
+        # Add the layer to the QGIS project
+        QgsProject.instance().addMapLayer(self.merged_layer)
+
+        # Set the filter to only show polygon layers (also reloads the layers from project)
+        self.mMapLayerComboBox_LU.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+
+        # Ensure the combo box updates and selects the new layer
+        if self.merged_layer and self.merged_layer.id():
+            self.mMapLayerComboBox_LU.setLayer(self.merged_layer)
+        else:
+            QgsMessageLog.logMessage("Failed to add merged layer to ComboBox", "CzLandUseCN", level=Qgis.Warning)
+
+
+        if self.DownloadFlag == 0:
+            # Download Soil layer if both LandUse and Soil are selected
+            self.RunSoil()
+        else:
+            # Show success in the UI elements after completion if only LandUse is selected
+            self.ui_updater.PluginSuccess()
 
 
     def TaskFinished_Soil(self, temporaryGPKGPath):
@@ -217,13 +285,17 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         self.SoilLayer = QgsVectorLayer(temporaryGPKGPath, "Soil", "ogr")
         # Clip the layer by polygon
 
-        clipped_soil_layer = simple_clip(self.SoilLayer,self.mMapLayerComboBox_Soil.currentLayer())
+        # Clip the layer by polygon that is not buffered
+        clipped_soil_layer = simple_clip(self.SoilLayer,self.not_buffered_plg)
+
+
         clipped_soil_layer.setName("Soil Layer HSG")
         style_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "colortables", "soil.sld")
         clipped_soil_layer.loadSldStyle(style_path)
 
-        # Add to Qgis project
-        QgsProject.instance().addMapLayer(clipped_soil_layer)
+        # add final layer to Qgis project and MapComboBox in Intersection panel
+        self.mMapLayerComboBox_HSG.setLayer(QgsProject.instance().addMapLayer(clipped_soil_layer))
+
 
         # Try deleting the temporary file
         try:
@@ -233,56 +305,81 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
                                      level=Qgis.Info, notifyUser=False)
 
         # Show success in the UI elements after completion
-        self.ui_updater.PluginSuccess_Soil()
+        self.ui_updater.PluginSuccess()
 
     def RunSoil(self):
         """
         Run the processing of acquiring the Soil Layer .
-        Starts upon clicking the Run button in UI (Soil Types tab).
+        Starts upon clicking finishing the Run method (DownloadFlag == 0).
+        Or upon clicking the Download button in UI (DownloadFlag == 2).
         """
-        print("RunSoil")
+
+        if self.DownloadFlag == 2: # If creating only soil layer, get the polygon from the current layer
+            self.polygon = self.mMapLayerComboBox.currentLayer()
+
+        # Reset the UI elements and freeze them
+        self.ui_updater.reset_panel()
+        self.ui_updater.freeze_ui()
+
+        self.label.setText("Downloading Soil Types layer...")
+
+        # If computing in extent mode, get the polygon from the extent
+        if not self.AreaFlag:
+            self.polygon = get_polygon_from_extent(self.ymin, self.xmin, self.ymax, self.xmax)
+            self.AreaFlag = True
+
+        else:
+            try:
+                if not isinstance(self.polygon, QgsVectorLayer) or not self.polygon.isValid():
+                    raise ValueError("Invalid polygon layer")
+
+                # If using the polygon layer from download ComboBox, dissolve it
+                self.polygon = dissolve_polygon(self.polygon)
+
+            except Exception as e:
+              QgsMessageLog.logMessage(f"Error in RunSoil: {str(e)}", "CzLandUseCN", level=Qgis.Critical)
+
+        if self.DownloadFlag == 2:
+            # Get extent from the polygon layer if computing only Soil
+            wfs_downloader = WFSDownloader(None, True, self.polygon, self.SoilFlag)
+
+            self.ymin, self.xmin, self.ymax, self.xmax, self.extent = wfs_downloader.get_wfs_info(self.polygon)
+
+
         self.SoilFlag = True  # Set SoilFlag to True > Soil type processing
 
         QgsMessageLog.logMessage("Plugin is running - getting Soil Types layer.", "CzLandUseCN",
                                  level=Qgis.Info, notifyUser=False)
 
-        self.ui_updater.reset_panel_Soil()
-
+        self.not_buffered_plg = self.polygon # Store the polygon that is not buffered for clipping after buffering
         try:
-            self.polygon_Soil = self.mMapLayerComboBox_Soil.currentLayer() # Get the polygon layer from UI
 
-            # Buffer the polygon by 40m
-            self.polygon_Soil = buffer_QgsVectorLayer(self.polygon_Soil, 25)
+            # Buffer the polygon by 40m (to avoid missing edges)
+            self.polygon = buffer_QgsVectorLayer(self.polygon, 25)
 
-            wfs_downloader = WFSDownloader(None, True, self.polygon_Soil, self.SoilFlag)
 
-            self.ymin_s, self.xmin_s, self.ymax_s, self.xmax_s, current_extent = wfs_downloader.get_wfs_info(self.polygon_Soil)
-
-            input_checker = InputChecker(self.polygon_Soil, self.ymin_s, self.xmin_s, self.ymax_s, self.xmax_s, None,
-                                         QgsProject.instance(), self.mMapLayerComboBox_Soil, self.ui_updater, self.AreaFlag,
+            # Check input by user, Qgis project settings and integrity of configuration files
+            input_checker = InputChecker(self.polygon, self.ymin, self.xmin, self.ymax, self.xmax, None,
+                                         QgsProject.instance(), self.mMapLayerComboBox, self.ui_updater, self.AreaFlag,
                                          self.SoilFlag)
 
-            print("Check list")
+
             check_list = [input_checker.check_crs(), input_checker.check_CR_boundary(), input_checker.check_polygon_layer(),
                           input_checker.check_size_of_Area()]
 
             if not all(check_list):
                 QgsMessageLog.logMessage("Invalid Input.", "CzLandUseCN",
                                  level=Qgis.Critical, notifyUser=True)
+                self.ui_updater.TaskError_Soil()
                 return None
 
-            print("Check list done")
-
-
-            self.ui_updater.freeze_ui_Soil()
-
             # Create a task to process Soil layers
-            task = TASK_process_soil_layer(self.polygon_Soil, self.ymin_s, self.xmin_s, self.ymax_s, self.xmax_s,
-                                           current_extent, self.label_Soil, self.progressBar_Soil, self.runButton_Soil,
-                                           self.abortButton_Soil)
+            task = TASK_process_soil_layer(self.polygon, self.ymin, self.xmin, self.ymax, self.xmax,
+                                           self.extent, self.label, self.progressBar, self.runButton,
+                                           self.abortButton)
 
             # Connect signals from Task to update the progress bar and handle task completion
-            task.progressChanged_Soil.connect(self.ui_updater.updateProgressBar_Soil)
+            task.progressChanged_Soil.connect(self.ui_updater.updateProgressBar)
             task.taskFinished_Soil.connect(self.TaskFinished_Soil)
             task.taskCanceled_Soil.connect(self.ui_updater.TaskCanceled_Soil)
             task.taskError_Soil.connect(self.ui_updater.TaskError_Soil)
@@ -299,6 +396,6 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             QgsMessageLog.logMessage(e, "CzLandUseCN",
                                      level=Qgis.Critical, notifyUser=True)
             self.ui_updater.ErrorMsg(f"Error occurred: {e}")
-            self.ui_updater.reset_panel_Soil()
+            self.ui_updater.TaskError_Soil()
             return None
 

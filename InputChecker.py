@@ -16,6 +16,8 @@ class InputChecker:
         self.SoilFlag = soil_flag
 
 
+
+
     def check_crs(self):
         """Check if the CRS is set to EPSG:5514."""
         crs = self.qgs_project.instance().crs().authid()
@@ -74,38 +76,27 @@ class InputChecker:
         return True
 
     def check_size_of_Area(self):
-        """Check if the area of the polygon is lesser than 20 km2"""
-        if self.SoilFlag is False:
-            if self.AreaFlag:
-                total_area = sum([feature.geometry().area() for feature in self.polygon.getFeatures()])
-                if total_area > 20000000:
-                    self.ui_updater.CloseLoadingMsg()
-                    self.ui_updater.ErrorMsg("The area of the polygon is greater than 20 km2")
-                    self.ui_updater.setButtonstoDefault()
-                    QgsMessageLog.logMessage("The area of the polygon is greater than 20 km2", "CzLandUseCN",
-                                  level=Qgis.Critical, notifyUser=True)
-                    return False
-            else:
-                # compute area from extent
-                area = (self.ymax - self.ymin) * (self.xmax - self.xmin)
-                if area > 20000000:
-                    self.ui_updater.CloseLoadingMsg()
-                    self.ui_updater.ErrorMsg("The area of the extent is greater than 20 km2")
-                    self.ui_updater.setButtonstoDefault()
-                    QgsMessageLog.logMessage("The area of the extent is greater than 20 km2", "CzLandUseCN",
-                                             level=Qgis.Critical, notifyUser=True)
-                    return False
-            return True
+        """Check if the area of the polygon is lesser than 20 km2. Used for dissolved polygons."""
 
-        if self.SoilFlag is True:
+        if self.AreaFlag:
             total_area = sum([feature.geometry().area() for feature in self.polygon.getFeatures()])
             if total_area > 20000000:
                 self.ui_updater.CloseLoadingMsg()
                 self.ui_updater.ErrorMsg("The area of the polygon is greater than 20 km2")
                 self.ui_updater.setButtonstoDefault()
                 QgsMessageLog.logMessage("The area of the polygon is greater than 20 km2", "CzLandUseCN",
+                              level=Qgis.Critical, notifyUser=True)
+                return False
+        else:
+            # compute area from extent
+            area = (self.ymax - self.ymin) * (self.xmax - self.xmin)
+            if area > 20000000:
+                self.ui_updater.CloseLoadingMsg()
+                self.ui_updater.ErrorMsg("The area of the extent is greater than 20 km2")
+                self.ui_updater.setButtonstoDefault()
+                QgsMessageLog.logMessage("The area of the extent is greater than 20 km2", "CzLandUseCN",
                                          level=Qgis.Critical, notifyUser=True)
                 return False
-
-            return True
         return True
+
+

@@ -11,7 +11,9 @@ from qgis.core import (
     QgsField,
     QgsRectangle,
     Qgis,
-    QgsMessageLog
+    QgsMessageLog,
+    QgsFields,
+    QgsGeometry,
 )
 
 # Based on the environment, import the WFSdownloader module
@@ -20,6 +22,63 @@ try:
 except ImportError:
     from WFSdownloader import WFSDownloader
 
+
+def dissolve_polygon(layer: QgsVectorLayer) -> QgsVectorLayer:
+    """Dissolve the input polygon layer, keeping only an ID attribute with a value of 1.
+    (for simple use cases)"""
+
+    # Run dissolve without retaining any specific field
+    dissolved_layer = processing.run(
+        "native:dissolve",
+        {
+            'INPUT': layer,
+            'FIELD': [],  # No fields retained initially
+            'OUTPUT': 'memory:'
+        }
+    )['OUTPUT']
+
+    # Get data provider
+    provider = dissolved_layer.dataProvider()
+
+    # Remove all existing attributes
+    provider.deleteAttributes([i for i in range(len(provider.fields()))])
+    dissolved_layer.updateFields()
+
+    # Add a new 'ID' field
+    provider.addAttributes([QgsField('ID', QVariant.Int)])
+    dissolved_layer.updateFields()
+
+    # Set 'ID' value to 1 for all features
+    dissolved_layer.startEditing()
+    for feature in dissolved_layer.getFeatures():
+        feature.setAttribute('ID', 1)
+        dissolved_layer.updateFeature(feature)
+    dissolved_layer.commitChanges()
+
+    return dissolved_layer
+
+def get_polygon_from_extent(ymin: int, xmin: int, ymax: int, xmax: int) -> QgsVectorLayer:
+    """Get a polygon from the extent."""
+    rect = QgsRectangle(xmin, ymin, xmax, ymax)
+    # Create QgsVectorLayer from the polygon
+    layer = QgsVectorLayer("Polygon?crs=EPSG:5514", "Rectangle Layer", "memory")
+    provider = layer.dataProvider()
+
+    # Define attributes
+    fields = QgsFields()
+    fields.append(QgsField("id", QVariant.Int))
+    provider.addAttributes(fields)
+    layer.updateFields()
+
+    # Create a feature with the rectangle geometry
+    feature = QgsFeature()
+    feature.setGeometry(QgsGeometry.fromRect(rect))
+    feature.setAttributes([1])  # Assign an ID
+    provider.addFeature(feature)
+
+    # Refresh the layer
+    layer.updateExtents()
+    return layer
 
 def buffer_QgsVectorLayer(input_layer, distance, segments=10):
     """Creates a buffered QgsVectorLayer from an input polygon layer.
@@ -196,7 +255,7 @@ class LayerEditor:
     """Class to edit layers based on the configuration files. Creates and modifies LandUse_code attribute. Layers are
     buffered and stacked based on the configuration files."""
 
-    def __init__(self, at_path, LPIS_path, ZABAGED_path, st_path, symbol_path, AreaFlag, polygon, ymin, xmin, ymax, xmax):
+    def __init__(self, at_path, LPIS_path, ZABAGED_path, st_path, symbol_path, AreaFlag, polygon, ymin, xmin, ymax, xmax, IntersectCombobox):
         self.attribute_template_path = at_path
         self.LPIS_config_path = LPIS_path
         self.ZABAGED_config_path = ZABAGED_path
@@ -205,6 +264,8 @@ class LayerEditor:
         self.AreaFlag = AreaFlag
         self.polygon = polygon
         self.ymin, self.xmin, self.ymax, self.xmax = ymin, xmin, ymax, xmax
+
+        self.IntersectCombobox = IntersectCombobox
 
     def add_LPIS_LandUse_code(self, layer: QgsVectorLayer) -> None:
         """Add LandUse code to LPIS layer based on its attributes."""
@@ -397,7 +458,7 @@ class LayerEditor:
 
         return layer
 
-    def stack_layers(self, layers: list) -> None:
+    def stack_layers(self, layers: list) -> Optional[QgsVectorLayer]:
         """
         Merge polygon layers by their priority from the stacking list - layers_merging_order.conf
         Also removes original input layers
@@ -456,15 +517,16 @@ class LayerEditor:
             if final_merged_layer:
                 final_merged_layer.triggerRepaint()
 
-            # Add the final merged layer to the project
-            if final_merged_layer:
-                QgsProject.instance().addMapLayer(final_merged_layer)
+
+
             else:
                 QgsMessageLog.logMessage("Failed to merge layers.", "CzLandUseCN", level=Qgis.Critical, notifyUser=True)
+                return None
 
             # Remove partial Marged_Layer layers
             for layer in priority_merged_layers:
                 QgsProject.instance().removeMapLayer(layer.id())
 
             QgsMessageLog.logMessage("Stacking layers completed.", "CzLandUseCN", level=Qgis.Info, notifyUser=False)
-            return None
+            if final_merged_layer:
+                return final_merged_layer

@@ -3,9 +3,10 @@ import zipfile
 from pathlib import Path
 import os
 
+
 from owslib.wps import WebProcessingService, monitorExecution
 
-from qgis.core import QgsRasterLayer, QgsVectorLayer, QgsField
+from qgis.core import QgsRasterLayer, QgsVectorLayer, QgsField, QgsMessageLog, Qgis
 from qgis.PyQt.QtCore import QVariant
 import processing
 
@@ -13,7 +14,7 @@ from qgis.core import (
     QgsRasterLayer, QgsVectorLayer, QgsField, QgsProject
 )
 
-from PyQt5.QtCore import QVariant
+from PyQt5.QtCore import QVariant, QMessageLogContext
 
 import processing
 import tempfile
@@ -68,9 +69,7 @@ def polygonize_raster(raster_layer: QgsRasterLayer) -> str:
         'OUTPUT': temp_output
     })
 
-
-
-    # Return paht to temporary file
+    # Return path to temporary file
     return temp_output
 
 def load_tiff_from_zip(path_to_zip):
@@ -83,6 +82,7 @@ def load_tiff_from_zip(path_to_zip):
     # Ensure the extraction directory exists
     os.makedirs(extract_path, exist_ok=True)
 
+    # Extract the first TIFF file from the ZIP (expexted to be the only one)
     with zipfile.ZipFile(path_to_zip, 'r') as zip_ref:
         for file_name in zip_ref.namelist():
             if file_name.lower().endswith('.tif'):
@@ -91,11 +91,12 @@ def load_tiff_from_zip(path_to_zip):
                 if raster_layer.isValid():
                     return raster_layer
                 else:
-                    print(f"Failed to load raster layer from {extracted_tiff}")
+                    QgsMessageLog.logMessage("Failed to load raster layer from ZIP", "CzLandUseCN", level=Qgis.Critical)
                     return None
     return None
 
 class SoilDownloader:
+    """Class to download soil data using a WPS service."""
     def __init__(self, url, xml_template,process_identifier, polygon_Soil, ymin_s, xmin_s, ymax_s, xmax_s):
         self.url = url
         self.xml_template = xml_template
@@ -105,7 +106,8 @@ class SoilDownloader:
         self.ymin_s, self.xmin_s, self.ymax_s, self.xmax_s = ymin_s, xmin_s, ymax_s, xmax_s
 
     def create_custom_xml(self):
-        print("Creating custom XML")
+        """Create a custom XML request for the WPS service. Uses the XML template file and polygon."""
+
         try:
             with open(self.xml_template, 'r', encoding='utf-8') as file:
                 xml_content = file.read()
@@ -142,25 +144,29 @@ class SoilDownloader:
                     # Replace coordinates and attributes
                     xml_content = xml_content.replace("{{ coordinates }}", " ".join(coordinates_list))
                     xml_content = xml_content.replace("{{ attributes }}", " ".join(attributes_list))
+
         except Exception as e:
+            QgsMessageLog.logMessage(str(e), "CzLandUseCN", level=Qgis.Critical)
             raise Exception(f"Failed to create custom XML: {e}")
 
-        print(xml_content)
+
+
         return xml_content
 
 
 
     def execute_wps_request(self):
+        """Execute the WPS request and download the output files."""
         # Initialize the WPS service
-        print("Executing WPS request")
+        QgsMessageLog.logMessage("Soil - Executing WPS request", "CzLandUseCN", level=Qgis.Info)
         try:
             wps = WebProcessingService(self.url)
-            print(wps)
+
 
             # Read the request from the XML file
             requestXML = self.create_custom_xml()
 
-            print(requestXML)
+
             # Execute the request
             execution = wps.execute(self.process_identifier, [], request=requestXML.encode('utf-8'))
             monitorExecution(execution)
@@ -176,7 +182,7 @@ class SoilDownloader:
                 execution.getOutput(ofile, output.identifier)
                 output_files.append(ofile)
         except Exception as e:
-            print(f"Failed to execute WPS request: {e}")
+            QgsMessageLog.logMessage( str(e), "CzLandUseCN", level=Qgis.Critical)
             raise Exception(f"Failed to execute WPS request: {e}")
 
         return output_files
