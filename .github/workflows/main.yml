@@ -1,4 +1,4 @@
-name: WFS test  
+name: WFS and Layer Editing test  
 
 on: [push, pull_request]  
 
