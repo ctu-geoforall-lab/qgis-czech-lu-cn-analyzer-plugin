@@ -17,7 +17,8 @@ Testováno na MS Windows a Linux(Ubuntu). <br> <br>
 - Vstupní parametry jsou čteny z konfiguračních souborů.
 - LPIS vrstva je připojena, ohodnocena dle typu parcely a sloučena do finální vrstvy dle priority.
 - Dočasné vrstvy nejsou přidávány do projektu.
-- **nově: Na výlsednou vrstvu LandUse je aplikován styl.** 
+- Na výlsednou vrstvu LandUse je aplikován styl.
+- **nově: Je umožněno stáhnout a polygonizovat HSG vrstvu. ** 
 
 ## Popis konfiguračních souborů
 Tyto soubory se nachází ve složce *config* <br>

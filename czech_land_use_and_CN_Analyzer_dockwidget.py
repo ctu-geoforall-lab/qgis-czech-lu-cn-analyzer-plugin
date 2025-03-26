@@ -28,6 +28,7 @@ from PyQt5.QtWidgets import QButtonGroup
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.core import Qgis, QgsMapLayerProxyModel, QgsProject, QgsApplication, QgsTask, QgsMessageLog, QgsVectorLayer
+from qgis.utils import iface
 
 from .SoilDownloader import simple_clip
 from .SoilTask import TASK_process_soil_layer
@@ -73,6 +74,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
         self.AreaFlag = AreaFlag # Set AreaFlag to True > processing inside polygon
         self.SoilFlag = SoilFlag # Set SoilFlag to True > Soil type processing
+        self.reset_AreaFlag = False # If creating polygon from window extent to reset the AreaFlag in end of Soil Task
         self.DownloadFlag = 0 # 0 == LandUse and Soil, 1 == only LandUse, 2 == only Soil
 
         self.LandUseLayers = LandUseLayers# List of LandUse layers for merge in the end
@@ -110,6 +112,12 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         self.LUSelectButton.toggled.connect(self.toggle_to_LU)
 
         self.runButton.clicked.connect(self.Download)
+        self.abortButton.clicked.connect(self.Abort)
+
+    def Abort(self):
+        """Abort the current task."""
+        QgsApplication.taskManager().cancelAll()
+        self.ui_updater.TaskCanceled()
 
     def toggle_to_LUandSoil(self):
         self.DownloadFlag = 0
@@ -304,6 +312,9 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             QgsMessageLog.logMessage(f"Failed to delete temporary file: {e}", "CzLandUseCN",
                                      level=Qgis.Info, notifyUser=False)
 
+        if self.reset_AreaFlag: # If created polygon from extent, reset the AreaFlag
+            self.AreaFlag = False
+
         # Show success in the UI elements after completion
         self.ui_updater.PluginSuccess()
 
@@ -314,8 +325,15 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         Or upon clicking the Download button in UI (DownloadFlag == 2).
         """
 
+        self.reset_AreaFlag = False
+
         if self.DownloadFlag == 2: # If creating only soil layer, get the polygon from the current layer
-            self.polygon = self.mMapLayerComboBox.currentLayer()
+            if self.AreaFlag:
+                self.polygon = self.mMapLayerComboBox.currentLayer()
+            else:
+                extent = iface.mapCanvas().extent()
+                self.ymin, self.xmin, self.ymax, self.xmax =(extent.yMinimum(), extent.xMinimum(), extent.yMaximum(),
+                                                             extent.xMaximum())
 
         # Reset the UI elements and freeze them
         self.ui_updater.reset_panel()
@@ -327,6 +345,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         if not self.AreaFlag:
             self.polygon = get_polygon_from_extent(self.ymin, self.xmin, self.ymax, self.xmax)
             self.AreaFlag = True
+            self.reset_AreaFlag = True
 
         else:
             try:
