@@ -18,7 +18,7 @@ Testováno na MS Windows a Linux(Ubuntu). <br> <br>
 - LPIS vrstva je připojena, ohodnocena dle typu parcely a sloučena do finální vrstvy dle priority.
 - Dočasné vrstvy nejsou přidávány do projektu.
 - Na výlsednou vrstvu LandUse je aplikován styl.
-- **nově: Je umožněno stáhnout a polygonizovat HSG vrstvu. ** 
+- **nově: Je umožněno stáhnout a polygonizovat HSG vrstvu.** 
 
 ## Popis konfiguračních souborů
 Tyto soubory se nachází ve složce *config* <br>
