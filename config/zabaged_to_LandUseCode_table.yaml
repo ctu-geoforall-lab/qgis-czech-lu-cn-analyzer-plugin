@@ -52,8 +52,10 @@ land_use:
   - keywords: [Rozvodna, rozvodna]
     code: 44300 
   - keywords: [Okrasna, okrasna, Okrasná, okrasná]
-    code: 42000 
+    code: 44200
   - keywords: [Hřbitov, Hrbitov, hrbitov, hřbitov]
-    code: 42000 
+    code: 44200
   - keywords: [Účel, účel, ucel, Ucel]
-    code: 41000 
+    code: 44100 
+  - keywords: [Skládka, skladka, Skladka, skládka]
+    code: 44100
