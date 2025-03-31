@@ -12,10 +12,11 @@ class WFSDownloaderError(Exception):
 class WFSDownloader:
     """ Class to download and clip WFS layers, used before and during WFStask """
 
-    def __init__(self, conf_path, area_flag, polygon):
+    def __init__(self, conf_path, area_flag, polygon, SoilFlag):
         self.config_path = conf_path
         self.AreaFlag = area_flag
         self.polygon = polygon
+        self.SoilFlag = SoilFlag
 
     def get_ZABAGED_layers_list(self) -> List[str]:
         """ Load WFS layers from the configuration file"""
@@ -63,7 +64,7 @@ class WFSDownloader:
 
         if not self.AreaFlag:
             extent = iface.mapCanvas().extent()
-        elif self.polygon and self.polygon.isValid():
+        elif self.polygon and self.polygon.isValid() or self.SoilFlag:
             extent = self.polygon.extent()
         else:
             QgsMessageLog.logMessage("Invalid polygon layer!", "CzLandUseCN", level=Qgis.Warning, notifyUser=True)
@@ -108,7 +109,7 @@ class WFSDownloader:
     def GetLPISLayer(self, LPISURL: str, layer_name: str, LPISconfigpath: str, ymin: float, xmin: float, ymax: float,
                      xmax: float, current_extent: QgsGeometry, LayerList: list) -> list:
         """ Get the LPIS layer from the WFS service"""
-        wfs_downloader = WFSDownloader(LPISconfigpath, self.AreaFlag, self.polygon)
+        wfs_downloader = WFSDownloader(LPISconfigpath, self.AreaFlag, self.polygon, self.SoilFlag)
         LPISlayer = wfs_downloader.process_wfs_layer(layer_name, ymin, xmin, ymax, xmax, current_extent, LPISURL)
         if LPISlayer is None:
             QgsMessageLog.logMessage("Unavailable LPIS Layer", "CzLandUseCN", level=Qgis.Warning,

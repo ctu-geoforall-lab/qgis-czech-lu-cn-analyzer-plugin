@@ -1,7 +1,7 @@
 ![plugin icon](https://github.com/ctu-geoforall-lab/qgis-zabaged-plugin/blob/main/docs/images/baner.png?raw=true) <br>
 
 [![WFS and Layer editing test](https://github.com/ctu-geoforall-lab/qgis-zabaged-plugin/actions/workflows/main.yml/badge.svg)](https://github.com/ctu-geoforall-lab/qgis-zabaged-plugin/actions/workflows/main.yml)
-
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) <br>
 Pro správnou funkci je potřeba mít v projektu nastaven CRS na EPSG:5514 <br>
 Testováno na MS Windows a Linux(Ubuntu). <br> <br>
 
@@ -17,7 +17,8 @@ Testováno na MS Windows a Linux(Ubuntu). <br> <br>
 - Vstupní parametry jsou čteny z konfiguračních souborů.
 - LPIS vrstva je připojena, ohodnocena dle typu parcely a sloučena do finální vrstvy dle priority.
 - Dočasné vrstvy nejsou přidávány do projektu.
-- **nově: Na výlsednou vrstvu LandUse je aplikován styl.** 
+- Na výlsednou vrstvu LandUse je aplikován styl.
+- **nově: Je umožněno stáhnout a polygonizovat HSG vrstvu.** 
 
 ## Popis konfiguračních souborů
 Tyto soubory se nachází ve složce *config* <br>
@@ -40,6 +41,3 @@ Některé požadované ZABAGED vrstvy není možné zahrnout kvůli následujíc
 - Usazovací nádrž - 2024-01-01: 1.07 USAZOVACÍ NÁDRŽ - objekt zrušen z kategorie 1. SÍDELNÍ, HOSPODÁŘSKÉ A KULTURNÍ OBJEKTY <br>
 - Dobývací prostor - (*) Typ objektu bude publikován po smluvním zajištění dat od správce. <br>
 - Chráněné ložiskové území -   (*) Typ objektu bude publikován po smluvním zajištění dat od správce. <br> <br>
-
-**Zdroje dat pro jednotlivé atributy SoilVeg:** <br>
-https://docs.google.com/spreadsheets/d/e/2PACX-1vTbRsC8YWkru4Eo5AAMdMwHh9P26WF7v6L3tRfg7hfBfB_dThkh3UN75LjTpiH177f-kNv2c5BtGxxq/pubhtml

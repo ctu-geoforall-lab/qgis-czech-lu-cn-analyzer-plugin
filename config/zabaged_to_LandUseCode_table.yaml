@@ -13,4 +13,49 @@ land_use:
     code: 77100
   - keywords: [Skalní, skalní, Skalni, skalni]
     code: 88200
-
+  - keywords: [Budova, budova, budov, Budov]
+    code: 44100
+  - keywords: [Věž, věž, Vez, vez]
+    code: 44100
+  - keywords: [Nadrz, nadrz, Nádrž, nádrž]
+    code: 44100
+  - keywords: [Silo, silo]
+    code: 44100
+  - keywords: [Hrad , hrad ]
+    code: 44100    
+  - keywords: [Zamek, zamek, zámek, Zámek]
+    code: 44100
+  - keywords: [Tribuna, tribuna]
+    code: 44100 
+  - keywords: [Ulice, ulice]
+    code: 44100 
+  - keywords: [Pesina, pesina, pěšina, Pěšina]
+    code: 44100 
+  - keywords: [Parkoviste, parkoviste, parkoviště, Parkoviště]
+    code: 44100 
+  - keywords: [Trať, trať, trat, Trat]
+    code: 44200 
+  - keywords: [Kolejiste, kolejiště, kolejiste, Kolejiště]
+    code: 44200 
+  - keywords: [Zastavka, zastavka, zastávka, Zastávka]
+    code: 44100 
+  - keywords: [Silnice, slinice]
+    code: 44100 
+  - keywords: [Chmelnice, chmelnice]
+    code: 55100
+  - keywords: [Vinice, vinice]
+    code: 55100 
+  - keywords: [Zahrada, zahrada]
+    code: 42000 
+  - keywords: [Vinice, vinice]
+    code: 55100
+  - keywords: [Rozvodna, rozvodna]
+    code: 44300 
+  - keywords: [Okrasna, okrasna, Okrasná, okrasná]
+    code: 44200
+  - keywords: [Hřbitov, Hrbitov, hrbitov, hřbitov]
+    code: 44200
+  - keywords: [Účel, účel, ucel, Ucel]
+    code: 44100 
+  - keywords: [Skládka, skladka, Skladka, skládka]
+    code: 44100

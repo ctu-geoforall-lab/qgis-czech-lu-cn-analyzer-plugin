@@ -11,7 +11,9 @@ from qgis.core import (
     QgsField,
     QgsRectangle,
     Qgis,
-    QgsMessageLog
+    QgsMessageLog,
+    QgsFields,
+    QgsGeometry,
 )
 
 # Based on the environment, import the WFSdownloader module
@@ -20,6 +22,101 @@ try:
 except ImportError:
     from WFSdownloader import WFSDownloader
 
+
+def dissolve_polygon(layer: QgsVectorLayer) -> QgsVectorLayer:
+    """Dissolve the input polygon layer, keeping only an ID attribute with a value of 1.
+    (for simple use cases)"""
+
+    # Run dissolve without retaining any specific field
+    dissolved_layer = processing.run(
+        "native:dissolve",
+        {
+            'INPUT': layer,
+            'FIELD': [],  # No fields retained initially
+            'OUTPUT': 'memory:'
+        }
+    )['OUTPUT']
+
+    # Get data provider
+    provider = dissolved_layer.dataProvider()
+
+    # Remove all existing attributes
+    provider.deleteAttributes([i for i in range(len(provider.fields()))])
+    dissolved_layer.updateFields()
+
+    # Add a new 'ID' field
+    provider.addAttributes([QgsField('ID', QVariant.Int)])
+    dissolved_layer.updateFields()
+
+    # Set 'ID' value to 1 for all features
+    dissolved_layer.startEditing()
+    for feature in dissolved_layer.getFeatures():
+        feature.setAttribute('ID', 1)
+        dissolved_layer.updateFeature(feature)
+    dissolved_layer.commitChanges()
+
+    return dissolved_layer
+
+def get_polygon_from_extent(ymin: int, xmin: int, ymax: int, xmax: int) -> QgsVectorLayer:
+    """Get a polygon from the extent."""
+    rect = QgsRectangle(xmin, ymin, xmax, ymax)
+    # Create QgsVectorLayer from the polygon
+    layer = QgsVectorLayer("Polygon?crs=EPSG:5514", "Rectangle Layer", "memory")
+    provider = layer.dataProvider()
+
+    # Define attributes
+    fields = QgsFields()
+    fields.append(QgsField("id", QVariant.Int))
+    provider.addAttributes(fields)
+    layer.updateFields()
+
+    # Create a feature with the rectangle geometry
+    feature = QgsFeature()
+    feature.setGeometry(QgsGeometry.fromRect(rect))
+    feature.setAttributes([1])  # Assign an ID
+    provider.addFeature(feature)
+
+    # Refresh the layer
+    layer.updateExtents()
+    return layer
+
+def buffer_QgsVectorLayer(input_layer, distance, segments=10):
+    """Creates a buffered QgsVectorLayer from an input polygon layer.
+
+    :param input_layer: QgsVectorLayer (Polygon Layer)
+    :param distance: Buffer distance (float)
+    :param segments: Number of segments to approximate curves (int)
+    :return: QgsVectorLayer (Buffered Polygons)
+    """
+
+    # Create a memory layer to store buffered features
+    buffer_layer = QgsVectorLayer("Polygon?crs=" + input_layer.crs().authid(),
+                                  "BufferedLayer", "memory")
+    provider = buffer_layer.dataProvider()
+
+    # Copy attributes from input layer
+    fields = input_layer.fields()
+    provider.addAttributes(fields)
+    buffer_layer.updateFields()
+
+    # Process features
+    for feature in input_layer.getFeatures():
+        buffered_geom = feature.geometry().buffer(distance, segments)
+
+        if buffered_geom.isEmpty():
+            continue
+
+        # Create new feature with the same attributes
+        new_feature = QgsFeature()
+        new_feature.setGeometry(buffered_geom)
+        new_feature.setAttributes(feature.attributes())
+
+        # Add feature to buffer layer
+        provider.addFeature(new_feature)
+
+    buffer_layer.updateExtents()
+
+    return buffer_layer
 
 def attribute_layer_edit(layer: QgsVectorLayer, base_use_code: int, controlling_attribute: str,
                          value_increments: dict) -> QgsVectorLayer:
@@ -117,12 +214,48 @@ def attribute_layer_buffer(layer: QgsVectorLayer, controlling_atr_name: str, def
     else:
         return buffer_layer
 
+def apply_simple_buffer(layer: QgsVectorLayer, buffer_distance: float) -> QgsVectorLayer:
+    """
+    Apply a simple buffer to the input layer
+    """
+
+    # Create a new memory layer to store the buffered features
+    buffer_layer = QgsVectorLayer(f"Polygon?crs={layer.crs().authid()}", f"{layer.name()}", "memory")
+    buffer_layer.startEditing()
+    buffer_layer.dataProvider().addAttributes(layer.fields())
+    buffer_layer.updateFields()
+
+    for feature in layer.getFeatures():
+        geom = feature.geometry()
+        if geom.wkbType() == 1 or geom.wkbType() == 4:  # 1 = Point, 4 = Multipoint
+            buffer = geom.buffer(buffer_distance, 5)
+        elif geom.wkbType() == 2 or geom.wkbType() == 5:  # 2 = LineString, 5 = MultiLineString
+            buffer = geom.buffer(buffer_distance, 2)
+        else:
+            QgsMessageLog.logMessage(f"Unsupported geometry type for feature ID {feature.id()}",
+                                     level=Qgis.Warning, notifyUser=True)
+            continue
+
+        # Create a new feature with the buffered geometry and add it to the buffer layer
+        new_feature = QgsFeature()
+        new_feature.setGeometry(buffer)
+        new_feature.setAttributes(feature.attributes())
+        if not buffer_layer.addFeature(new_feature):
+            QgsMessageLog.logMessage(f"Failed to add feature ID {feature.id()} to the buffer layer.",
+                                     level=Qgis.Warning, notifyUser=True)
+
+    # Commit changes to the buffer layer and add it to the project
+    if not buffer_layer.commitChanges():
+        QgsMessageLog.logMessage("Failed to commit changes to the buffer layer.",
+                                 level=Qgis.Warning, notifyUser=True)
+    else:
+        return buffer_layer
 
 class LayerEditor:
     """Class to edit layers based on the configuration files. Creates and modifies LandUse_code attribute. Layers are
-    buddered and stacked based on the configuration files."""
+    buffered and stacked based on the configuration files."""
 
-    def __init__(self, at_path, LPIS_path, ZABAGED_path, st_path, symbol_path, AreaFlag, polygon, ymin, xmin, ymax, xmax):
+    def __init__(self, at_path, LPIS_path, ZABAGED_path, st_path, symbol_path, AreaFlag, polygon, ymin, xmin, ymax, xmax, IntersectCombobox):
         self.attribute_template_path = at_path
         self.LPIS_config_path = LPIS_path
         self.ZABAGED_config_path = ZABAGED_path
@@ -131,6 +264,8 @@ class LayerEditor:
         self.AreaFlag = AreaFlag
         self.polygon = polygon
         self.ymin, self.xmin, self.ymax, self.xmax = ymin, xmin, ymax, xmax
+
+        self.IntersectCombobox = IntersectCombobox
 
     def add_LPIS_LandUse_code(self, layer: QgsVectorLayer) -> None:
         """Add LandUse code to LPIS layer based on its attributes."""
@@ -209,16 +344,18 @@ class LayerEditor:
                 for layer in layers: # Iterate over all layers
                     for layer_config in buffer_layers_config:
                         if layer.name() == layer_config.get('input_layer_name', ''):
-
-                            buffered_layer = attribute_layer_buffer(
-                                layer,
-                                controlling_atr_name=layer_config['controlling_atr_name'],
-                                default_buffer=layer_config['default_buffer'],
-                                priorities=[b['priority'] for b in layer_config['buffer_levels']],
-                                values=[b['values'] for b in layer_config['buffer_levels']],
-                                distances=[b['distance'] for b in layer_config['buffer_levels']],
-                                input_layer_name=layer_config['input_layer_name']
-                            ) # Buffer the layer based on the config
+                            if layer_config['controlling_atr_name'] == "NaN" or layer_config['controlling_atr_name'] == "None"  or layer_config['controlling_atr_name'] == "":
+                                buffered_layer = apply_simple_buffer(layer, layer_config['default_buffer'])
+                            else:
+                                buffered_layer = attribute_layer_buffer(
+                                    layer,
+                                    controlling_atr_name=layer_config['controlling_atr_name'],
+                                    default_buffer=layer_config['default_buffer'],
+                                    priorities=[b['priority'] for b in layer_config['buffer_levels']],
+                                    values=[b['values'] for b in layer_config['buffer_levels']],
+                                    distances=[b['distance'] for b in layer_config['buffer_levels']],
+                                    input_layer_name=layer_config['input_layer_name']
+                                ) # Buffer the layer based on the config
                             if buffered_layer:
                                 QgsMessageLog.logMessage("Successful buffering: " + layer.name(), "CzLandUseCN",
                                                          level=Qgis.Info, notifyUser=False)
@@ -281,7 +418,7 @@ class LayerEditor:
         (Used mainly after buffering)
         """
 
-        wfs_downloader = WFSDownloader(None, self.AreaFlag, self.polygon)
+        wfs_downloader = WFSDownloader(None, self.AreaFlag, self.polygon, False)
 
         clipped_layers = []
 
@@ -321,7 +458,7 @@ class LayerEditor:
 
         return layer
 
-    def stack_layers(self, layers: list) -> None:
+    def stack_layers(self, layers: list) -> Optional[QgsVectorLayer]:
         """
         Merge polygon layers by their priority from the stacking list - layers_merging_order.conf
         Also removes original input layers
@@ -372,7 +509,7 @@ class LayerEditor:
             # Reverse the list to merge the layers in the correct order
             priority_merged_layers.reverse()
             # Merge all priority layers together in the specified order
-            final_merged_layer = merge_layers(priority_merged_layers, "LandUse_Layer")
+            final_merged_layer = merge_layers(priority_merged_layers, "LandUse Layer")
 
             # Apply symbology to the merged layer
             final_merged_layer = self.apply_symbology(final_merged_layer)
@@ -380,15 +517,16 @@ class LayerEditor:
             if final_merged_layer:
                 final_merged_layer.triggerRepaint()
 
-            # Add the final merged layer to the project
-            if final_merged_layer:
-                QgsProject.instance().addMapLayer(final_merged_layer)
+
+
             else:
                 QgsMessageLog.logMessage("Failed to merge layers.", "CzLandUseCN", level=Qgis.Critical, notifyUser=True)
+                return None
 
             # Remove partial Marged_Layer layers
             for layer in priority_merged_layers:
                 QgsProject.instance().removeMapLayer(layer.id())
 
             QgsMessageLog.logMessage("Stacking layers completed.", "CzLandUseCN", level=Qgis.Info, notifyUser=False)
-            return None
+            if final_merged_layer:
+                return final_merged_layer

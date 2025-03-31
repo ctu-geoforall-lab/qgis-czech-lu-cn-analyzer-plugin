@@ -1,5 +1,6 @@
 URL: https://ags.cuzk.cz/arcgis/services/ZABAGED_POLOHOPIS/MapServer/WFSServer
-# This list contains buffer options, values in controlling_atr_name change length of buffers for point/line objects. distance is in meters.
+
+# This list contains buffer options, values in controlling_atr_name change length of buffers for point/line objects. Distance is in meters.
 buffer_layers:
   - input_layer_name: "ZABAGED_POLOHOPIS:Silnice__dálnice"
     controlling_atr_name: "typsil_k"
@@ -14,6 +15,15 @@ buffer_layers:
         values: ["S2", "S3", "D2p", "S2p", "S2v", "S3p", "S3v"]
         distance: 10
     default_buffer: 7.5
+
+  - input_layer_name: "ZABAGED_POLOHOPIS:Silnice_neevidovaná"
+    controlling_atr_name: "NaN"
+    default_buffer: 7.5
+
+  - input_layer_name: "ZABAGED_POLOHOPIS:Ulice"
+    controlling_atr_name: "NaN"
+    default_buffer: 3.5
+
 # This list contains settings for ZABAGED layers where their LandUse code is updated by some value in its attribute.
 # base_use_code is the LandUse code for the whole layer, and numbers from values in the controlling attribute are added to base_use_code.
 layers:
@@ -22,8 +32,127 @@ layers:
     controlling_attribute: "druh_k"
     value_increments:
       N: 0
-      J: 3200
-      L: 3100
-      S: 3300
+      J: 3200 # jehlicnaty
+      L: 3100 # listnaty
+      S: 3300 # smiseny
 
+  - name: "ZABAGED_POLOHOPIS:Heliport"
+    base_use_code: 44100
+    controlling_attribute: "povrfato_k"
+    value_increments:
+      Z: 0   # zpevněný (asfalt, beton)
+      P: 100 # zpevněný (panel, dlažba)
+      H: 100 # nedostatečně zpevněný (tráva, hlína, písek, kamení)
+      S: 100 # smíšený (nejednotný povrch)
+
+  - name: "ZABAGED_POLOHOPIS:Orná_půda_a_ostatní_dále_nespecifikované_plochy"
+    base_use_code: 10000  
+    controlling_attribute: "TYP_PUDY_K"
+    value_increments:
+      OR: 0      # orna
+      OSN: 34200 # ostatni
+
+  - name: "ZABAGED_POLOHOPIS:Elektrárna__plocha_"
+    base_use_code: 44200
+    controlling_attribute: "PODTYPEL_K"
+    value_increments:
+      "003": 0    # solární
+      "001": 100  # vodní
+      "008": 100  # parní
+      "009": 100  # paroplynová
+      "010": 100  # plynová a spalovací
+      "011": 100  # vodní přečerpávací
+      "012": 100  # ostatní alternativní
+
+  - name: "ZABAGED_POLOHOPIS:Rozvalina__zřícenina"
+    base_use_code: 44200
+    controlling_attribute: "podytypob_k"
+    value_increments:
+      R: 0    # rozvalina
+      Z: 100  # zricenina
+      ZH: 100 # zricenina hradu
+      ZZ: 100 # zricenina zamku
+  - name: "ZABAGED_POLOHOPIS:Areál_účelové_zástavby" # while selecting from INTRAVILAN/EXTRAVILAN temporary was selected the lower number (more water resilient Land Use code)
+    base_use_code: 44100
+    controlling_attribute: "typzast_k"
+    value_increments:
+      101: 100  # hlubinná těžba - bez omezení
+      102: 0    # strojírenský průmysl - plocha ≥ 5 000 m2
+      103: 0    # chemický průmysl - plocha ≥ 5 000 m2
+      104: 0    # textilní, oděvní a kožedělný - plocha ≥ 5 000 m2
+      105: 0    # průmysl skla, keramiky a stavebních hmot - plocha ≥ 5 000 m2
+      106: 0    # potravinářský průmysl - plocha ≥ 5 000 m2
+      107: 0    # dřevozpracující a papírenský průmysl - plocha ≥ 5 000 m2
+      108: 0    # polygrafický průmysl - plocha ≥ 5 000 m2
+      109: 0    # hutnický průmysl - plocha ≥ 5 000 m2
+      110: 0    # ostatní, nerozlišený průmysl - plocha ≥ 5 000 m2
+      111: 100  # chov hospodářských zvířat - plocha ≥ 5 000 m2
+      112: 0    # zemědělský areál ostatní - plocha ≥ 5 000 m2
+      113: 0    # skleníkové pěstování plodin - plocha ≥ 5 000 m2
+      201: 100  # areál hradu (zřícenin) - bez omezení
+      202: 100  # areál zámku - bez omezení
+      203: 100  # archeologické naleziště - bez omezení
+      204: 100  # hvězdárna - bez omezení
+      205: 0    # kostel - bez omezení
+      206: 100  # klášter - bez omezení
+      207: 0    # kulturní objekt ostatní - bez omezení
+      208: 0    # muzeum - bez omezení
+      209: 100  # letní scéna - bez omezení
+      210: 100  # škola - bez omezení
+      211: 0    # výstaviště - plocha ≥ 10 000 m2
+      212: 100  # skanzen - bez omezení
+      213: 100  # zoo, safari - bez omezení
+      214: 100  # botanická zahrada - bez omezení
+      215: 100  # školské zařízení - bez omezení
+      301: 100  # sportovní areál - plocha ≥ 2 000 m2
+      302: 0    # plavecký areál - bez omezení
+      303: 0    # stadión - bez omezení
+      304: 100  # dostihový areál, parkur - bez omezení
+      305: 100  # auto-moto-cyklo areál - bez omezení
+      307: 100  # střelnice - bez omezení
+      309: 0    # koupaliště - bez omezení
+      310: 200  # camping - plocha ≥ 5 000 m2
+      311: 100  # hřiště - plocha ≥ 2 000 m2
+      312: 100  # chatová kolonie - plocha ≥ 10 000 m2 nebo šířka ≥ 50m a délka ≥ 200m
+      313: 100  # rekreační zástavba - plocha ≥ 5 000 m2
+      314: 100  # kynologické cvičiště - bez omezení
+      315: 0    # zábavní park - bez omezení
+      316: 100  # zahrádkářská osada - bez omezení
+      401: 0    # sklad, hangár - plocha ≥ 5 000 m2
+      402: 0    # přístav - bez omezení
+      403: 100  # depo - bez omezení
+      404: 0    # technické služby - bez omezení
+      405: 100  # úpravna vody - bez omezení
+      406: 100  # čistírna odpadních vod - bez omezení
+      407: 0    # vodojem zemní - bez omezení
+      408: 0    # autobusové nádraží - bez omezení
+      409: 0    # čerpací stanice pohonných hmot - bez omezení
+      410: 100  # meteorologická stanice - bez omezení
+      411: 0    # vysílač - bez omezení
+      412: 100  # nemocnice - bez omezení
+      413: 100  # další zdravotní a sociální zařízení - bez omezení
+      414: 0    # věznice - bez omezení
+      415: 100  # kasárny a vojenské objekty - bez omezení
+      416: 0    # skupinové garáže - plocha ≥ 2 000 m2
+      417: 0    # hasičská stanice, zbrojnice - bez omezení
+      418: 100  # policejní areál - bez omezení
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
 

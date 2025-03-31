@@ -42,7 +42,7 @@ class TASK_process_wfs_layer(QgsTask):
     def run(self):
         """Run the task to process WFS layers."""
         wfs_downloader = WFSDownloader(os.path.join(os.path.dirname(__file__), 'config', 'layers_merging_order.csv'),
-                                       self.AreaFlag, self.polygon)
+                                       self.AreaFlag, self.polygon, False)
 
         self._update_progress_bar()
         LPISconfigpath = os.path.join(os.path.dirname(__file__), 'config', 'LPIS.yaml')
@@ -61,6 +61,7 @@ class TASK_process_wfs_layer(QgsTask):
                 if i > 1:
                     self._update_progress_bar()
                 i += 1
+
                 wfsLayer = wfs_downloader.process_wfs_layer(self.layer, self.ymin, self.xmin, self.ymax, self.xmax,
                                                             self.current_extent, zabaged_URL)
                 if wfsLayer.featureCount() == 0:
