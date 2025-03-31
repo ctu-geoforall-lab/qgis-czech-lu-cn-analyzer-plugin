@@ -1,6 +1,24 @@
 
 from qgis.core import QgsMessageLog, Qgis
 
+def overlap_check(layer1, layer2):
+    """Check if two layers have overlapping features."""
+    overlap_found = False
+
+    for feat1 in layer1.getFeatures():
+        geom1 = feat1.geometry()
+
+        for feat2 in layer2.getFeatures():
+            geom2 = feat2.geometry()
+
+            if geom1.intersects(geom2):  # Checks if any geometry intersects
+                overlap_found = True
+                break  # Exit early if overlap is found
+
+    if overlap_found:
+       return True
+    else:
+        return False
 
 class InputChecker:
     """Class to check the input from the user and state of Qgis project"""

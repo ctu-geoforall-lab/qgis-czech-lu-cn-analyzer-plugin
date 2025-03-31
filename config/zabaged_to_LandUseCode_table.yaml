@@ -6,7 +6,7 @@ land_use:
   - keywords: [Lesní, lesní, Lesni, lesni]
     code: 30000
   - keywords: [Křovinatým, křovinatým, Krovinatym, krovinatym]
-    code: 3500
+    code: 33500
   - keywords: [Vodní_plocha, "Vodní plocha", vodní_plocha, "vodní plocha", Vodni_plocha, "Vodni plocha", vodni_plocha, "vodni plocha"]
     code: 77200
   - keywords: [Vodní_tok, "Vodní tok", vodní_tok, "vodní tok", Vodni_tok, "Vodni tok", vodni_tok, "vodni tok"]
@@ -59,3 +59,23 @@ land_use:
     code: 44100 
   - keywords: [Skládka, skladka, Skladka, skládka]
     code: 44100
+  - keywords: [Zakrytý, zakryty, Zakryty, zakrytý]
+    code: 44100
+  - keywords: [Skleník, sklenik, Sklenik, skleník]
+    code: 44100
+  - keywords: [Bažina, bazina, Bazina, bažina]
+    code: 44100
+  - keywords: [Tezba, těžba, tezba, Těžba]
+    code: 44100
+  - keywords: [zřícenina, Zricenina, zricenina, Zřícenina]
+    code: 44100   
+  - keywords: [liniova, Liniova, Liniová, liniová]
+    code: 66100   
+  - keywords: [raseliniste, rašeliniště, Raseliniste, Rašeliniště]
+    code: 66600   
+  - keywords: [precerpavaci, přečerpávací, Precerpavaci, Přečerpávací]
+    code: 44200   
+  - keywords: [sucha, Sucha, suchá, Suchá]
+    code: 22200  
+  - keywords: [Kulna, kulna, kůlna, Kulna]
+    code: 44100  

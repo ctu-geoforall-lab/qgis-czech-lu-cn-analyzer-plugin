@@ -77,6 +77,9 @@ class TASK_process_soil_layer(QgsTask):
             self._update_progress_bar(70)
             # Polygonize the raster
             self.SoilGPKGPath = polygonize_raster(soil_raster)
+
+
+
             self.finished(True)
 
             return True

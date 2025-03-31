@@ -24,19 +24,22 @@
 import os
 import processing
 from PyQt5.QtWidgets import QButtonGroup
+from PyQt5.QtCore import QVariant
 
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal
-from qgis.core import Qgis, QgsMapLayerProxyModel, QgsProject, QgsApplication, QgsTask, QgsMessageLog, QgsVectorLayer
+from qgis.core import (Qgis, QgsMapLayerProxyModel, QgsProject, QgsApplication, QgsTask, QgsMessageLog,
+                       QgsVectorLayer, QgsField)
 from qgis.utils import iface
 
 from .SoilDownloader import simple_clip
 from .SoilTask import TASK_process_soil_layer
 from .UIupdater import UIUpdater
 from .WFSdownloader import WFSDownloader
-from .InputChecker import InputChecker
+from .InputChecker import InputChecker, overlap_check
 from .WFStask import TASK_process_wfs_layer
-from .LayerEditor import LayerEditor, buffer_QgsVectorLayer, get_polygon_from_extent, dissolve_polygon
+from .LayerEditor import (LayerEditor, buffer_QgsVectorLayer, get_polygon_from_extent, dissolve_polygon,
+                          clip_larger_layer_to_smaller, add_constant_atr, merge_layers, apply_simple_difference)
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'czech_land_use_and_CN_Analyzer_dockwidget_base.ui'))
@@ -113,6 +116,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
         self.runButton.clicked.connect(self.Download)
         self.abortButton.clicked.connect(self.Abort)
+        self.runButton_Int.clicked.connect(self.RunIntersection)
 
     def Abort(self):
         """Abort the current task."""
@@ -296,13 +300,21 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         # Clip the layer by polygon that is not buffered
         clipped_soil_layer = simple_clip(self.SoilLayer,self.not_buffered_plg)
 
+        # Add HSG attribute to the area defining polygon and use it as underline layer for water bodies
+        self.not_buffered_plg = add_constant_atr(self.not_buffered_plg, "HSG", 0)
 
-        clipped_soil_layer.setName("Soil Layer HSG")
+        # Clip the water bodies layer to the polygon by the soil layer
+        self.not_buffered_plg = apply_simple_difference(self.not_buffered_plg, clipped_soil_layer)
+
+        # Merge the clipped soil layer with the polygon that is not buffered
+        clipped_soil_layer = merge_layers([self.not_buffered_plg,clipped_soil_layer],"Soil Layer HSG")
         style_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "colortables", "soil.sld")
         clipped_soil_layer.loadSldStyle(style_path)
 
-        # add final layer to Qgis project and MapComboBox in Intersection panel
-        self.mMapLayerComboBox_HSG.setLayer(QgsProject.instance().addMapLayer(clipped_soil_layer))
+        self.mMapLayerComboBox_HSG.setLayer(clipped_soil_layer)
+        QgsProject.instance().addMapLayer(clipped_soil_layer)
+
+        # Set the filter to only show polygon layers (also reloads the layers from project)
 
 
         # Try deleting the temporary file
@@ -410,6 +422,9 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
 
         except Exception as e:
+            if self.reset_AreaFlag:  # If created polygon from extent, reset the AreaFlag
+                self.AreaFlag = False
+
             if (len(str(e))) == 0:
                 e = "Extent is out of Czech Republic boundaries"
             QgsMessageLog.logMessage(e, "CzLandUseCN",
@@ -418,3 +433,52 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             self.ui_updater.TaskError_Soil()
             return None
 
+    def RunIntersection(self):
+        """
+        Run the processing of acquiring the Intersection Layer .
+        Starts upon clicking the Run button in UI.
+        """
+
+        QgsMessageLog.logMessage("Getting Intersection layer.", "CzLandUseCN",
+                                 level=Qgis.Info, notifyUser=False)
+
+        # Get the Soil and Land Use layers from the ComboBoxes
+        Soil_layer = self.mMapLayerComboBox_HSG.currentLayer()
+        LandUse_layer = self.mMapLayerComboBox_LU.currentLayer()
+
+        # Check if the layers are valid and contain the required attributes
+        if Soil_layer is None or LandUse_layer is None or not  Soil_layer.isValid() or not LandUse_layer.isValid():
+            self.ui_updater.ErrorMsg("Please select both valid Soil and Land Use layers.")
+            return None
+
+        if  Soil_layer.fields().indexFromName("HSG") == -1 :
+            self.ui_updater.ErrorMsg("HSG layer does not contain HSG attribute.")
+            return None
+
+        if LandUse_layer.fields().indexFromName("LandUse_code") == -1 :
+            self.ui_updater.ErrorMsg("LandUse layer does not contain LandUse_code attribute.")
+            return None
+
+        # Check if the layers overlap
+        if overlap_check(Soil_layer, LandUse_layer) is False:
+            self.ui_updater.ErrorMsg("Soil and Land Use layers do not overlap.")
+            return None
+
+        # Clip the layers to the same extent (smaller layer defines the final AOI if they are not the same size)
+        Soil_layer, LandUse_layer = clip_larger_layer_to_smaller(Soil_layer, LandUse_layer)
+
+        # Union the layers
+        combined_layer = processing.run("native:union", {
+            'INPUT': LandUse_layer,
+            'OVERLAY': Soil_layer,
+            'OUTPUT': 'memory:'
+        })['OUTPUT']
+
+        # Set the symbology of the combined layer
+        symbology_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "colortables", "intersection.qml")
+        combined_layer.setName("Intersected LandUse and HSG")
+        combined_layer.loadNamedStyle(symbology_path)
+
+        # Add the layer to the QGIS project and combobox
+
+        self.mMapLayerComboBox_Int.setLayer(QgsProject.instance().addMapLayer(combined_layer))
