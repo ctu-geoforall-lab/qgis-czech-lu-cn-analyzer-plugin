@@ -32,6 +32,7 @@ from qgis.core import (Qgis, QgsMapLayerProxyModel, QgsProject, QgsApplication, 
                        QgsVectorLayer, QgsField)
 from qgis.utils import iface
 
+from .IntersectionTask import TASK_Intersection
 from .SoilDownloader import simple_clip
 from .SoilTask import TASK_process_soil_layer
 from .UIupdater import UIUpdater
@@ -89,6 +90,8 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         self.mMapLayerComboBox.setFilters(QgsMapLayerProxyModel.PolygonLayer)
         self.mMapLayerComboBox_LU.setFilters(QgsMapLayerProxyModel.PolygonLayer)
         self.mMapLayerComboBox_HSG.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+        self.mMapLayerComboBox_Int.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+        self.mMapLayerComboBox_CN.setFilters(QgsMapLayerProxyModel.PolygonLayer)
 
         # Create a button group for the download options
         self.downloadButtonGroup = QButtonGroup(self)
@@ -464,21 +467,18 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             self.ui_updater.ErrorMsg("Soil and Land Use layers do not overlap.")
             return None
 
-        # Clip the layers to the same extent (smaller layer defines the final AOI if they are not the same size)
-        Soil_layer, LandUse_layer = clip_larger_layer_to_smaller(Soil_layer, LandUse_layer)
+        # Start the Intersection Task
+        self.runButton_Int.setEnabled(False)
+        try:
+            task = TASK_Intersection(Soil_layer, LandUse_layer,self.mMapLayerComboBox_Int, self.runButton_Int)
+            QgsApplication.taskManager().addTask(task)
+            QgsMessageLog.logMessage("Soil task created.", "CzLandUseCN",
+                                     level=Qgis.Info, notifyUser=False)
+        except Exception as e:
+            QgsMessageLog.logMessage(f"Error in RunIntersection: {str(e)}", "CzLandUseCN", level=Qgis.Critical)
+            self.mMapLayerComboBox_Int.setEnabled(True)
 
-        # Union the layers
-        combined_layer = processing.run("native:union", {
-            'INPUT': LandUse_layer,
-            'OVERLAY': Soil_layer,
-            'OUTPUT': 'memory:'
-        })['OUTPUT']
 
-        # Set the symbology of the combined layer
-        symbology_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "colortables", "intersection.qml")
-        combined_layer.setName("Intersected LandUse and HSG")
-        combined_layer.loadNamedStyle(symbology_path)
 
-        # Add the layer to the QGIS project and combobox
 
-        self.mMapLayerComboBox_Int.setLayer(QgsProject.instance().addMapLayer(combined_layer))
+

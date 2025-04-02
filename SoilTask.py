@@ -48,7 +48,8 @@ class TASK_process_soil_layer(QgsTask):
 
     def run(self):
         """Run the task to process Soil layers."""
-
+        QgsMessageLog.logMessage("Soil task started.", "CzLandUseCN",
+                                 level=Qgis.Info, notifyUser=False)
         self._update_progress_bar(10)
         try:
             URL = get_string_from_yaml(os.path.join(os.path.dirname(__file__), 'config', 'Soil.yaml'), "URL")
