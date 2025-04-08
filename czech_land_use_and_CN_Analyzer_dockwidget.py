@@ -314,8 +314,8 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         style_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "colortables", "soil.sld")
         clipped_soil_layer.loadSldStyle(style_path)
 
-        self.mMapLayerComboBox_HSG.setLayer(clipped_soil_layer)
-        QgsProject.instance().addMapLayer(clipped_soil_layer)
+
+        self.mMapLayerComboBox_HSG.setLayer(QgsProject.instance().addMapLayer(clipped_soil_layer))
 
         # Set the filter to only show polygon layers (also reloads the layers from project)
 

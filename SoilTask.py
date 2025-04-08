@@ -79,8 +79,6 @@ class TASK_process_soil_layer(QgsTask):
             # Polygonize the raster
             self.SoilGPKGPath = polygonize_raster(soil_raster)
 
-
-
             self.finished(True)
 
             return True

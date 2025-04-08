@@ -16,14 +16,15 @@ from qgis.core import (
     QgsGeometry,
 )
 
-# Based on the environment, import the WFSdownloader module
+# Based on the environment, import the WFSdownloader/SoilDownloader module
 try:
     from .WFSdownloader import WFSDownloader
 except ImportError:
     from WFSdownloader import WFSDownloader
-
-from .SoilDownloader import simple_clip
-
+try:
+    from .SoilDownloader import simple_clip
+except ImportError:
+    from SoilDownloader import simple_clip
 
 def apply_simple_difference(layer1: QgsVectorLayer, layer2: QgsVectorLayer) -> QgsVectorLayer:
     """Apply a simple difference operation to the input layers."""
@@ -322,7 +323,7 @@ def merge_layers(level_layers: List[QgsVectorLayer], output_name: str) -> Option
             {'LAYERS': level_layers, 'CRS': level_layers[0].crs(), 'OUTPUT': 'memory:'}
         )['OUTPUT']
         merged_layer.setName(output_name)
-        QgsProject.instance().addMapLayer(merged_layer)  # Add merged layer to the project
+
         return merged_layer
     return None
 
@@ -559,8 +560,8 @@ class LayerEditor:
                     if layer_name in STClist:
                         LayerOrderedList.append(layer)
                     else:
-                        QgsMessageLog.logMessage(f"Layer '{layer_name}' not found in the stacking list.", "CzLandUseCN",
-                                                 level=Qgis.Warning, notifyUser=True)
+                        QgsMessageLog.logMessage(f"Layer '{layer_name}' not found in the stacking list.",
+                                                 "CzLandUseCN", level=Qgis.Warning, notifyUser=True)
                         continue
 
             # Order layers by STClist, filtering only layers found in STClist
@@ -589,10 +590,6 @@ class LayerEditor:
             else:
                 QgsMessageLog.logMessage("Failed to merge layers.", "CzLandUseCN", level=Qgis.Critical, notifyUser=True)
                 return None
-
-            # Remove partial Marged_Layer layers
-            for layer in priority_merged_layers:
-                QgsProject.instance().removeMapLayer(layer.id())
 
             QgsMessageLog.logMessage("Stacking layers completed.", "CzLandUseCN", level=Qgis.Info, notifyUser=False)
             if final_merged_layer:
