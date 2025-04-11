@@ -78,13 +78,12 @@ class TASK_process_wfs_layer(QgsTask):
                     self.LandUseLayers.append(clippedLayer)
                 else:
                     self.LandUseLayers.append(wfsLayer)
-            self.finished(True)
             return True
         except Exception as e:
             QgsMessageLog.logMessage(f"Error occurred: {e}", "CzLandUseCN", level=Qgis.Warning,
                                      notifyUser=True)
             self.taskError.emit(str(e))
-            return None
+            return False
 
     def cancel(self):
         """Cancel the task."""

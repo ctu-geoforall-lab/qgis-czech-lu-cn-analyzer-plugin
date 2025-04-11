@@ -8,6 +8,7 @@ import processing
 
 class TASK_Intersection(QgsTask):
     """Task Intersect Soil and LandUse layers."""
+    taskFinished_Intersection  = pyqtSignal(list)
 
     def __init__(self, Soil_layer, LandUse_layer, mMapLayerComboBox_Int, runButton_Int):
         super().__init__("Layer intersection.", QgsTask.CanCancel)
@@ -15,7 +16,18 @@ class TASK_Intersection(QgsTask):
         self.LandUse_layer = LandUse_layer
         self.mMapLayerComboBox_Int = mMapLayerComboBox_Int
         self.runButton_Int = runButton_Int
+        self.combined_layer = None
 
+
+    def finished(self,result):
+        """Handle the completion of the task."""
+        if result:
+            QgsMessageLog.logMessage("Task of processing layers completed.", "CzLandUseCN", level=Qgis.Info,
+                                     notifyUser=False)
+            self.taskFinished_Intersection .emit([self.combined_layer])
+        else:
+            QgsMessageLog.logMessage("Task of processing layers failed.", "CzLandUseCN", level=Qgis.Warning,
+                                     notifyUser=True)
     def run(self):
         """Run the task to process Soil layers."""
         try:
@@ -23,7 +35,7 @@ class TASK_Intersection(QgsTask):
             self.Soil_layer, self.LandUse_layer = clip_larger_layer_to_smaller(self.Soil_layer, self.LandUse_layer)
 
             # Union the layers
-            combined_layer = processing.run("native:union", {
+            self.combined_layer = processing.run("native:union", {
                 'INPUT': self.LandUse_layer,
                 'OVERLAY': self.Soil_layer,
                 'OUTPUT': 'memory:'
@@ -32,18 +44,8 @@ class TASK_Intersection(QgsTask):
             # Set the symbology of the combined layer
             symbology_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "colortables",
                                           "intersection.qml")
-            combined_layer.setName("Intersected LandUse and HSG")
-            combined_layer.loadNamedStyle(symbology_path)
-
-
-            # Ensure the combo box updates and selects the new layer
-            if combined_layer and combined_layer.id():
-                self.mMapLayerComboBox_Int.setLayer(combined_layer)
-                self.mMapLayerComboBox_Int.setLayer(QgsProject.instance().addMapLayer(combined_layer))
-
-            else:
-                QgsMessageLog.logMessage("Failed to add merged layer to ComboBox", "CzLandUseCN", level=Qgis.Warning)
-
+            self.combined_layer.setName("Intersected LandUse and HSG")
+            self.combined_layer.loadNamedStyle(symbology_path)
             self.runButton_Int.setEnabled(True)
 
             return True

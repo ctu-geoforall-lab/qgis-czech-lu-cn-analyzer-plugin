@@ -22,9 +22,10 @@
  ***************************************************************************/
 """
 import os
+import time
 import processing
 from PyQt5.QtWidgets import QButtonGroup
-from PyQt5.QtCore import QVariant
+from PyQt5.QtCore import QVariant, QCoreApplication
 
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal
@@ -120,6 +121,8 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         self.runButton.clicked.connect(self.Download)
         self.abortButton.clicked.connect(self.Abort)
         self.runButton_Int.clicked.connect(self.RunIntersection)
+
+        self.task_manager = QgsApplication.taskManager()
 
     def Abort(self):
         """Abort the current task."""
@@ -222,10 +225,12 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             task.taskCanceled.connect(self.ui_updater.TaskCanceled)
             task.taskError.connect(self.ui_updater.TaskError)
 
-            # Add the task to the task manager
-            QgsApplication.taskManager().addTask(task)
-            QgsMessageLog.logMessage("Land Use task created.","CzLandUseCN",
-                                     level=Qgis.Info, notifyUser=False)
+            self.task_manager.addTask(task)
+            time.sleep(0.1)
+            if self.task_manager.tasks() == 0:
+                self.task_manager.addTask(task)
+                QgsMessageLog.logMessage("Land Use (WFS) task created.", "CzLandUseCN",
+                                         level=Qgis.Info, notifyUser=False)
 
         except Exception as e:
             if (len(str(e))) == 0:
@@ -295,13 +300,12 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             self.ui_updater.PluginSuccess()
 
 
-    def TaskFinished_Soil(self, temporaryGPKGPath):
+    def TaskFinished_Soil(self, SoilLayer_Path):
         """Handle task completion for Soil layers."""
-        self.SoilLayer = QgsVectorLayer(temporaryGPKGPath, "Soil", "ogr")
-        # Clip the layer by polygon
+        SoilLayer = QgsVectorLayer(SoilLayer_Path, "Soil Layer", "ogr")
 
         # Clip the layer by polygon that is not buffered
-        clipped_soil_layer = simple_clip(self.SoilLayer,self.not_buffered_plg)
+        clipped_soil_layer = simple_clip(SoilLayer,self.not_buffered_plg)
 
         # Add HSG attribute to the area defining polygon and use it as underline layer for water bodies
         self.not_buffered_plg = add_constant_atr(self.not_buffered_plg, "HSG", 0)
@@ -316,16 +320,6 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
 
         self.mMapLayerComboBox_HSG.setLayer(QgsProject.instance().addMapLayer(clipped_soil_layer))
-
-        # Set the filter to only show polygon layers (also reloads the layers from project)
-
-
-        # Try deleting the temporary file
-        try:
-            os.remove(temporaryGPKGPath)
-        except Exception as e:
-            QgsMessageLog.logMessage(f"Failed to delete temporary file: {e}", "CzLandUseCN",
-                                     level=Qgis.Info, notifyUser=False)
 
         if self.reset_AreaFlag: # If created polygon from extent, reset the AreaFlag
             self.AreaFlag = False
@@ -418,11 +412,16 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             task.taskCanceled_Soil.connect(self.ui_updater.TaskCanceled_Soil)
             task.taskError_Soil.connect(self.ui_updater.TaskError_Soil)
 
-            # Add the task to the task manager
-            QgsApplication.taskManager().addTask(task)
+            # Add task to the task manager
+            self.task_manager.addTask(task)
+            time.sleep(0.1)
+            # Check if the task manager is empty and add the task if it is not added previously
+            if self.task_manager.tasks() == 0:
+                self.task_manager.addTask(task)
+
+
             QgsMessageLog.logMessage("Soil task created.", "CzLandUseCN",
                                      level=Qgis.Info, notifyUser=False)
-
 
         except Exception as e:
             if self.reset_AreaFlag:  # If created polygon from extent, reset the AreaFlag
@@ -435,6 +434,15 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             self.ui_updater.ErrorMsg(f"Error occurred: {e}")
             self.ui_updater.TaskError_Soil()
             return None
+
+    def taskFinished_Intersection(self, layer):
+        """Handle task completion for Intersection layers."""
+        layer = layer[0]
+        self.mMapLayerComboBox_Int.setLayer(QgsProject.instance().addMapLayer(layer))
+        iface.messageBar().clearWidgets()
+        iface.messageBar().pushMessage("Success", "Task completed successfully", level=Qgis.Success, duration=5)
+
+
 
     def RunIntersection(self):
         """
@@ -469,14 +477,29 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
         # Start the Intersection Task
         self.runButton_Int.setEnabled(False)
+        self.ui_updater.LoadingMsg("Intersecting Layers, please wait...")
+
         try:
-            task = TASK_Intersection(Soil_layer, LandUse_layer,self.mMapLayerComboBox_Int, self.runButton_Int)
-            QgsApplication.taskManager().addTask(task)
-            QgsMessageLog.logMessage("Soil task created.", "CzLandUseCN",
-                                     level=Qgis.Info, notifyUser=False)
+            # Create a task to process the intersection of Soil and Land Use layers
+            task = TASK_Intersection(Soil_layer, LandUse_layer, self.mMapLayerComboBox_Int, self.runButton_Int)
+            task.taskFinished_Intersection.connect(self.taskFinished_Intersection)
+
+            # Add task to manager and retry if it fails
+            self.task_manager.addTask(task)
+            time.sleep(0.1)
+            if self.task_manager.tasks() == 0:
+                self.task_manager.addTask(task)
+
+
+
         except Exception as e:
-            QgsMessageLog.logMessage(f"Error in RunIntersection: {str(e)}", "CzLandUseCN", level=Qgis.Critical)
+            if self.reset_AreaFlag:  # If created polygon from extent, reset the AreaFlag
+                self.AreaFlag = False
             self.mMapLayerComboBox_Int.setEnabled(True)
+            iface.messageBar().clearWidgets()
+            self.ui_updater.ErrorMsg(f"Error occurred: {e}")
+            QgsMessageLog.logMessage(f"Error in RunIntersection: {str(e)}", "CzLandUseCN", level=Qgis.Critical)
+
 
 
 
