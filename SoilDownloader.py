@@ -2,16 +2,15 @@ import tempfile
 import zipfile
 from pathlib import Path
 import os
-
+import time
 
 from owslib.wps import WebProcessingService, monitorExecution
 
-from qgis.core import QgsRasterLayer, QgsVectorLayer, QgsField, QgsMessageLog, Qgis
+from qgis.core import QgsRasterLayer, QgsVectorLayer, QgsField, QgsMessageLog, Qgis, QgsProcessingFeedback
 from qgis.PyQt.QtCore import QVariant
-import processing
 
 from qgis.core import (
-    QgsRasterLayer, QgsVectorLayer, QgsField, QgsProject
+    QgsRasterLayer, QgsVectorLayer, QgsField, QgsProject,QgsProcessing, QgsProcessingException
 )
 
 from PyQt5.QtCore import QVariant, QMessageLogContext
@@ -24,8 +23,6 @@ import os
 def simple_clip(input_layer, clip_by_layer):
     """Clip a QgsVector layer by different QgsVector layer"""
     # Check if the input layer is valid
-    if not input_layer.isValid():
-        raise ValueError("Invalid input layer")
 
     # Check if the clip by layer is valid
     if not clip_by_layer.isValid():
@@ -36,41 +33,47 @@ def simple_clip(input_layer, clip_by_layer):
         'INPUT': input_layer,
         'OVERLAY': clip_by_layer,
         'OUTPUT': 'memory:'
-    })
+    })['OUTPUT']
 
     # Return the clipped layer
-    return result['OUTPUT']
+    return result
+
+
 
 def polygonize_raster(raster_layer: QgsRasterLayer) -> str:
-    """Convert a QgsRasterLayer into a QgsVectorLayer, separating different pixel values into polygons."""
+    """Convert a QgsRasterLayer into a temporary .gpkg file, separating different pixel values into polygons."""
 
-    # Ensure the raster layer is valid
     if not raster_layer.isValid():
         raise ValueError("Invalid raster layer")
 
-    # Get raster source path
-    raster_path = raster_layer.source()
+    try:
+        raster_path = raster_layer.source()
+        QgsMessageLog.logMessage(f"Raster source path: {raster_path}", "CzLandUseCN", level=Qgis.Info)
 
-    # Create an output memory layer
-    vector_layer = QgsVectorLayer("Polygon?crs=" + raster_layer.crs().authid(), "Polygonized", "memory")
-    vector_provider = vector_layer.dataProvider()
+        feedback = QgsProcessingFeedback()  # Add feedback for processing
+        temp_dir = tempfile.mkdtemp()
+        output_path = os.path.join(temp_dir, "polygonized.gpkg")
+        try:
+            result = processing.run("gdal:polygonize", {
+                'INPUT': raster_path,
+                'BAND': 1,
+                'FIELD': 'HSG',
+                'EIGHT_CONNECTEDNESS': False,
+                'OUTPUT': output_path
+            }, feedback=feedback)  # Include feedback in processing.run
 
-    # Add attribute field for raster values
-    vector_provider.addAttributes([QgsField("HSG", QVariant.Int)])
-    vector_layer.updateFields()
+        except QgsProcessingException as e:
+            QgsMessageLog.logMessage(f"Processing error: {str(e)}", "CzLandUseCN", level=Qgis.Critical)
+            raise ValueError("Failed to polygonize raster layer due to processing error")
 
-    # Run the polygonize process
-    temp_output = tempfile.NamedTemporaryFile(suffix=".gpkg").name
-    result = processing.run("gdal:polygonize", {
-        'INPUT': raster_path,
-        'BAND': 1,
-        'FIELD': 'HSG',
-        'EIGHT_CONNECTEDNESS': False,
-        'OUTPUT': temp_output
-    })
 
-    # Return path to temporary file
-    return temp_output
+    except Exception as e:
+        QgsMessageLog.logMessage(str(e), "CzLandUseCN", level=Qgis.Critical)
+        raise ValueError("Failed to polygonize raster layer")
+
+
+    return result['OUTPUT']
+
 
 def load_tiff_from_zip(path_to_zip):
     """Load the first TIFF from a ZIP file and return a QgsRasterLayer."""

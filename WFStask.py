@@ -41,6 +41,9 @@ class TASK_process_wfs_layer(QgsTask):
 
     def run(self):
         """Run the task to process WFS layers."""
+        QgsMessageLog.logMessage("WFS task started.", "CzLandUseCN",
+                                 level=Qgis.Info, notifyUser=False)
+
         wfs_downloader = WFSDownloader(os.path.join(os.path.dirname(__file__), 'config', 'layers_merging_order.csv'),
                                        self.AreaFlag, self.polygon, False)
 
@@ -75,13 +78,12 @@ class TASK_process_wfs_layer(QgsTask):
                     self.LandUseLayers.append(clippedLayer)
                 else:
                     self.LandUseLayers.append(wfsLayer)
-            self.finished(True)
             return True
         except Exception as e:
             QgsMessageLog.logMessage(f"Error occurred: {e}", "CzLandUseCN", level=Qgis.Warning,
                                      notifyUser=True)
             self.taskError.emit(str(e))
-            return None
+            return False
 
     def cancel(self):
         """Cancel the task."""

@@ -36,7 +36,9 @@ jobs:
         export QT_QPA_PLATFORM=offscreen
 
         echo "Running pytest with verbose output..."
-        pytest -s tests/test_WFSdownloader.py  
+        pytest -s tests/test_WFSdownloader.py
+        pytest -s tests/test_LayerEditor.py  
+        pytest -s tests/test_SoilDownloader.py        
 
     - name: Capture system logs on failure
       if: failure()

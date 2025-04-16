@@ -1,6 +1,6 @@
 import os
 import processing
-from typing import Optional, List
+from typing import Optional, List, Tuple
 import yaml
 
 from PyQt5.QtCore import QVariant
@@ -16,11 +16,41 @@ from qgis.core import (
     QgsGeometry,
 )
 
-# Based on the environment, import the WFSdownloader module
+# Based on the environment, import the WFSdownloader/SoilDownloader module
 try:
     from .WFSdownloader import WFSDownloader
 except ImportError:
     from WFSdownloader import WFSDownloader
+try:
+    from .SoilDownloader import simple_clip
+except ImportError:
+    from SoilDownloader import simple_clip
+
+def apply_simple_difference(layer1: QgsVectorLayer, layer2: QgsVectorLayer) -> QgsVectorLayer:
+    """Apply a simple difference operation to the input layers."""
+
+    diff = processing.run(
+        "native:difference",
+        {
+            'INPUT': layer1,
+            'OVERLAY': layer2,
+            'OUTPUT': 'memory:'
+        }
+    )['OUTPUT']
+
+    return diff
+
+
+def add_constant_atr(layer, atr_name, atr_value):
+    """Add a constant int attribute to the layer."""
+    layer.dataProvider().addAttributes([QgsField(atr_name, QVariant.Int)])
+    layer.updateFields()  # Update fields to reflect the changes
+    layer.startEditing()
+    for feature in layer.getFeatures():
+        feature.setAttribute(atr_name, atr_value)
+        layer.updateFeature(feature)
+    layer.commitChanges()
+    return layer
 
 
 def dissolve_polygon(layer: QgsVectorLayer) -> QgsVectorLayer:
@@ -56,6 +86,39 @@ def dissolve_polygon(layer: QgsVectorLayer) -> QgsVectorLayer:
     dissolved_layer.commitChanges()
 
     return dissolved_layer
+
+def clip_larger_layer_to_smaller(layer_one: QgsVectorLayer, layer_two: QgsVectorLayer) -> Optional[Tuple[QgsVectorLayer, QgsVectorLayer]]:
+    """" Determine which layer is larger and clip it to the extent of the smaller layer."""
+    dissolved_layer_one = dissolve_polygon(layer_one)
+    dissolved_layer_two = dissolve_polygon(layer_two) # Dissolve both layers
+
+    # Get the area of the dissolved layers
+    area_one = sum([feature.geometry().area() for feature in dissolved_layer_one.getFeatures()])
+    area_two = sum([feature.geometry().area() for feature in dissolved_layer_two.getFeatures()])
+
+    try:
+        if area_one > area_two:
+            clipped_layer_one = simple_clip(layer_one, dissolved_layer_two)
+            QgsMessageLog.logMessage("Larger layer was cliped by smaller one.", "CzLandUseCN",
+                                     level=Qgis.Info, notifyUser=False)
+            return clipped_layer_one, layer_two
+
+        elif area_two > area_one:
+            clipped_layer_two = simple_clip(layer_two, dissolved_layer_one)
+            QgsMessageLog.logMessage("Larger layer was cliped by smaller one.", "CzLandUseCN",
+                                     level=Qgis.Info, notifyUser=False)
+            return layer_one, clipped_layer_two
+
+        else:
+            QgsMessageLog.logMessage("Layers have the same area, no clipping needed.", "CzLandUseCN",
+                                     level=Qgis.Info, notifyUser=False)
+
+            return layer_one, layer_two
+
+    except Exception as e:
+        QgsMessageLog.logMessage(f"Failed to clip layers: {e} - They have to overlap each other!",
+                                 "CzLandUseCN", level=Qgis.Critical, notifyUser=True)
+        return None
 
 def get_polygon_from_extent(ymin: int, xmin: int, ymax: int, xmax: int) -> QgsVectorLayer:
     """Get a polygon from the extent."""
@@ -250,6 +313,20 @@ def apply_simple_buffer(layer: QgsVectorLayer, buffer_distance: float) -> QgsVec
                                  level=Qgis.Warning, notifyUser=True)
     else:
         return buffer_layer
+
+
+def merge_layers(level_layers: List[QgsVectorLayer], output_name: str) -> Optional[QgsVectorLayer]:
+    """ Merge the layers in the list and return the merged layer. """
+    if len(level_layers) > 0:
+        merged_layer = processing.run(
+            "native:mergevectorlayers",
+            {'LAYERS': level_layers, 'CRS': level_layers[0].crs(), 'OUTPUT': 'memory:'}
+        )['OUTPUT']
+        merged_layer.setName(output_name)
+
+        return merged_layer
+    return None
+
 
 class LayerEditor:
     """Class to edit layers based on the configuration files. Creates and modifies LandUse_code attribute. Layers are
@@ -465,16 +542,7 @@ class LayerEditor:
         """
 
         # Function to merge layers
-        def merge_layers(level_layers: List[QgsVectorLayer], output_name: str) -> Optional[QgsVectorLayer]:
-            if len(level_layers) > 0:
-                merged_layer = processing.run(
-                    "native:mergevectorlayers",
-                    {'LAYERS': level_layers, 'CRS': level_layers[0].crs(), 'OUTPUT': 'memory:'}
-                )['OUTPUT']
-                merged_layer.setName(output_name)
-                QgsProject.instance().addMapLayer(merged_layer)  # Add merged layer to the project
-                return merged_layer
-            return None
+
 
         with open(self.stacking_template_path, 'r') as STCfile:
             # Read lines in order and put them in a list
@@ -492,8 +560,8 @@ class LayerEditor:
                     if layer_name in STClist:
                         LayerOrderedList.append(layer)
                     else:
-                        QgsMessageLog.logMessage(f"Layer '{layer_name}' not found in the stacking list.", "CzLandUseCN",
-                                                 level=Qgis.Warning, notifyUser=True)
+                        QgsMessageLog.logMessage(f"Layer '{layer_name}' not found in the stacking list.",
+                                                 "CzLandUseCN", level=Qgis.Warning, notifyUser=True)
                         continue
 
             # Order layers by STClist, filtering only layers found in STClist
@@ -516,16 +584,12 @@ class LayerEditor:
 
             if final_merged_layer:
                 final_merged_layer.triggerRepaint()
-
+                QgsProject.instance().addMapLayer(final_merged_layer)
 
 
             else:
                 QgsMessageLog.logMessage("Failed to merge layers.", "CzLandUseCN", level=Qgis.Critical, notifyUser=True)
                 return None
-
-            # Remove partial Marged_Layer layers
-            for layer in priority_merged_layers:
-                QgsProject.instance().removeMapLayer(layer.id())
 
             QgsMessageLog.logMessage("Stacking layers completed.", "CzLandUseCN", level=Qgis.Info, notifyUser=False)
             if final_merged_layer:

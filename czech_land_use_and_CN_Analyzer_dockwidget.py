@@ -22,21 +22,26 @@
  ***************************************************************************/
 """
 import os
+import time
 import processing
 from PyQt5.QtWidgets import QButtonGroup
+from PyQt5.QtCore import QVariant, QCoreApplication
 
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal
-from qgis.core import Qgis, QgsMapLayerProxyModel, QgsProject, QgsApplication, QgsTask, QgsMessageLog, QgsVectorLayer
+from qgis.core import (Qgis, QgsMapLayerProxyModel, QgsProject, QgsApplication, QgsTask, QgsMessageLog,
+                       QgsVectorLayer, QgsField)
 from qgis.utils import iface
 
+from .IntersectionTask import TASK_Intersection
 from .SoilDownloader import simple_clip
 from .SoilTask import TASK_process_soil_layer
 from .UIupdater import UIUpdater
 from .WFSdownloader import WFSDownloader
-from .InputChecker import InputChecker
+from .InputChecker import InputChecker, overlap_check
 from .WFStask import TASK_process_wfs_layer
-from .LayerEditor import LayerEditor, buffer_QgsVectorLayer, get_polygon_from_extent, dissolve_polygon
+from .LayerEditor import (LayerEditor, buffer_QgsVectorLayer, get_polygon_from_extent, dissolve_polygon,
+                          clip_larger_layer_to_smaller, add_constant_atr, merge_layers, apply_simple_difference)
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'czech_land_use_and_CN_Analyzer_dockwidget_base.ui'))
@@ -86,6 +91,8 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         self.mMapLayerComboBox.setFilters(QgsMapLayerProxyModel.PolygonLayer)
         self.mMapLayerComboBox_LU.setFilters(QgsMapLayerProxyModel.PolygonLayer)
         self.mMapLayerComboBox_HSG.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+        self.mMapLayerComboBox_Int.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+        self.mMapLayerComboBox_CN.setFilters(QgsMapLayerProxyModel.PolygonLayer)
 
         # Create a button group for the download options
         self.downloadButtonGroup = QButtonGroup(self)
@@ -113,6 +120,9 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
         self.runButton.clicked.connect(self.Download)
         self.abortButton.clicked.connect(self.Abort)
+        self.runButton_Int.clicked.connect(self.RunIntersection)
+
+        self.task_manager = QgsApplication.taskManager()
 
     def Abort(self):
         """Abort the current task."""
@@ -215,9 +225,11 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             task.taskCanceled.connect(self.ui_updater.TaskCanceled)
             task.taskError.connect(self.ui_updater.TaskError)
 
-            # Add the task to the task manager
-            QgsApplication.taskManager().addTask(task)
-            QgsMessageLog.logMessage("Land Use task created.","CzLandUseCN",
+            self.task_manager.addTask(task)
+            # time.sleep(0.1)
+            # if self.task_manager.tasks() == 0:
+            #     self.task_manager.addTask(task)
+            QgsMessageLog.logMessage("Land Use (WFS) task created.", "CzLandUseCN",
                                      level=Qgis.Info, notifyUser=False)
 
         except Exception as e:
@@ -288,29 +300,26 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             self.ui_updater.PluginSuccess()
 
 
-    def TaskFinished_Soil(self, temporaryGPKGPath):
+    def TaskFinished_Soil(self, SoilLayer_Path):
         """Handle task completion for Soil layers."""
-        self.SoilLayer = QgsVectorLayer(temporaryGPKGPath, "Soil", "ogr")
-        # Clip the layer by polygon
+        SoilLayer = QgsVectorLayer(SoilLayer_Path, "Soil Layer", "ogr")
 
         # Clip the layer by polygon that is not buffered
-        clipped_soil_layer = simple_clip(self.SoilLayer,self.not_buffered_plg)
+        clipped_soil_layer = simple_clip(SoilLayer,self.not_buffered_plg)
 
+        # Add HSG attribute to the area defining polygon and use it as underline layer for water bodies
+        self.not_buffered_plg = add_constant_atr(self.not_buffered_plg, "HSG", 0)
 
-        clipped_soil_layer.setName("Soil Layer HSG")
+        # Clip the water bodies layer to the polygon by the soil layer
+        self.not_buffered_plg = apply_simple_difference(self.not_buffered_plg, clipped_soil_layer)
+
+        # Merge the clipped soil layer with the polygon that is not buffered
+        clipped_soil_layer = merge_layers([self.not_buffered_plg,clipped_soil_layer],"Soil Layer HSG")
         style_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "colortables", "soil.sld")
         clipped_soil_layer.loadSldStyle(style_path)
 
-        # add final layer to Qgis project and MapComboBox in Intersection panel
+
         self.mMapLayerComboBox_HSG.setLayer(QgsProject.instance().addMapLayer(clipped_soil_layer))
-
-
-        # Try deleting the temporary file
-        try:
-            os.remove(temporaryGPKGPath)
-        except Exception as e:
-            QgsMessageLog.logMessage(f"Failed to delete temporary file: {e}", "CzLandUseCN",
-                                     level=Qgis.Info, notifyUser=False)
 
         if self.reset_AreaFlag: # If created polygon from extent, reset the AreaFlag
             self.AreaFlag = False
@@ -403,13 +412,21 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             task.taskCanceled_Soil.connect(self.ui_updater.TaskCanceled_Soil)
             task.taskError_Soil.connect(self.ui_updater.TaskError_Soil)
 
-            # Add the task to the task manager
-            QgsApplication.taskManager().addTask(task)
+            # Add task to the task manager
+            self.task_manager.addTask(task)
+            #time.sleep(0.1)
+            # Check if the task manager is empty and add the task if it is not added previously
+            #if self.task_manager.tasks() == 0:
+                #self.task_manager.addTask(task)
+
+
             QgsMessageLog.logMessage("Soil task created.", "CzLandUseCN",
                                      level=Qgis.Info, notifyUser=False)
 
-
         except Exception as e:
+            if self.reset_AreaFlag:  # If created polygon from extent, reset the AreaFlag
+                self.AreaFlag = False
+
             if (len(str(e))) == 0:
                 e = "Extent is out of Czech Republic boundaries"
             QgsMessageLog.logMessage(e, "CzLandUseCN",
@@ -417,4 +434,74 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             self.ui_updater.ErrorMsg(f"Error occurred: {e}")
             self.ui_updater.TaskError_Soil()
             return None
+
+    def taskFinished_Intersection(self, layer):
+        """Handle task completion for Intersection layers."""
+        layer = layer[0]
+        self.mMapLayerComboBox_Int.setLayer(QgsProject.instance().addMapLayer(layer))
+        iface.messageBar().clearWidgets()
+        iface.messageBar().pushMessage("Success", "Task completed successfully", level=Qgis.Success, duration=5)
+
+
+
+    def RunIntersection(self):
+        """
+        Run the processing of acquiring the Intersection Layer .
+        Starts upon clicking the Run button in UI.
+        """
+
+        QgsMessageLog.logMessage("Getting Intersection layer.", "CzLandUseCN",
+                                 level=Qgis.Info, notifyUser=False)
+
+        # Get the Soil and Land Use layers from the ComboBoxes
+        Soil_layer = self.mMapLayerComboBox_HSG.currentLayer()
+        LandUse_layer = self.mMapLayerComboBox_LU.currentLayer()
+
+        # Check if the layers are valid and contain the required attributes
+        if Soil_layer is None or LandUse_layer is None or not  Soil_layer.isValid() or not LandUse_layer.isValid():
+            self.ui_updater.ErrorMsg("Please select both valid Soil and Land Use layers.")
+            return None
+
+        if  Soil_layer.fields().indexFromName("HSG") == -1 :
+            self.ui_updater.ErrorMsg("HSG layer does not contain HSG attribute.")
+            return None
+
+        if LandUse_layer.fields().indexFromName("LandUse_code") == -1 :
+            self.ui_updater.ErrorMsg("LandUse layer does not contain LandUse_code attribute.")
+            return None
+
+        # Check if the layers overlap
+        if overlap_check(Soil_layer, LandUse_layer) is False:
+            self.ui_updater.ErrorMsg("Soil and Land Use layers do not overlap.")
+            return None
+
+        # Start the Intersection Task
+        self.runButton_Int.setEnabled(False)
+        self.ui_updater.LoadingMsg("Intersecting Layers, please wait...")
+
+        try:
+            # Create a task to process the intersection of Soil and Land Use layers
+            task = TASK_Intersection(Soil_layer, LandUse_layer, self.mMapLayerComboBox_Int, self.runButton_Int)
+            task.taskFinished_Intersection.connect(self.taskFinished_Intersection)
+
+            # Add task to manager and retry if it fails
+            self.task_manager.addTask(task)
+            #time.sleep(0.1)
+            #if self.task_manager.tasks() == 0:
+                #self.task_manager.addTask(task)
+
+
+
+        except Exception as e:
+            if self.reset_AreaFlag:  # If created polygon from extent, reset the AreaFlag
+                self.AreaFlag = False
+            self.mMapLayerComboBox_Int.setEnabled(True)
+            iface.messageBar().clearWidgets()
+            self.ui_updater.ErrorMsg(f"Error occurred: {e}")
+            QgsMessageLog.logMessage(f"Error in RunIntersection: {str(e)}", "CzLandUseCN", level=Qgis.Critical)
+
+
+
+
+
 

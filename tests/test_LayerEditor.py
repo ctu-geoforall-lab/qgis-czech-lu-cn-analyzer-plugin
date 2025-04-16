@@ -139,11 +139,11 @@ class TestLayerEditor:
             print(f"[OK] Loaded config file: {conf_path}")
 
         # Initialize LayerEditor
-        wfs_downloader = WFSDownloader(merging_conf, True, LOW_layer)
+        wfs_downloader = WFSDownloader(merging_conf, True, LOW_layer, False)
         ymin, xmin, ymax, xmax, ext = wfs_downloader.get_wfs_info(LOW_layer)
 
         layer_editor = LayerEditor(LU_atr_conf, None, test_data_conf, merging_conf, None, True,
-                                   LOW_layer, ymin, xmin, ymax, xmax)
+                                   LOW_layer, ymin, xmin, ymax, xmax, None)
 
         # Edit the layers
         layer_list = [LOW_layer, MID_layer, TOP_layer]

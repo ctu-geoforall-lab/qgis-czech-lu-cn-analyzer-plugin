@@ -30,7 +30,7 @@ class TASK_process_soil_layer(QgsTask):
         self.label_Soil, self.progressBar_Soil = label_Soil, progressBar_Soil
         self.runButton_Soil, self.abortButton_Soil = runButton_Soil, abortButton_Soil
         self.SoilLayer = None
-        self.SoilGPKGPath = None
+        self.polygoniziedLayer_Path = None
         self._is_canceled = False
 
         self.abortButton_Soil.clicked.connect(self.cancel)
@@ -42,13 +42,15 @@ class TASK_process_soil_layer(QgsTask):
     def finished(self, result):
         """Handle the completion of the task."""
         QgsMessageLog.logMessage("Task of processing soil layers completed.", "CzLandUseCN", level=Qgis.Info, notifyUser=False)
-        self.taskFinished_Soil.emit(self.SoilGPKGPath)
+
+        self.taskFinished_Soil.emit(self.polygoniziedLayer_Path )
 
 
 
     def run(self):
         """Run the task to process Soil layers."""
-
+        QgsMessageLog.logMessage("Soil task started.", "CzLandUseCN",
+                                 level=Qgis.Info, notifyUser=False)
         self._update_progress_bar(10)
         try:
             URL = get_string_from_yaml(os.path.join(os.path.dirname(__file__), 'config', 'Soil.yaml'), "URL")
@@ -76,15 +78,17 @@ class TASK_process_soil_layer(QgsTask):
 
             self._update_progress_bar(70)
             # Polygonize the raster
-            self.SoilGPKGPath = polygonize_raster(soil_raster)
-            self.finished(True)
+            self.polygoniziedLayer_Path  = polygonize_raster(soil_raster)
+
+            if self._is_canceled:
+                return False
 
             return True
 
         except Exception as e:
             QgsMessageLog.logMessage(f"Error in Soil Task: {str(e)}", "CzLandUseCN", level=Qgis.Warning, notifyUser=True)
             self.taskError_Soil.emit(str(e))
-            self.cancel(True)
+            self.cancel()
             return False
 
     def cancel(self):
