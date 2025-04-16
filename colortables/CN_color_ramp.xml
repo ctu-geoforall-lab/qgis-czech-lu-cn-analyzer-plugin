@@ -1,0 +1,21 @@
+<!DOCTYPE qgis_style>
+<qgis_style version="2">
+  <symbols/>
+  <colorramps>
+    <colorramp type="gradient" tags="Colorful" name="CN">
+      <Option type="Map">
+        <Option type="QString" value="127,221,255,255" name="color1"/>
+        <Option type="QString" value="37,52,148,255" name="color2"/>
+        <Option type="QString" value="ccw" name="direction"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+        <Option type="QString" value="rgb" name="spec"/>
+        <Option type="QString" value="0.5;65,182,196,255;rgb;ccw:0.75;44,127,184,255;rgb;ccw" name="stops"/>
+      </Option>
+    </colorramp>
+  </colorramps>
+  <textformats/>
+  <labelsettings/>
+  <legendpatchshapes/>
+  <symbols3d/>
+</qgis_style>
