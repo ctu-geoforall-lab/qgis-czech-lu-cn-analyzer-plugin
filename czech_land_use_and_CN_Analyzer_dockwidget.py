@@ -226,11 +226,11 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             task.taskError.connect(self.ui_updater.TaskError)
 
             self.task_manager.addTask(task)
-            time.sleep(0.1)
-            if self.task_manager.tasks() == 0:
-                self.task_manager.addTask(task)
-                QgsMessageLog.logMessage("Land Use (WFS) task created.", "CzLandUseCN",
-                                         level=Qgis.Info, notifyUser=False)
+            # time.sleep(0.1)
+            # if self.task_manager.tasks() == 0:
+            #     self.task_manager.addTask(task)
+            QgsMessageLog.logMessage("Land Use (WFS) task created.", "CzLandUseCN",
+                                     level=Qgis.Info, notifyUser=False)
 
         except Exception as e:
             if (len(str(e))) == 0:
