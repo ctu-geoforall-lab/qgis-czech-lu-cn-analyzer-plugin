@@ -414,10 +414,10 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
             # Add task to the task manager
             self.task_manager.addTask(task)
-            time.sleep(0.1)
+            #time.sleep(0.1)
             # Check if the task manager is empty and add the task if it is not added previously
-            if self.task_manager.tasks() == 0:
-                self.task_manager.addTask(task)
+            #if self.task_manager.tasks() == 0:
+                #self.task_manager.addTask(task)
 
 
             QgsMessageLog.logMessage("Soil task created.", "CzLandUseCN",
@@ -486,9 +486,9 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
             # Add task to manager and retry if it fails
             self.task_manager.addTask(task)
-            time.sleep(0.1)
-            if self.task_manager.tasks() == 0:
-                self.task_manager.addTask(task)
+            #time.sleep(0.1)
+            #if self.task_manager.tasks() == 0:
+                #self.task_manager.addTask(task)
 
 
 

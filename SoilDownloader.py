@@ -51,16 +51,17 @@ def polygonize_raster(raster_layer: QgsRasterLayer) -> str:
         QgsMessageLog.logMessage(f"Raster source path: {raster_path}", "CzLandUseCN", level=Qgis.Info)
 
         feedback = QgsProcessingFeedback()  # Add feedback for processing
-
+        temp_dir = tempfile.mkdtemp()
+        output_path = os.path.join(temp_dir, "polygonized.gpkg")
         try:
             result = processing.run("gdal:polygonize", {
                 'INPUT': raster_path,
                 'BAND': 1,
                 'FIELD': 'HSG',
                 'EIGHT_CONNECTEDNESS': False,
-                'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT # Using this instead of memory: seems to be more stable
-                                                         # Loading layer to QgsVectorLayer, should happen in main thread
+                'OUTPUT': output_path
             }, feedback=feedback)  # Include feedback in processing.run
+
         except QgsProcessingException as e:
             QgsMessageLog.logMessage(f"Processing error: {str(e)}", "CzLandUseCN", level=Qgis.Critical)
             raise ValueError("Failed to polygonize raster layer due to processing error")
