@@ -33,12 +33,14 @@ from qgis.core import (Qgis, QgsMapLayerProxyModel, QgsProject, QgsApplication, 
                        QgsVectorLayer, QgsField)
 from qgis.utils import iface
 
+from .CNCreator import add_cn_symbology
+from .CNtask import TASK_CN
 from .IntersectionTask import TASK_Intersection
 from .SoilDownloader import simple_clip
 from .SoilTask import TASK_process_soil_layer
 from .UIupdater import UIUpdater
 from .WFSdownloader import WFSDownloader
-from .InputChecker import InputChecker, overlap_check
+from .InputChecker import InputChecker, overlap_check, is_valid_cn_csv
 from .WFStask import TASK_process_wfs_layer
 from .LayerEditor import (LayerEditor, buffer_QgsVectorLayer, get_polygon_from_extent, dissolve_polygon,
                           clip_larger_layer_to_smaller, add_constant_atr, merge_layers, apply_simple_difference)
@@ -121,6 +123,9 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         self.runButton.clicked.connect(self.Download)
         self.abortButton.clicked.connect(self.Abort)
         self.runButton_Int.clicked.connect(self.RunIntersection)
+
+        self.CNButton.clicked.connect(self.RunCN)
+        self.CNFileSelect.setFilePath(os.path.join(os.path.dirname(__file__), 'config', 'CN_table.csv'))
 
         self.task_manager = QgsApplication.taskManager()
 
@@ -226,9 +231,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             task.taskError.connect(self.ui_updater.TaskError)
 
             self.task_manager.addTask(task)
-            # time.sleep(0.1)
-            # if self.task_manager.tasks() == 0:
-            #     self.task_manager.addTask(task)
+
             QgsMessageLog.logMessage("Land Use (WFS) task created.", "CzLandUseCN",
                                      level=Qgis.Info, notifyUser=False)
 
@@ -302,6 +305,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
     def TaskFinished_Soil(self, SoilLayer_Path):
         """Handle task completion for Soil layers."""
+
         SoilLayer = QgsVectorLayer(SoilLayer_Path, "Soil Layer", "ogr")
 
         # Clip the layer by polygon that is not buffered
@@ -414,11 +418,6 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
             # Add task to the task manager
             self.task_manager.addTask(task)
-            #time.sleep(0.1)
-            # Check if the task manager is empty and add the task if it is not added previously
-            #if self.task_manager.tasks() == 0:
-                #self.task_manager.addTask(task)
-
 
             QgsMessageLog.logMessage("Soil task created.", "CzLandUseCN",
                                      level=Qgis.Info, notifyUser=False)
@@ -486,11 +485,6 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
             # Add task to manager and retry if it fails
             self.task_manager.addTask(task)
-            #time.sleep(0.1)
-            #if self.task_manager.tasks() == 0:
-                #self.task_manager.addTask(task)
-
-
 
         except Exception as e:
             if self.reset_AreaFlag:  # If created polygon from extent, reset the AreaFlag
@@ -500,6 +494,68 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             self.ui_updater.ErrorMsg(f"Error occurred: {e}")
             QgsMessageLog.logMessage(f"Error in RunIntersection: {str(e)}", "CzLandUseCN", level=Qgis.Critical)
 
+    def taskFinished_CN(self, layerlist):
+        """Handle task completion for CN layer."""
+        layer = layerlist[0]
+
+        self.CNButton.setEnabled(True)
+        iface.messageBar().clearWidgets()
+
+        layer.setName("CN Layer")
+        # Apply the symbology to the CN layer
+
+
+        self.mMapLayerComboBox_CN.setLayer(QgsProject.instance().addMapLayer(layer))
+        iface.messageBar().pushMessage("Success", "Task completed successfully", level=Qgis.Success, duration=5)
+
+
+
+
+    def RunCN(self):
+        """
+        Run the processing of acquiring the CN Layer .
+        Starts upon clicking the Run button in UI.
+        """
+
+        QgsMessageLog.logMessage("Getting CN layer.", "CzLandUseCN",
+                                 level=Qgis.Info, notifyUser=False)
+
+        IntLayer = self.mMapLayerComboBox_Int.currentLayer()
+
+        if IntLayer.fields().indexFromName("HSG") == -1 or IntLayer.fields().indexFromName("LandUse_code") == -1:
+            self.ui_updater.ErrorMsg("Intersection layer does not contain HSG or LandUse_code attribute.")
+            QgsMessageLog.logMessage("Intersection layer does not contain HSG or LandUse_code attribute.",
+                                     "CzLandUseCN", level=Qgis.Critical)
+            return None
+
+        CN_table_path = self.CNFileSelect.filePath()
+
+        if not os.path.exists(CN_table_path):
+            self.ui_updater.ErrorMsg("CN table file does not exist.")
+            QgsMessageLog.logMessage("CN table file does not exist.", "CzLandUseCN", level=Qgis.Critical)
+            return None
+
+        # Check if the CN table file is valid
+        if not is_valid_cn_csv(CN_table_path):
+            self.ui_updater.ErrorMsg("CN table file is not valid.")
+            QgsMessageLog.logMessage("CN table file is not valid.", "CzLandUseCN", level=Qgis.Critical)
+            return None
+
+        self.CNButton.setEnabled(False)
+        self.ui_updater.LoadingMsg("Creating CN Layer, please wait...")
+
+        try:
+            # Create a task to process the intersection of Soil and Land Use layers
+            task = TASK_CN(IntLayer, CN_table_path)
+            task.taskFinished_CN.connect(self.taskFinished_CN)
+
+            # Add task to manager and retry if it fails
+            self.task_manager.addTask(task)
+
+        except Exception as e:
+            self.CNButton.setEnabled(True)
+            iface.messageBar().clearWidgets()
+            self.ui_updater.ErrorMsg(f"Error occurred: {e}")
 
 
 

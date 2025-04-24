@@ -1,5 +1,36 @@
 
 from qgis.core import QgsMessageLog, Qgis
+import csv
+
+def is_valid_cn_csv(filepath):
+    """Check if the CSV file is valid for CN calculation."""
+    import csv
+
+    with open(filepath, 'r', encoding='utf-8') as f:
+        reader = csv.reader(f)
+        next(reader) # Skip header
+
+        for row in reader:  # Skip header
+            # Skip empty lines
+            if not row or all(cell.strip() == "" for cell in row):
+                continue
+
+            # Check row has exactly 5 values
+            if len(row) != 5:
+                return False
+
+            try:
+                # First value should be an integer code
+                int(row[0].strip())
+
+                # Next 4 values should be numeric (int or float)
+                for val in row[1:]:
+                    float(val.strip())
+
+            except ValueError:
+                return False
+
+    return True
 
 def overlap_check(layer1, layer2):
     """Check if two layers have overlapping features."""

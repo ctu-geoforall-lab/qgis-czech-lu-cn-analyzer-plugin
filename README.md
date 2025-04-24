@@ -20,7 +20,8 @@ Testováno na MS Windows a Linux(Ubuntu). <br> <br>
 - Dočasné vrstvy nejsou přidávány do projektu.
 - Na výlsednou vrstvu LandUse je aplikován styl.
 - Je umožněno stáhnout a polygonizovat HSG vrstvu.
-- **nově: Vrsvty LandUse a HSG je monžné propojit do jedné.** 
+- Vrsvty LandUse a HSG je monžné propojit do jedné.
+- **nově: Spojené vrstvy je možné propojit s tabulkou CN hodnot a získat CN vrstvu.**
 
 ## Popis konfiguračních souborů
 Tyto soubory se nachází ve složce *config* <br>

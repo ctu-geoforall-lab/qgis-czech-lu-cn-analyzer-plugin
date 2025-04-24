@@ -39,7 +39,8 @@ jobs:
         pytest -s tests/test_WFSdownloader.py
         pytest -s tests/test_LayerEditor.py  
         pytest -s tests/test_SoilDownloader.py        
-
+        pytest -s tests/test_CNCreator.py
+        
     - name: Capture system logs on failure
       if: failure()
       run: |
