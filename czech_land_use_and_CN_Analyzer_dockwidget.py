@@ -231,9 +231,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             task.taskError.connect(self.ui_updater.TaskError)
 
             self.task_manager.addTask(task)
-            # time.sleep(0.1)
-            # if self.task_manager.tasks() == 0:
-            #     self.task_manager.addTask(task)
+
             QgsMessageLog.logMessage("Land Use (WFS) task created.", "CzLandUseCN",
                                      level=Qgis.Info, notifyUser=False)
 
@@ -307,7 +305,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
     def TaskFinished_Soil(self, SoilLayer_Path):
         """Handle task completion for Soil layers."""
-        print(SoilLayer_Path)
+
         SoilLayer = QgsVectorLayer(SoilLayer_Path, "Soil Layer", "ogr")
 
         # Clip the layer by polygon that is not buffered
@@ -420,10 +418,6 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
             # Add task to the task manager
             self.task_manager.addTask(task)
-            # time.sleep(0.1)
-            # if self.task_manager.tasks() == 0:
-            #     self.task_manager.addTask(task)
-
 
             QgsMessageLog.logMessage("Soil task created.", "CzLandUseCN",
                                      level=Qgis.Info, notifyUser=False)
@@ -491,11 +485,6 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
             # Add task to manager and retry if it fails
             self.task_manager.addTask(task)
-            # time.sleep(0.1)
-            # if self.task_manager.tasks() == 0:
-            #     self.task_manager.addTask(task)
-
-
 
         except Exception as e:
             if self.reset_AreaFlag:  # If created polygon from extent, reset the AreaFlag
@@ -562,9 +551,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
             # Add task to manager and retry if it fails
             self.task_manager.addTask(task)
-            # time.sleep(0.1)
-            # if self.task_manager.tasks() == 0:
-            #     self.task_manager.addTask(task)
+
         except Exception as e:
             self.CNButton.setEnabled(True)
             iface.messageBar().clearWidgets()
