@@ -33,17 +33,19 @@ from qgis.core import (Qgis, QgsMapLayerProxyModel, QgsProject, QgsApplication, 
                        QgsVectorLayer, QgsField)
 from qgis.utils import iface
 
-from .CNCreator import add_cn_symbology
+from .RunOffTask import TASK_RunOff
 from .CNtask import TASK_CN
 from .IntersectionTask import TASK_Intersection
 from .SoilDownloader import simple_clip
 from .SoilTask import TASK_process_soil_layer
-from .UIupdater import UIUpdater
+from .UIupdater import UIUpdater, get_checked_return_periods
 from .WFSdownloader import WFSDownloader
 from .InputChecker import InputChecker, overlap_check, is_valid_cn_csv
 from .WFStask import TASK_process_wfs_layer
 from .LayerEditor import (LayerEditor, buffer_QgsVectorLayer, get_polygon_from_extent, dissolve_polygon,
-                          clip_larger_layer_to_smaller, add_constant_atr, merge_layers, apply_simple_difference)
+                          clip_larger_layer_to_smaller, add_constant_atr, merge_layers, apply_simple_difference,
+                          resolve_overlaping_buffers)
+from .LayerEditorTask import TASK_edit_layers
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'czech_land_use_and_CN_Analyzer_dockwidget_base.ui'))
@@ -63,9 +65,10 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         self.setupUi(self)
 
         self.ui_updater = UIUpdater(self.runButton, self.progressBar, self.abortButton, self.label, self.polygonButton,
-                                    self.extentButton, self.polygonLabel, self.mMapLayerComboBox, self.LUandSoilSelectButton,
-                                    self.SoilSelectButton, self.LUSelectButton,  self.mMapLayerComboBox_LU,
-                                    self.mMapLayerComboBox_HSG)
+                                    self.extentButton, self.polygonLabel, self.mMapLayerComboBox,
+                                    self.LUandSoilSelectButton,
+                                    self.SoilSelectButton, self.LUSelectButton, self.mMapLayerComboBox_LU,
+                                    self.mMapLayerComboBox_HSG, self.groupBox, self.OwnRainInput)
 
         # Initialize attributes from arguments
         self.polygon = polygon
@@ -82,6 +85,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         self.AreaFlag = AreaFlag # Set AreaFlag to True > processing inside polygon
         self.SoilFlag = SoilFlag # Set SoilFlag to True > Soil type processing
         self.reset_AreaFlag = False # If creating polygon from window extent to reset the AreaFlag in end of Soil Task
+        self.RunOffFlag = False  # True if User defined rainfall depth
         self.DownloadFlag = 0 # 0 == LandUse and Soil, 1 == only LandUse, 2 == only Soil
 
         self.LandUseLayers = LandUseLayers# List of LandUse layers for merge in the end
@@ -125,7 +129,12 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         self.runButton_Int.clicked.connect(self.RunIntersection)
 
         self.CNButton.clicked.connect(self.RunCN)
-        self.CNFileSelect.setFilePath(os.path.join(os.path.dirname(__file__), 'config', 'CN_table.csv'))
+        self.CNFileSelect.setFilePath(os.path.normpath(os.path.join(os.path.dirname(__file__), 'config', 'CN_table.csv')))
+
+        self.radioButtonRainRainfall.toggled.connect(self.toggle_to_wps_runoff)
+        self.radioButtonUserRainfall.toggled.connect(self.toggle_to_user_runoff)
+
+        self.pushButton_runoff.clicked.connect(self.RunRunOff)
 
         self.task_manager = QgsApplication.taskManager()
 
@@ -150,6 +159,14 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
     def toggle_to_polygon(self):
         self.AreaFlag = True
         self.ui_updater.ToggleChangeToPolygon()
+
+    def toggle_to_user_runoff(self):
+        self.RunOffFlag = True
+        self.ui_updater.ToggleChangeToUserRunoff()
+
+    def toggle_to_wps_runoff(self):
+        self.RunOffFlag = False
+        self.ui_updater.ToggleChangeToWPSRunoff()
 
     def closeEvent(self, event):
         """Emit the closingPlugin signal when the dock widget is closed."""
@@ -179,13 +196,27 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         self.LandUseLayers = [] # List of LandUse layers for merge in the end
 
         try:
-            self.polygon = self.mMapLayerComboBox.currentLayer()
-            try:
-                self.polygon = dissolve_polygon(self.polygon)
-            except Exception as e:
-                QgsMessageLog.logMessage(f"Failed to dissolve polygon: {e}", "CzLandUseCN",
-                                         level=Qgis.Info, notifyUser=False)
+            # Load the polygon layer from the map layer combo box
+            if self.AreaFlag: # If AreaFlag is set, get the polygon from the current layer
+                self.polygon = self.mMapLayerComboBox.currentLayer()
 
+                if self.polygon is None or not self.polygon.isValid():
+                    self.ui_updater.ErrorMsg("Missing or Invalid polygon layer.")
+                    self.ui_updater.setButtonstoDefault()
+                    QgsMessageLog.logMessage("Missing or Invalid polygon layer.", "CzLandUseCN",
+                                             level=Qgis.Critical, notifyUser=False)
+                    return None
+
+                try:
+                    # disslove the polygon layer for faster processing
+                    self.polygon = dissolve_polygon(self.polygon)
+
+                except Exception as e:
+                    self.ui_updater.ErrorMsg("Polygon error - check logs")
+                    self.ui_updater.setButtonstoDefault()
+                    QgsMessageLog.logMessage("Polygon error: " + str(e), "CzLandUseCN",
+                                             level=Qgis.Critical, notifyUser=False)
+                    return None
 
             self.ui_updater.LoadingMsg("Loading data, please wait...")
             # Freeze the UI elements during processing
@@ -234,6 +265,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
             QgsMessageLog.logMessage("Land Use (WFS) task created.", "CzLandUseCN",
                                      level=Qgis.Info, notifyUser=False)
+            return None
 
         except Exception as e:
             if (len(str(e))) == 0:
@@ -244,6 +276,27 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             self.ui_updater.setButtonstoDefault()
             return None
 
+    def TaskFinished_edit(self, layer):
+        """Handle task completion for editing layers."""
+        self.merged_layer = layer[0]
+        # Add the layer to the QGIS project
+        QgsProject.instance().addMapLayer(self.merged_layer)
+
+        # Set the filter to only show polygon layers (also reloads the layers from project)
+        self.mMapLayerComboBox_LU.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+
+        # Ensure the combo box updates and selects the new layer
+        if self.merged_layer and self.merged_layer.id():
+            self.mMapLayerComboBox_LU.setLayer(self.merged_layer)
+        else:
+            QgsMessageLog.logMessage("Failed to add merged layer to ComboBox", "CzLandUseCN", level=Qgis.Warning)
+
+        if self.DownloadFlag == 0:
+            # Download Soil layer if both LandUse and Soil are selected
+            self.RunSoil()
+        else:
+            # Show success in the UI elements after completion if only LandUse is selected
+            self.ui_updater.PluginSuccess()
 
     def TaskFinished(self, layers):
         """Handle task completion(WFStask) and update LandUseLayers."""
@@ -263,44 +316,26 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         # Get a symbology (.sld) path for the final stacked layer
         symbology_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "colortables", "landuse.sld")
 
-        layer_editor = LayerEditor(attribute_template_path,LPIS_config_path,ZABAGED_config_path, stacking_template_path,
-                                   symbology_path, self.AreaFlag, self.polygon, self.ymin, self.xmin, self.ymax,
-                                   self.xmax, self.mMapLayerComboBox_LU)
+        # Create a task to process Soil layers
+        task = TASK_edit_layers(attribute_template_path, LPIS_config_path, ZABAGED_config_path, stacking_template_path,
+                 symbology_path, self.AreaFlag, self.polygon, self.ymin, self.xmin, self.ymax, self.xmax,
+                                self.progressBar, self.abortButton, self.LandUseLayers)
 
-        # Add LandUse attribute to all layers in list
-        self.LandUseLayers = layer_editor.add_landuse_attribute(self.LandUseLayers)
+        # Connect signals from Task to update the progress bar and handle task completion
+        task.progressChanged_edit.connect(self.ui_updater.updateProgressBar)
+        task.taskFinished_edit.connect(self.TaskFinished_edit)
+        task.taskCanceled_edit.connect(self.ui_updater.TaskCanceled)
+        task.taskError_edit.connect(self.ui_updater.TaskError)
 
-        # Add buffer line features to all layers in list
-        self.LandUseLayers = layer_editor.buffer_layers(self.LandUseLayers)
+        # Add task to the task manager
+        self.task_manager.addTask(task)
 
-        # Update LandUse code based on its attributes
-        self.LandUseLayers = layer_editor.edit_landuse_code(self.LandUseLayers)
-
-        # Clip all layer to the polygon or extent by AreaFlag (Used as clip after buffering)
-        self.LandUseLayers = layer_editor.clip_layers_after_edits(self.LandUseLayers)
-
-        # Store the merged layer as an instance attribute to keep it in scope
-        self.merged_layer = layer_editor.stack_layers(self.LandUseLayers)
-
-        # Add the layer to the QGIS project
-        QgsProject.instance().addMapLayer(self.merged_layer)
-
-        # Set the filter to only show polygon layers (also reloads the layers from project)
-        self.mMapLayerComboBox_LU.setFilters(QgsMapLayerProxyModel.PolygonLayer)
-
-        # Ensure the combo box updates and selects the new layer
-        if self.merged_layer and self.merged_layer.id():
-            self.mMapLayerComboBox_LU.setLayer(self.merged_layer)
-        else:
-            QgsMessageLog.logMessage("Failed to add merged layer to ComboBox", "CzLandUseCN", level=Qgis.Warning)
+        QgsMessageLog.logMessage("Layer editing task created.", "CzLandUseCN",
+                                 level=Qgis.Info, notifyUser=False)
+        return None
 
 
-        if self.DownloadFlag == 0:
-            # Download Soil layer if both LandUse and Soil are selected
-            self.RunSoil()
-        else:
-            # Show success in the UI elements after completion if only LandUse is selected
-            self.ui_updater.PluginSuccess()
+
 
 
     def TaskFinished_Soil(self, SoilLayer_Path):
@@ -421,6 +456,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
             QgsMessageLog.logMessage("Soil task created.", "CzLandUseCN",
                                      level=Qgis.Info, notifyUser=False)
+            return None
 
         except Exception as e:
             if self.reset_AreaFlag:  # If created polygon from extent, reset the AreaFlag
@@ -557,7 +593,90 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             iface.messageBar().clearWidgets()
             self.ui_updater.ErrorMsg(f"Error occurred: {e}")
 
+    def taskFinished_RunOff(self, RunOffLayer):
+        """Handle task completion for RunOff layer."""
+        iface.messageBar().clearWidgets()
+        QgsMessageLog.logMessage("RunOff layer created.", "CzLandUseCN", level=Qgis.Info, notifyUser=False)
+
+        # Add the RunOff layer to the QGIS project
+        RunOffLayer = RunOffLayer[0]
+        RunOffLayer.setName("RunOff Layer")
+        QgsProject.instance().addMapLayer(RunOffLayer)
+        self.pushButton_runoff.setEnabled(True)
+        self.runoffLabel.setText("Success!")
+
+    def taskError_RunOff(self):
+        iface.messageBar().clearWidgets()
+        self.pushButton_runoff.setEnabled(True)
+        self.runoffLabel.setText("ERROR - check the message log.")
+        self.ui_updater.ErrorMsg("Error occurred during RunOff task.")
+
+    def RunRunOff(self):
+
+        self.runoffLabel.setText("Computing RunOff ...")
+
+        CN_layer = self.mMapLayerComboBox_CN.currentLayer()
 
 
+
+        # Check if the CN layer is valid and contains the required attributes
+        if CN_layer.isValid() is False or CN_layer.fields().indexFromName("CN2") == -1:
+            self.ui_updater.ErrorMsg("CN layer is not valid.")
+            QgsMessageLog.logMessage("CN layer is not valid.", "CzLandUseCN", level=Qgis.Critical)
+            return None
+
+        reoccurence_intervals = get_checked_return_periods(self.checkBox_2yr, self.checkBox_5yr, self.checkBox_10yr,
+                                                           self.checkBox_20yr, self.checkBox_50yr,
+                                                           self.checkBox_100yr)
+
+        # If using WPS - get the checked return periods, If using user input height, get the user input
+        if self.RunOffFlag is False:
+
+            user_defined_height = None
+
+        else:
+            user_defined_height = self.OwnRainInput.text()
+
+        input_checker = InputChecker(None, None, None, None, None, None,
+                                     QgsProject.instance(), None, self.ui_updater, None,
+                                     None)
+        # Validate the user-defined rainfall depth
+        if self.RunOffFlag:
+            user_defined_height = input_checker.validate_user_defined_height(user_defined_height)
+            if user_defined_height is None:
+                self.runoffLabel.setText("")
+                return None
+
+        abstr_coeff = self.InitialAbstractionCoeff.text()
+        # Validate the user-defined Initial Abstraction Coefficient
+        abstr_coeff = input_checker.validate_abstraction_coefficient(abstr_coeff)
+        if abstr_coeff is None:
+            self.runoffLabel.setText("")
+            return None
+
+        # Run the RunOff Task
+        self.pushButton_runoff.setEnabled(False)
+        self.ui_updater.LoadingMsg("Computing RunOff, please wait...")
+
+
+        url_conf_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config", "WPS_config.yaml")
+
+        try:
+            # Create a task to process the CN layer
+            task = TASK_RunOff(CN_layer, reoccurence_intervals, self.RunOffFlag, user_defined_height, abstr_coeff,
+                               self.runoffLabel, url_conf_path)
+            task.taskFinished_RunOff.connect(self.taskFinished_RunOff)
+            task.taskError_RunOff.connect(self.taskError_RunOff)
+
+            # Add task to manager and retry if it fails
+            self.task_manager.addTask(task)
+            return None
+
+        except Exception as e:
+            self.pushButton_runoff.setEnabled(True)
+            iface.messageBar().clearWidgets()
+            self.ui_updater.ErrorMsg(f"Error occurred: {e}")
+            self.runoffLabel.setText("ERROR - check the message log.")
+            return None
 
 

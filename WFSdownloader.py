@@ -60,7 +60,7 @@ class WFSDownloader:
         if not wfs_layers:
             QgsMessageLog.logMessage("Corupted WFS setting, see config file", "CzLandUseCN",
                                      level=Qgis.Warning, notifyUser=True)
-            return
+            return None
 
         if not self.AreaFlag:
             extent = iface.mapCanvas().extent()
@@ -72,12 +72,12 @@ class WFSDownloader:
         return extent.yMinimum(), extent.xMinimum(), extent.yMaximum(), extent.xMaximum(), extent
 
     def process_wfs_layer(self, layer_name: str, ymin: float, xmin: float, ymax: float, xmax: float,
-                          extent: QgsGeometry,
-                          URL: str) -> Optional[QgsVectorLayer]:
+                          extent: QgsGeometry,URL: str) -> Optional[QgsVectorLayer]:
         """ Load and clip a WFS layer to the given extent"""
         uri = (
             f"{URL}?"
-            f"&version=2.0.0&request=GetFeature&typename={layer_name}"
+            f"version=2.0.0&request=GetFeature"
+            f"&typename={layer_name}"
             f"&bbox={xmin},{ymin},{xmax},{ymax},EPSG:5514"
         )
 
@@ -85,11 +85,12 @@ class WFSDownloader:
         if not vlayer.isValid() or not vlayer.featureCount() or vlayer is None:
             QgsMessageLog.logMessage(f"Failed to load or empty layer: {layer_name}", "CzLandUseCN",
                                      level=Qgis.Warning, notifyUser=True)
-            return
+            return None
 
         clipped_layer = self.clip_layer(vlayer, extent, layer_name)
         if clipped_layer.isValid():
             return clipped_layer
+        return None
 
     def ClipByPolygon(self, layer: QgsVectorLayer) -> QgsVectorLayer:
         """ Clip the layer to the polygon extent"""
@@ -105,6 +106,7 @@ class WFSDownloader:
         if final_clipped_layer and final_clipped_layer.featureCount() > 0:
             final_clipped_layer.setName(layer.name())
             return final_clipped_layer  # Return the clipped layer
+        return None
 
     def GetLPISLayer(self, LPISURL: str, layer_name: str, LPISconfigpath: str, ymin: float, xmin: float, ymax: float,
                      xmax: float, current_extent: QgsGeometry, LayerList: list) -> list:
