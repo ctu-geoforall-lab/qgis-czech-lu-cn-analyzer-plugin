@@ -182,7 +182,6 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         elif self.DownloadFlag == 2:
             self.RunSoil()
 
-
     def Run(self):
         """
         Run the processing of acquiring the Land Use Layer .
@@ -334,10 +333,6 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
                                  level=Qgis.Info, notifyUser=False)
         return None
 
-
-
-
-
     def TaskFinished_Soil(self, SoilLayer_Path):
         """Handle task completion for Soil layers."""
 
@@ -356,7 +351,6 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         clipped_soil_layer = merge_layers([self.not_buffered_plg,clipped_soil_layer],"Soil Layer HSG")
         style_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "colortables", "soil.sld")
         clipped_soil_layer.loadSldStyle(style_path)
-
 
         self.mMapLayerComboBox_HSG.setLayer(QgsProject.instance().addMapLayer(clipped_soil_layer))
 
@@ -477,8 +471,6 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         iface.messageBar().clearWidgets()
         iface.messageBar().pushMessage("Success", "Task completed successfully", level=Qgis.Success, duration=5)
 
-
-
     def RunIntersection(self):
         """
         Run the processing of acquiring the Intersection Layer .
@@ -543,8 +535,6 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
         self.mMapLayerComboBox_CN.setLayer(QgsProject.instance().addMapLayer(layer))
         iface.messageBar().pushMessage("Success", "Task completed successfully", level=Qgis.Success, duration=5)
-
-
 
 
     def RunCN(self):
@@ -617,8 +607,6 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
         CN_layer = self.mMapLayerComboBox_CN.currentLayer()
 
-
-
         # Check if the CN layer is valid and contains the required attributes
         if CN_layer.isValid() is False or CN_layer.fields().indexFromName("CN2") == -1:
             self.ui_updater.ErrorMsg("CN layer is not valid.")
@@ -658,7 +646,6 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         self.pushButton_runoff.setEnabled(False)
         self.ui_updater.LoadingMsg("Computing RunOff, please wait...")
 
-
         url_conf_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config", "WPS_config.yaml")
 
         try:
@@ -678,5 +665,3 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
             self.ui_updater.ErrorMsg(f"Error occurred: {e}")
             self.runoffLabel.setText("ERROR - check the message log.")
             return None
-
-

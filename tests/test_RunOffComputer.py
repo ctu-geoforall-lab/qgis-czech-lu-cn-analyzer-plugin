@@ -30,7 +30,6 @@ class TestRunOffComputer:
         """
         Tests for RunOffComputer methods in a single function.
         """
-
         print("")
 
         # 1. Test _calculate_runoff_volume with known manual values
@@ -87,7 +86,6 @@ class TestRunOffComputer:
         plg_path = os.path.join(input_folder, 'low.gpkg')
         polygon = QgsVectorLayer(f"{plg_path}|layername=low", "low", "ogr")
 
-
         roc = RunOffComputer(None, ['X'], False, [], 0.2,
                              None, None)
 
@@ -97,8 +95,3 @@ class TestRunOffComputer:
             assert new_layer.fields().indexFromName(fld) >= 0, f"Missing field {fld}"
 
         print("[OK] Created new fields successfully")
-
-
-
-
-
