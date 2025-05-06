@@ -25,7 +25,8 @@ import os
 import time
 import processing
 from PyQt5.QtWidgets import QButtonGroup
-from PyQt5.QtCore import QVariant, QCoreApplication
+from PyQt5.QtCore import QVariant, QCoreApplication, QUrl
+from qgis.PyQt.QtGui import QDesktopServices
 
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal
@@ -136,8 +137,17 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
         self.pushButton_runoff.clicked.connect(self.RunRunOff)
 
+        self.pushButton.clicked.connect(self.openDocs)
+
         self.task_manager = QgsApplication.taskManager()
 
+    def openDocs(self):
+        """Open the documentation in the default browser via Qt."""
+        url = QUrl("https://ctu-geoforall-lab.github.io/qgis-czech-lu-cn-analyzer-plugin/")
+        QDesktopServices.openUrl(url)
+        iface.messageBar().pushMessage(
+            "Info:", "Check docs in your browser.", level=Qgis.Info, duration=5
+        )
     def Abort(self):
         """Abort the current task."""
         QgsApplication.taskManager().cancelAll()

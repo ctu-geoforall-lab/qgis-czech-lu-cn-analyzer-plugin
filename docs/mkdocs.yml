@@ -1,0 +1,79 @@
+site_name: Czech Land Use and CN Analyzer Docs
+repo_name: ctu-geoforall-lab/qgis-czech-lu-cn-analyzer-plugin
+repo_url: https://github.com/ctu-geoforall-lab/qgis-czech-lu-cn-analyzer-plugin
+extra_css:
+  - stylesheets/extra.css
+  - https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css
+
+theme:
+  name: material
+  logo: img/icon.png
+  favicon: img/icon.ico
+  icon:
+    repo: fontawesome/brands/github
+  font:
+    text: Roboto
+  features:
+    - navigation.footer
+
+  palette:
+    # ❶ Automatic toggle only — no colors here
+    - media: "(prefers-color-scheme)"
+      primary: teal
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+    # ❷ Light scheme with teal primary
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # ❸ Dark scheme with teal primary
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
+extra:
+  alternate:
+    - name: English
+      link: /English/
+      lang: en
+    - name: Česky
+      link: /Česky/
+      lang: cs
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.arithmatex
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js
+  - https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js
+  - https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/mathtex-script-type.min.js
+  
+use_directory_urls: true
+nav:
+  - Home: index.md
+  - English:
+      - Home: English/index.md
+      - Installation: English/01_Installation.md
+      - Controls: English/02_Controls.md
+      - Attribute tables: English/03_Attribute_tables.md
+      - Configutation files: English/04_Configuration_files.md
+      - Symbology: English/05_Symbology.md
+  - Česky:
+      - Úvod: Česky/index.md
+      - Instalace: Česky/01_isntalace.md
+      - Ovládání: Česky/02_Ovladani.md
+      - Atributové tabulky: Česky/03_Atributove_tabulky.md
+      - Konfigurační soubory: Česky/04_Konfiguracni_soubory.md
+      - Symbologie: Česky/05_Symbologie.md
