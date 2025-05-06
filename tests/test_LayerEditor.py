@@ -96,7 +96,7 @@ class TestLayerEditor:
         ymin, xmin, ymax, xmax, ext = wfs_downloader.get_wfs_info(LOW_layer)
 
         layer_editor = LayerEditor(LU_atr_conf, None, test_data_conf, merging_conf, None, True,
-                                   LOW_layer, ymin, xmin, ymax, xmax, None)
+                                   LOW_layer, ymin, xmin, ymax, xmax)
 
         # Edit the layers
         layer_list = [LOW_layer, MID_layer, TOP_layer]

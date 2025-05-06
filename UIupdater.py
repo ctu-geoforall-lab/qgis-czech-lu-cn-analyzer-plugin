@@ -4,12 +4,35 @@ from qgis.core import QgsMessageLog, Qgis
 from qgis.utils import iface
 from PyQt5.QtCore import pyqtSignal, QObject
 
+def get_checked_return_periods(
+    checkBox_2yr,
+    checkBox_5yr,
+    checkBox_10yr,
+    checkBox_20yr,
+    checkBox_50yr,
+    checkBox_100yr
+):
+    """
+    Get the checked return periods from the checkboxes in UI.
+    """
+    checkboxes = {
+        checkBox_2yr: "N2",
+        checkBox_5yr: "N5",
+        checkBox_10yr: "N10",
+        checkBox_20yr: "N20",
+        checkBox_50yr: "N50",
+        checkBox_100yr: "N100"
+    }
+
+    return [label for checkbox, label in checkboxes.items() if checkbox.isChecked()]
+
 class UIUpdater(QObject):
     """Class to update the UI elements during processing."""
     progressChanged = pyqtSignal(int)
 
     def __init__(self, run_button, progress_bar, abort_button, label, polygon_button, extent_button, polygon_label,
-                 mMapLayerComboBox, LUandSoilSelectButton, SoilSelectButton, LUSelectButton, mMapLayerComboBox_LU, mMapLayerComboBox_HSG):
+                 mMapLayerComboBox, LUandSoilSelectButton, SoilSelectButton, LUSelectButton, mMapLayerComboBox_LU,
+                 mMapLayerComboBox_HSG, groupBox, OwnRainInput):
         super().__init__()
         # tab_1
         self.runButton = run_button
@@ -33,7 +56,9 @@ class UIUpdater(QObject):
         self.plus_one_index = 0
         self.wfs_layers = []
 
-
+        #tab 4
+        self.groupBox = groupBox
+        self.OwnRainInput = OwnRainInput
 
 
     def ToggleChangeToPolygon(self):
@@ -71,6 +96,9 @@ class UIUpdater(QObject):
         self.label.setText("")
         self.polygonButton.setEnabled(True)
         self.extentButton.setEnabled(True)
+        self.LUandSoilSelectButton.setEnabled(True)
+        self.SoilSelectButton.setEnabled(True)
+        self.LUSelectButton.setEnabled(True)
 
     def freeze_ui(self):
         """Freeze the UI elements during processing."""
@@ -159,3 +187,12 @@ class UIUpdater(QObject):
         self._reset_ui("Error occurred during HSG processing.", 0)
 
 
+    def ToggleChangeToUserRunoff(self):
+        """Toggle the UI to the user-defined runoff."""
+        self.OwnRainInput.setEnabled(True)
+        self.groupBox.setEnabled(False)
+
+    def ToggleChangeToWPSRunoff(self):
+        """Toggle the UI to the WPS runoff."""
+        self.OwnRainInput.setEnabled(False)
+        self.groupBox.setEnabled(True)

@@ -5,7 +5,6 @@ from qgis.core import QgsTask, QgsMessageLog, Qgis, QgsProject, QgsMapLayerProxy
 from PyQt5.QtCore import pyqtSignal
 import processing
 
-
 class TASK_Intersection(QgsTask):
     """Task Intersect Soil and LandUse layers."""
     taskFinished_Intersection  = pyqtSignal(list)
@@ -18,7 +17,6 @@ class TASK_Intersection(QgsTask):
         self.runButton_Int = runButton_Int
         self.combined_layer = None
 
-
     def finished(self,result):
         """Handle the completion of the task."""
         if result:
@@ -27,7 +25,20 @@ class TASK_Intersection(QgsTask):
             self.taskFinished_Intersection .emit([self.combined_layer])
         else:
             QgsMessageLog.logMessage("Task of processing layers failed.", "CzLandUseCN", level=Qgis.Warning,
+
                                      notifyUser=True)
+    @staticmethod
+    def intersection_cleanup(layer):
+        """
+        Removes all features from the given vector layer whose 'source' attribute is NULL.
+        """
+        layer.startEditing()
+        for feature in layer.getFeatures():
+            if feature['source'] is None:
+                layer.deleteFeature(feature.id())
+        layer.commitChanges()
+        return None
+
     def run(self):
         """Run the task to process Soil layers."""
         try:
@@ -41,6 +52,8 @@ class TASK_Intersection(QgsTask):
                 'OUTPUT': 'memory:'
             })['OUTPUT']
 
+            self.intersection_cleanup(self.combined_layer)
+
             # Set the symbology of the combined layer
             symbology_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "colortables",
                                           "intersection.qml")
@@ -49,10 +62,6 @@ class TASK_Intersection(QgsTask):
             self.runButton_Int.setEnabled(True)
 
             return True
-
-
-
-
 
         except Exception as e:
             QgsMessageLog.logMessage(f"Error in Intersection Task: {str(e)}", "CzLandUseCN", level=Qgis.Warning,

@@ -18,7 +18,55 @@ from qgis.core import (
 )
 from PyQt5.QtCore import QVariant, Qt
 
-def add_cn_symbology(vector_layer, field_name, symbology_path):
+def add_CN3_from_CN2(vector_layer: QgsVectorLayer, field_name: str) -> None:
+    """Adds a new field 'CN3' to the vector layer, calculated from the 'CN2' field."""
+    try:
+        # Check if CN2 field exists
+        if vector_layer.fields().indexOf(field_name) == -1:
+            raise Exception(f"Field '{field_name}' not found in the layer.")
+
+        # Add CN3 field if it doesn't exist
+        if vector_layer.fields().indexOf("CN3") == -1:
+            vector_layer.dataProvider().addAttributes([QgsField("CN3", QVariant.Double)])
+            vector_layer.updateFields()
+
+        # Calculate CN3 from CN2
+        for feature in vector_layer.getFeatures():
+            cn2_value = feature[field_name]
+            if cn2_value is not None:
+                cn3_value = 23 * cn2_value / (10 + 0.13 * cn2_value)
+                feature["CN3"] = cn3_value
+                vector_layer.updateFeature(feature)
+
+    except Exception as e:
+        raise Exception(f"Failed to calculate CN3: {e}")
+
+def prune_cn_layer_fields(layer: QgsVectorLayer):
+    """
+    Deletes all attributes from the given layer except:
+    Shape_Area, SHAPE_Area, OBJECTID, fid_zbg, FID, Shape_Length, LandUse_code, HSG.
+    """
+    # List of fields to keep
+    keep_fields = [
+        'Shape_Area', 'SHAPE_Area', 'OBJECTID',
+        'fid_zbg', 'FID', 'Shape_Length',
+        'source','LandUse_code', 'HSG'
+    ]
+
+    provider = layer.dataProvider()
+    fields = provider.fields()
+
+    # Determine indices of fields to delete
+    delete_ids = []
+    for field in fields:
+        if field.name() not in keep_fields:
+            delete_ids.append(fields.indexOf(field.name()))
+
+    if delete_ids:
+        provider.deleteAttributes(delete_ids)
+        layer.updateFields()
+
+def add_cn_symbology(vector_layer, field_name, symbology_path, ramp_name):
     """Applies symbology using a quantile-based color ramp for numeric features,
        and red for features with non-numeric (or NULL) values.
        Works by computing quantile breaks for the numeric values in the specified field.
@@ -31,8 +79,8 @@ def add_cn_symbology(vector_layer, field_name, symbology_path):
         if not style.importXml(symbology_path):
             raise Exception(f"Failed to import symbology from path: {symbology_path}")
 
-        # Get the color ramp named 'CN'.
-        color_ramp = style.colorRamp('CN')
+        # Get the color ramp named ramp_name
+        color_ramp = style.colorRamp(ramp_name)
         if color_ramp is None:
             raise Exception("Color ramp 'CN' not found in the style database.")
 
@@ -147,6 +195,8 @@ class CNCreator:
     def CreateCNLayer(self) -> QgsVectorLayer:
         """Creates a CN layer from the input layer and CN table."""
         try:
+
+
             cn_dict = self._load_cn_table()
             new_layer = self._create_memory_layer()
 

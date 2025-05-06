@@ -2,6 +2,8 @@ import os
 import processing
 from typing import Optional, List, Tuple
 import yaml
+from qgis.analysis import QgsNativeAlgorithms
+
 
 from PyQt5.QtCore import QVariant
 from qgis.core import (
@@ -14,6 +16,8 @@ from qgis.core import (
     QgsMessageLog,
     QgsFields,
     QgsGeometry,
+    QgsProcessingFeatureSourceDefinition,
+    QgsWkbTypes
 )
 
 # Based on the environment, import the WFSdownloader/SoilDownloader module
@@ -25,6 +29,8 @@ try:
     from .SoilDownloader import simple_clip
 except ImportError:
     from SoilDownloader import simple_clip
+
+
 
 def apply_simple_difference(layer1: QgsVectorLayer, layer2: QgsVectorLayer) -> QgsVectorLayer:
     """Apply a simple difference operation to the input layers."""
@@ -87,6 +93,51 @@ def dissolve_polygon(layer: QgsVectorLayer) -> QgsVectorLayer:
 
     return dissolved_layer
 
+def dissolve_and_resolve_overlaps(input_layer: QgsVectorLayer, controlling_attribute: str) -> QgsVectorLayer:
+    """
+    Dissolves and de-overlaps features based on controlling_attribute.
+    If the process yields no geometry, returns the original layer.
+    """
+    # Dissolve by attribute
+    dissolved = processing.run(
+        'native:dissolve',
+        {'INPUT': input_layer, 'FIELD': [controlling_attribute], 'OUTPUT': 'memory:dissolved'}
+    )['OUTPUT']
+
+    # If dissolve produced nothing, return original
+    if dissolved.featureCount() == 0:
+        return input_layer
+
+    # Preserve original layer name on the result
+    dissolved.setName(input_layer.name())
+    return dissolved
+
+def resolve_overlaping_buffers(layers: list, config_path: str) -> list:
+    """
+    Reads YAML config, processes only named buffer layers, and returns a new list with those layers replaced by
+    their de-overlapped versions (others unchanged).
+
+    :param layers: List of QgsVectorLayer instances
+    :param config_path: Path to YAML config with 'buffer_layers' entries containing 'input_layer_name'
+    :return: New list of QgsVectorLayer with processed buffers
+    """
+    # Load configuration and extract layer names
+    with open(config_path, 'r', encoding='utf-8') as f:
+        config = yaml.safe_load(f)
+        to_process = {item.get('input_layer_name') for item in config.get('buffer_layers', [])}
+
+    # Build new list, replacing only matching layers
+    output_layers = []
+    for lyr in layers:
+        if lyr.name() in to_process:
+            processed = dissolve_and_resolve_overlaps(lyr, 'LandUse_code')
+            output_layers.append(processed)
+        else:
+            output_layers.append(lyr)
+
+    return output_layers
+
+
 def clip_larger_layer_to_smaller(layer_one: QgsVectorLayer, layer_two: QgsVectorLayer) -> Optional[Tuple[QgsVectorLayer, QgsVectorLayer]]:
     """" Determine which layer is larger and clip it to the extent of the smaller layer."""
     dissolved_layer_one = dissolve_polygon(layer_one)
@@ -144,12 +195,8 @@ def get_polygon_from_extent(ymin: int, xmin: int, ymax: int, xmax: int) -> QgsVe
     return layer
 
 def buffer_QgsVectorLayer(input_layer, distance, segments=10):
-    """Creates a buffered QgsVectorLayer from an input polygon layer.
-
-    :param input_layer: QgsVectorLayer (Polygon Layer)
-    :param distance: Buffer distance (float)
-    :param segments: Number of segments to approximate curves (int)
-    :return: QgsVectorLayer (Buffered Polygons)
+    """
+    Creates a buffered QgsVectorLayer from an input polygon layer.
     """
 
     # Create a memory layer to store buffered features
@@ -274,6 +321,7 @@ def attribute_layer_buffer(layer: QgsVectorLayer, controlling_atr_name: str, def
     if not buffer_layer.commitChanges():
         QgsMessageLog.logMessage("Failed to commit changes to the buffer layer.",
                                  level=Qgis.Warning, notifyUser=True)
+        return None
     else:
         return buffer_layer
 
@@ -311,6 +359,7 @@ def apply_simple_buffer(layer: QgsVectorLayer, buffer_distance: float) -> QgsVec
     if not buffer_layer.commitChanges():
         QgsMessageLog.logMessage("Failed to commit changes to the buffer layer.",
                                  level=Qgis.Warning, notifyUser=True)
+        return None
     else:
         return buffer_layer
 
@@ -332,7 +381,7 @@ class LayerEditor:
     """Class to edit layers based on the configuration files. Creates and modifies LandUse_code attribute. Layers are
     buffered and stacked based on the configuration files."""
 
-    def __init__(self, at_path, LPIS_path, ZABAGED_path, st_path, symbol_path, AreaFlag, polygon, ymin, xmin, ymax, xmax, IntersectCombobox):
+    def __init__(self, at_path, LPIS_path, ZABAGED_path, st_path, symbol_path, AreaFlag, polygon, ymin, xmin, ymax, xmax):
         self.attribute_template_path = at_path
         self.LPIS_config_path = LPIS_path
         self.ZABAGED_config_path = ZABAGED_path
@@ -342,7 +391,6 @@ class LayerEditor:
         self.polygon = polygon
         self.ymin, self.xmin, self.ymax, self.xmax = ymin, xmin, ymax, xmax
 
-        self.IntersectCombobox = IntersectCombobox
 
     def add_LPIS_LandUse_code(self, layer: QgsVectorLayer) -> None:
         """Add LandUse code to LPIS layer based on its attributes."""
@@ -382,6 +430,16 @@ class LayerEditor:
 
         for layer in layers:
             layer_name = layer.name()
+            # add source layer name to the layer
+            if layer.fields().indexFromName("source") == -1:
+                layer.dataProvider().addAttributes([QgsField("source", QVariant.String)])
+                layer.updateFields()
+            layer.startEditing()
+            for feature in layer.getFeatures():
+                feature["source"] = layer_name
+                layer.updateFeature(feature)
+            layer.commitChanges()
+
             data_provider = layer.dataProvider()
             data_provider.addAttributes([QgsField("LandUse_code", QVariant.Int)])
             layer.updateFields()
@@ -389,6 +447,7 @@ class LayerEditor:
             if layer_name == "LPIS_layer":
                 # Skip LPIS layer
                 self.add_LPIS_LandUse_code(layer)
+                updated_layers.append(layer)
                 continue
 
             with open(self.attribute_template_path, "r", encoding="utf-8") as file:
@@ -454,19 +513,20 @@ class LayerEditor:
         """Edit ZABAGED layers LandUse code by its attributes."""
         new_layers = []
 
-        for layer in layers: # Iterate over all layers
+        for layer in layers:  # Iterate over all layers
             try:
-                with open(self.ZABAGED_config_path , 'r') as ATRfile:
+                with open(self.ZABAGED_config_path, 'r') as ATRfile:
                     ATRconfig = yaml.safe_load(ATRfile)
 
-                    for layer_config in ATRconfig['layers']: # Iterate over all layers in the config
+                    matched = False
+                    for layer_config in ATRconfig['layers']:  # Iterate over all layers in the config
                         if layer.name() == layer_config.get('name', ''):
                             edited_layer = attribute_layer_edit(
                                 layer,
                                 base_use_code=layer_config['base_use_code'],
                                 controlling_attribute=layer_config['controlling_attribute'],
                                 value_increments=layer_config['value_increments']
-                            ) # Edit the layer based on the config
+                            )  # Edit the layer based on the config
                             if edited_layer:
                                 new_layers.append(edited_layer)
                                 QgsMessageLog.logMessage("LandUse code attribute edit at: " + layer.name(),
@@ -476,10 +536,11 @@ class LayerEditor:
                                 new_layers.append(layer)  # Keep original if editing fails
                                 QgsMessageLog.logMessage(f"/ERROR/ Layer {layer.name()} trashed.", "CzLandUseCN",
                                                          level=Qgis.Warning, notifyUser=True)
+                            matched = True
                             break
-                        else:
-                            new_layers.append(layer)  # If no match, keep original
 
+                    if not matched:
+                        new_layers.append(layer)  # If no match, keep original
 
             except Exception as e:
                 QgsMessageLog.logMessage(f"Failed to edit layer {layer.name()}: {e}", "CzLandUseCN", level=Qgis.Warning,
@@ -487,6 +548,7 @@ class LayerEditor:
                 new_layers.append(layer)  # Keep original if error occurs
 
         return new_layers
+
 
     def clip_layers_after_edits(self, layers: list) -> list:
         """
@@ -535,62 +597,110 @@ class LayerEditor:
 
         return layer
 
-    def stack_layers(self, layers: list) -> Optional[QgsVectorLayer]:
+    def stack_layers(self, layers: List[QgsVectorLayer]) -> Optional[QgsVectorLayer]:
         """
-        Merge polygon layers by their priority from the stacking list - layers_merging_order.conf
-        Also removes original input layers
+        Stack polygon layers by priority, clipping overlaps.
+        Before each union, remove null/empty geometries, fix invalid ones,
+        and (optionally) check validity to avoid 'Could not write feature' errors.
         """
 
-        # Function to merge layers
+        # 1) Read stacking order
+        try:
+            with open(self.stacking_template_path, 'r') as f:
+                order = [ln.strip() for ln in f if ln.strip()]
+        except Exception as e:
+            QgsMessageLog.logMessage(f"Failed reading stacking template: {e}",
+                                     "CzLandUseCN", level=Qgis.Critical)
+            return None
 
+        # 2) Filter & sort polygon layers (0=Point, 1=Line, 2=Polygon)
+        ordered = [
+            lyr for lyr in layers
+            if isinstance(lyr, QgsVectorLayer)
+               and lyr.geometryType() == 2
+               and lyr.name() in order
+        ]
+        ordered.sort(key=lambda L: order.index(L.name()))
+        if not ordered:
+            QgsMessageLog.logMessage("No valid polygon layers to stack.",
+                                     "CzLandUseCN", level=Qgis.Critical)
+            return None
 
-        with open(self.stacking_template_path, 'r') as STCfile:
-            # Read lines in order and put them in a list
-            STClines = STCfile.readlines()
-            STClist = [line.strip() for line in STClines]
+        processed = []
+        accum_union = None
 
-            LayerOrderedList = []
-
-            for layer in layers:
-                # Only process vector layers and polygons
-                if isinstance(layer, QgsVectorLayer) and layer.geometryType() == 2:
-                    layer_name = layer.name()
-
-                    # Check if the layer is in the stacking list
-                    if layer_name in STClist:
-                        LayerOrderedList.append(layer)
-                    else:
-                        QgsMessageLog.logMessage(f"Layer '{layer_name}' not found in the stacking list.",
-                                                 "CzLandUseCN", level=Qgis.Warning, notifyUser=True)
-                        continue
-
-            # Order layers by STClist, filtering only layers found in STClist
-            LayerOrderedList = sorted(LayerOrderedList, key=lambda x: STClist.index(x.name()))
-
-            # Merge each layer in order and stack by priority level
-            priority_merged_layers = []
-            for idx, layer in enumerate(LayerOrderedList):
-                merged_layer = merge_layers([layer], f"Merged_Layer_Priority_{idx + 1}")
-                if merged_layer:
-                    priority_merged_layers.append(merged_layer)
-
-            # Reverse the list to merge the layers in the correct order
-            priority_merged_layers.reverse()
-            # Merge all priority layers together in the specified order
-            final_merged_layer = merge_layers(priority_merged_layers, "LandUse Layer")
-
-            # Apply symbology to the merged layer
-            final_merged_layer = self.apply_symbology(final_merged_layer)
-
-            if final_merged_layer:
-                final_merged_layer.triggerRepaint()
-                QgsProject.instance().addMapLayer(final_merged_layer)
-
-
+        for idx, lyr in enumerate(ordered):
+            # A) First layer: clone to avoid altering source
+            if idx == 0:
+                clipped = lyr.clone()
             else:
-                QgsMessageLog.logMessage("Failed to merge layers.", "CzLandUseCN", level=Qgis.Critical, notifyUser=True)
-                return None
+                # B) Subtract higher-priority areas
+                clipped = processing.run(
+                    "native:difference",
+                    {
+                        'INPUT': lyr,
+                        'OVERLAY': accum_union,
+                        'OUTPUT': 'memory:clipped'
+                    }
+                )['OUTPUT']
 
-            QgsMessageLog.logMessage("Stacking layers completed.", "CzLandUseCN", level=Qgis.Info, notifyUser=False)
-            if final_merged_layer:
-                return final_merged_layer
+            # C) Remove null & empty geometries (essential!)
+            clipped = processing.run(
+                "native:removenullgeometries",
+                {'INPUT': clipped, 'OUTPUT': 'memory:clean_clipped'}
+            )['OUTPUT']
+
+            # E) Append for later merging (post-clean)
+            processed.append(clipped)
+
+            # F) Build/update running union
+            if accum_union is None:
+                accum_union = clipped.clone()
+            else:
+                # 1) Fix geometries on both sides
+                fixed_acc = processing.run(
+                    "native:fixgeometries",
+                    {'INPUT': accum_union, 'OUTPUT': 'memory:fixed_acc'}
+                )['OUTPUT']
+                fixed_clip = processing.run(
+                    "native:fixgeometries",
+                    {'INPUT': clipped, 'OUTPUT': 'memory:fixed_clip'}
+                )['OUTPUT']
+
+                # 2) Finally union the clean, valid inputs
+                try:
+                    accum_union = processing.run(
+                        "native:union",
+                        {
+                            'INPUT': fixed_acc,
+                            'OVERLAY': fixed_clip,
+                            'OUTPUT': 'memory:accum_union'
+                        }
+                    )['OUTPUT']
+
+                except:
+                    continue
+
+            QgsMessageLog.logMessage(
+                f"Layer '{lyr.name()}' processed ({idx + 1}/{len(ordered)})",
+                "CzLandUseCN", level=Qgis.Info
+            )
+
+        # 4) Merge all non-overlapping pieces
+        final = processing.run(
+            "native:mergevectorlayers",
+            {
+                'LAYERS': processed,
+                'CRS': processed[0].crs().toWkt(),
+                'OUTPUT': 'memory:Stacked_NoOverlap'
+            }
+        )['OUTPUT']
+
+        # 5) Style & add to project
+        final = self.apply_symbology(final)
+        final.setName("LandUse Layer")
+        final.triggerRepaint()
+
+        QgsMessageLog.logMessage("Stacking complete: no overlaps remain.",
+                                 "CzLandUseCN", level=Qgis.Info)
+        return final

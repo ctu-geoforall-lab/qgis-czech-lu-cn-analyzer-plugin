@@ -1,0 +1,21 @@
+<!DOCTYPE qgis_style>
+<qgis_style version="2">
+  <symbols/>
+  <colorramps>
+    <colorramp tags="Colorful" type="gradient" name="RUNOFF">
+      <Option type="Map">
+        <Option type="QString" value="255,252,212,255" name="color1"/>
+        <Option type="QString" value="13,38,68,255" name="color2"/>
+        <Option type="QString" value="ccw" name="direction"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+        <Option type="QString" value="rgb" name="spec"/>
+        <Option type="QString" value="0.347356;130,182,188,255;rgb;ccw:0.659856;61,106,137,255;rgb;ccw" name="stops"/>
+      </Option>
+    </colorramp>
+  </colorramps>
+  <textformats/>
+  <labelsettings/>
+  <legendpatchshapes/>
+  <symbols3d/>
+</qgis_style>

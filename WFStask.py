@@ -53,6 +53,7 @@ class TASK_process_wfs_layer(QgsTask):
         LPISlayername = get_string_from_yaml(LPISconfigpath, "layer_name")
         self.LandUseLayers = wfs_downloader.GetLPISLayer(LPISURL, LPISlayername, LPISconfigpath, self.ymin, self.xmin,
                                                          self.ymax, self.xmax, self.current_extent, self.LandUseLayers)
+
         try:
             zabaged_URL = get_string_from_yaml(os.path.join(os.path.dirname(__file__), 'config', 'ZABAGED.yaml'),
                                                "URL")
