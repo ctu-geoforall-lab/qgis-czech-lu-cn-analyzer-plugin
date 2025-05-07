@@ -5,15 +5,14 @@
 [general]
 name=Czech Land Use and CN Analyzer
 qgisMinimumVersion=3.0
-description=This plugin downloads czech geospatial data via WFS and evaluates them by land use. Then it can procees CN(Runoff curve number) analysis.
-version=0.2
-author=CTU Prague
+description=This plugin aquires Land Use, HSG, CN and Run-off layers from Czech geo-data.
+version=1.0
+author=GeoForAll Lab at CTU in Prague (J.Jehlicka,M.Landa,P.Kavka)
 email=jehlijos@proton.me
 
-about=This plugin downloads czech geospatial data via WFS and evaluates them by land use. Then it can procees CN(Runoff curve number) analysis.
-
-tracker=https://github.com/ctu-geoforall-lab
-repository=https://github.com/ctu-geoforall-lab
+about=The QGIS plugin enables automated generation of a land use layer and a hydrologic soil group layer. From the combination of these layers, it assigns a CN value, and it is further possible to obtain the direct runoff volume from precipitation totals provided by rain.fsv.cvut.cz or defined by the user.
+tracker=https://github.com/ctu-geoforall-lab/qgis-czech-lu-cn-analyzer-plugin/issues
+repository=https://github.com/ctu-geoforall-lab/qgis-czech-lu-cn-analyzer-plugin
 # End of mandatory metadata
 
 # Recommended items:
@@ -23,9 +22,9 @@ hasProcessingProvider=no
 # changelog=
 
 # Tags are comma separated with spaces allowed
-tags=python
+tags=python,czech,cz,watershed,CN,run-off,land use,landuse,hsg,hydrology,scs,curve number,
 
-homepage=https://github.com/ctu-geoforall-lab
+homepage=https://ctu-geoforall-lab.github.io/qgis-czech-lu-cn-analyzer-plugin/
 category=Plugins
 icon=icon.png
 # experimental flag
@@ -44,4 +43,3 @@ Category of the plugin: Raster, Vector, Database or Web
 
 # If the plugin can run on QGIS Server.
 server=False
-
