@@ -79,3 +79,17 @@ land_use:
     code: 22200  
   - keywords: [Kulna, kulna, kůlna, Kulna]
     code: 44100  
+  - keywords: [Ostatni, ostanti, ostatní, Ostatní]
+    code: 44200
+  - keywords: [Těžba, tezba, Tezba, těžba]
+    code: 44200
+  - keywords: [Letiste, letiste, letiště, Letiště]
+    code: 20000
+  - keywords: [Tocna, tocna, točna, Točna]
+    code: 44200
+  - keywords: [Areál_železniční, Areal_zeleznicni, areál_železniční, areal_zeleznicni, "Areál železniční", "Areal zeleznicni", "areál železniční", "areal zeleznicni"]
+    code: 44200
+  - keywords: [sesuv, Sesuv]
+    code: 44300
+  - keywords: [Úložné, ulozne, úložné, Ulozne]
+    code: 44300

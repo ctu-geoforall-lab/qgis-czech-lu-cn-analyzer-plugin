@@ -16,6 +16,29 @@ buffer_layers:
         distance: 10
     default_buffer: 7.5
 
+  - input_layer_name: "ZABAGED_POLOHOPIS:Osa_letištní_dráhy" # since buffering by random int in controlling_atr is not implemented yet, default_buffer is  20 wich is mean value of all of them and most common widths are also here
+    controlling_atr_name: "sirka"
+    buffer_levels:
+      - priority: "1"
+        values: [150]
+        distance: 150
+      - priority: "2"
+        values: [100]
+        distance: 100
+      - priority: "3"
+        values: [60]
+        distance: 60
+      - priority: "4"
+        values: [40]
+        distance: 40
+      - priority: "5"
+        values: [30]
+        distance: 30
+      - priority: "6"
+        values: [40]
+        distance: 40
+    default_buffer: 20
+
   - input_layer_name: "ZABAGED_POLOHOPIS:Silnice_neevidovaná"
     controlling_atr_name: "NaN"
     default_buffer: 7.5
@@ -150,28 +173,25 @@ layers:
     base_use_code: 44100
     controlling_attribute: "DRUHTEZ_K"
     value_increments:
-      7: 100
-      13: 100
-      16: 100
-      25: 200
-      27: 100
-      28: 200
-      36: 200
-      37: 0
-      38: 100
-      39: 100
-      −1: 100
+      7: 100    # uhlí
+      13: 100   # cihlářská surovina
+      16: 100   # kámen
+      25: 200   # písek
+      27: 100   # rudy, radioaktivní suroviny
+      28: 200   # rašelina
+      36: 200   # štěrkopísek
+      37: 0     # keramické suroviny
+      38: 100   # vápenec, dolomit
+      39: 100   # ostatní nerudy
+      −1: 100   # nezadáno/neznámo
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
+  - name: "ZABAGED_POLOHOPIS:Osa_letištní_dráhy"
+    base_use_code: 22100
+    controlling_attribute: "povrch_k"
+    value_increments:
+      N: 0     # nezpevněný
+      Z: 22000 # zpevněný >> 44100
+
       
       
       
