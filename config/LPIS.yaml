@@ -8,20 +8,20 @@ layers:
     base_use_code: 10000
     controlling_attribute: "kultura"
     value_increments:
-      "standartní orná půda": 0
+      "standartní orná půda": 100
       "chmelnice": 3100
       "vinice": 3200
-      "ovocný sad": 3300
+      "ovocný sad": 40000
       "trvalý travní porost": 10000
       "travní porost (na orné půdě)": 10000
       "rybník": 67200
       "zalesněná půda": 20000
       "mimoprodukční plocha": 56400
       "jiná trvalá kultura": 3400
-      "jiná kultura": 0
+      "jiná kultura": 100
       "školka": 2100
       "plocha s kontejnery": 30000
       "rychle rostoucí dřeviny pěstované na výmladkových plantážích": 24100
       "plocha s víceletými produkčními plodinami": 3400
-      "plocha s lanýži": 0
+      "plocha s lanýži": 100
 

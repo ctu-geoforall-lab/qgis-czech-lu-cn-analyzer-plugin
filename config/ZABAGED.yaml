@@ -14,7 +14,7 @@ buffer_layers:
       - priority: "3"
         values: ["S2", "S3", "D2p", "S2p", "S2v", "S3p", "S3v"]
         distance: 10
-    default_buffer: 7.5
+    default_buffer: 4.5
 
   - input_layer_name: "ZABAGED_POLOHOPIS:Osa_letištní_dráhy" # since buffering by random int in controlling_atr is not implemented yet, default_buffer is  20 wich is mean value of all of them and most common widths are also here
     controlling_atr_name: "sirka"
@@ -41,7 +41,7 @@ buffer_layers:
 
   - input_layer_name: "ZABAGED_POLOHOPIS:Silnice_neevidovaná"
     controlling_atr_name: "NaN"
-    default_buffer: 7.5
+    default_buffer: 2.5
 
   - input_layer_name: "ZABAGED_POLOHOPIS:Ulice"
     controlling_atr_name: "NaN"
@@ -55,6 +55,10 @@ buffer_layers:
     controlling_atr_name: "NaN"
     default_buffer: 2.5
     
+  - input_layer_name: "ZABAGED_POLOHOPIS:Železniční_vlečka"
+    controlling_atr_name: "NaN"
+    default_buffer: 2.5
+
 # This list contains settings for ZABAGED layers where their LandUse code is updated by some value in its attribute.
 # base_use_code is the LandUse code for the whole layer, and numbers from values in the controlling attribute are added to base_use_code.
 layers:
