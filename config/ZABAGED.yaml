@@ -7,13 +7,13 @@ buffer_layers:
     buffer_levels:
       - priority: "1"
         values: ["D1", "D2", "M", "D1p", "Mp", "Mv"]
-        distance: 20
+        distance: 15
       - priority: "2"
         values: ["S1", "S1v", "S1p"]
-        distance: 12.5
+        distance: 5.5
       - priority: "3"
         values: ["S2", "S3", "D2p", "S2p", "S2v", "S3p", "S3v"]
-        distance: 10
+        distance: 5
     default_buffer: 4.5
 
   - input_layer_name: "ZABAGED_POLOHOPIS:Osa_letištní_dráhy" # since buffering by random int in controlling_atr is not implemented yet, default_buffer is  20 wich is mean value of all of them and most common widths are also here
@@ -45,7 +45,7 @@ buffer_layers:
 
   - input_layer_name: "ZABAGED_POLOHOPIS:Ulice"
     controlling_atr_name: "NaN"
-    default_buffer: 3.5
+    default_buffer: 3
     
   - input_layer_name: "ZABAGED_POLOHOPIS:Liniová_vegetace"
     controlling_atr_name: "NaN"
