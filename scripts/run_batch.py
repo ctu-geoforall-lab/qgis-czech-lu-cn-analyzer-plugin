@@ -10,6 +10,7 @@ from qgis.core import QgsApplication, QgsVectorLayer
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from WFSdownloader import WFSDownloader
+from SoilDownloader import SoilDownloader
 from PluginUtils import get_string_from_yaml
 
 config_path = os.path.join(os.path.dirname(
@@ -49,7 +50,26 @@ def wfs_downloader(polygon_layer):
  
     message("Downloading LPIS...")   
     response = requests.get(LPIS_URL)
-    
+
+def soil_downloader(polygon_layer):
+    # Mock parameters
+    URL = get_string_from_yaml(os.path.join(config_path, 'Soil.yaml'), "URL")
+    XML_template = os.path.join(config_path, 'Soil_template.xml')
+    process_identifier = get_string_from_yaml(os.path.join(config_path, 'Soil.yaml'), "process_identifier")
+
+    ymin, xmin, ymax, xmax = (polygon_layer.extent().yMinimum(), polygon_layer.extent().xMinimum(),
+                              polygon_layer.extent().yMaximum(), polygon_layer.extent().xMaximum())
+
+    # Initialize the SoilDownloader
+    soil_downloader = SoilDownloader(URL, XML_template, process_identifier, polygon_layer, ymin, xmin, ymax, xmax)
+
+    # Create custom XML
+    custom_xml = soil_downloader.create_custom_xml()
+
+    # Execute WPS request
+    output_files = soil_downloader.execute_wps_request()
+    print(output_files)
+
 if __name__ == "__main__":
     # Initialize QGIS application in the main thread
     QgsApplication.setPrefixPath("/usr", True)
@@ -79,7 +99,9 @@ if __name__ == "__main__":
     )
 
     wfs_downloader(polygon_layer)
-    
+
+    soil_downloader(polygon_layer)
+
     del polygon_layer
     # Exit QGIS application
     qgs.exitQgis()
