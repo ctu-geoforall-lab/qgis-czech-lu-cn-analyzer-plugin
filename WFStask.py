@@ -1,8 +1,11 @@
-from .WFSdownloader import WFSDownloader
+import os
+
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.core import QgsTask, QgsMessageLog, Qgis
-from .PluginUtils import get_string_from_yaml
-import os
+
+from WFSdownloader import WFSDownloader
+from PluginUtils import get_string_from_yaml
+
 
 class TASK_process_wfs_layer(QgsTask):
     """Task to process WFS layers."""
@@ -23,14 +26,16 @@ class TASK_process_wfs_layer(QgsTask):
         self.polygonButton, self.extentButton = polygon_button, extent_button
         self._is_canceled, self.plus_one_index, self.layer = False, 0, None
         self.LandUseLayers = LandUseLayers
-        self.abortButton.clicked.connect(self.cancel)
+        if self.abortButton is not None:
+            self.abortButton.clicked.connect(self.cancel)
 
     def _update_progress_bar(self):
         """Update the progress bar based on the number of WFS layers in config."""
         percentage = int(round(100 / len(self.wfs_layers)))
         increment = percentage + (1 if self.plus_one_index % 2 else 0) - 1
-        new_value = min(self.progressBar.value() + increment, 99)
-        self.progressChanged.emit(new_value)
+        if self.progressBar is not None:
+            new_value = min(self.progressBar.value() + increment, 99)
+            self.progressChanged.emit(new_value)
         self.plus_one_index += 1
 
     def finished(self, result):

@@ -1,9 +1,10 @@
 import os
-
-from .LayerEditor import clip_larger_layer_to_smaller
-from qgis.core import QgsTask, QgsMessageLog, Qgis, QgsProject, QgsMapLayerProxyModel
 from PyQt5.QtCore import pyqtSignal
+
+from qgis.core import QgsTask, QgsMessageLog, Qgis, QgsProject, QgsMapLayerProxyModel
 import processing
+
+from LayerEditor import clip_larger_layer_to_smaller
 
 class TASK_Intersection(QgsTask):
     """Task Intersect Soil and LandUse layers."""
@@ -59,12 +60,14 @@ class TASK_Intersection(QgsTask):
                                           "intersection.qml")
             self.combined_layer.setName("Intersected LandUse and HSG")
             self.combined_layer.loadNamedStyle(symbology_path)
-            self.runButton_Int.setEnabled(True)
+            if self.runButton_Int is not None:            
+                self.runButton_Int.setEnabled(True)
 
             return True
 
         except Exception as e:
-            QgsMessageLog.logMessage(f"Error in Intersection Task: {str(e)}", "CzLandUseCN", level=Qgis.Warning,
+            QgsMessageLog.logMessage(f"Error in Intersection Task: {str(e)}", "CzLandUseCN", level=Qgis.Critical,
                                      notifyUser=True)
-            self.runButton_Int.setEnabled(True)
+            if self.runButton_Int is not None:
+                self.runButton_Int.setEnabled(True)
             return False

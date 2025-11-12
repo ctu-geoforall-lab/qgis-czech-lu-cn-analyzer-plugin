@@ -1,18 +1,17 @@
-
-
-from .WFSdownloader import WFSDownloader
-from qgis.PyQt.QtCore import pyqtSignal
-from qgis.core import QgsTask, QgsMessageLog, Qgis, QgsVectorLayer, QgsFeature, QgsFeatureRequest, QgsWkbTypes, QgsGeometry
-from .PluginUtils import get_string_from_yaml
 import os
-from owslib.wps import WebProcessingService, monitorExecution
-from qgis.core import QgsRasterLayer, QgsProject, QgsApplication, QgsVectorLayer
 import urllib.request
-from osgeo import gdal
 import tempfile
 from pathlib import Path
 
-from .SoilDownloader import SoilDownloader, load_tiff_from_zip, polygonize_raster
+from osgeo import gdal
+from owslib.wps import WebProcessingService, monitorExecution
+
+from qgis.PyQt.QtCore import pyqtSignal
+from qgis.core import QgsTask, QgsMessageLog, Qgis, QgsVectorLayer, QgsFeature, QgsFeatureRequest, QgsWkbTypes, QgsGeometry, QgsRasterLayer, QgsProject, QgsApplication, QgsVectorLayer
+
+from WFSdownloader import WFSDownloader
+from PluginUtils import get_string_from_yaml
+from SoilDownloader import SoilDownloader, load_tiff_from_zip, polygonize_raster
 
 
 class TASK_process_soil_layer(QgsTask):
@@ -32,8 +31,8 @@ class TASK_process_soil_layer(QgsTask):
         self.SoilLayer = None
         self.polygoniziedLayer_Path = None
         self._is_canceled = False
-
-        self.abortButton_Soil.clicked.connect(self.cancel)
+        if self.abortButton_Soil:
+            self.abortButton_Soil.clicked.connect(self.cancel)
 
     def _update_progress_bar(self, new_value):
         """Update the progress bar"""
