@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# TODO: cache qgis logs
+# TODO: CN_table param
 
 import os
 import sys
@@ -19,6 +19,8 @@ from WFStask import TASK_process_wfs_layer
 from LayerEditorTask import TASK_edit_layers
 from SoilTask import TASK_process_soil_layer
 from IntersectionTask import TASK_Intersection
+from InputChecker import is_valid_cn_csv
+from CNtask import TASK_CN
 
 config_path = os.path.join(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__))),
@@ -31,14 +33,16 @@ stacking_template = os.path.join(config_path,
                                  "layers_merging_order.csv")
 lu_symbology = os.path.join(os.path.dirname(config_path), "colortables", "landuse.sld")
 soil_symbology = os.path.join(os.path.dirname(config_path), "colortables", "soil.sld")
-    
+CN_table = os.path.join(config_path, "CN_table.csv")
+
 def message(msg):
     print(msg, file=sys.stderr)
 
 def log_to_stderr(message, tag, level):
     if level >= Qgis.Critical:
         sys.stderr.write(f"[{tag}] {message}\n")
-
+        sys.exit(1)
+        
 if __name__ == "__main__":
     # Initialize QGIS application in the main thread
     QgsApplication.setPrefixPath("/usr", True)
@@ -113,8 +117,24 @@ if __name__ == "__main__":
                              None, None)
     task.run()
     combined_layer = task.combined_layer
-    print(combined_layer)
+
+    message("Compute CN...")
+    if combined_layer.fields().indexFromName("HSG") == -1 or \
+       combined_layer.fields().indexFromName("LandUse_code") == -1:
+        QgsMessageLog.logMessage("Intersection layer does not contain HSG or LandUse_code attribute.",
+                                 "CzLandUseCN", level=Qgis.Critical)
+
+    if not os.path.exists(CN_table):
+        QgsMessageLog.logMessage("CN table file does not exist.", "CzLandUseCN", level=Qgis.Critical)
+
+    if not is_valid_cn_csv(CN_table):
+        QgsMessageLog.logMessage("CN table file is not valid.", "CzLandUseCN", level=Qgis.Critical)
     
+    task = TASK_CN(combined_layer, CN_table)
+    task.run()
+    CNLayer = task.CNLayer
+    CNLayer.setName("CN Layer")
+            
     del SoilLayer
     del clipped_soil_layer
     del polygon_buffer_layer    
