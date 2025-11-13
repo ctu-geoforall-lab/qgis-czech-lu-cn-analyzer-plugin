@@ -1,10 +1,10 @@
 import os
-from .CNCreator import add_CN3_from_CN2, add_cn_symbology
-from .RunOffComputer import RunOffComputer
-
 
 from qgis.core import QgsTask, QgsMessageLog, Qgis
 from PyQt5.QtCore import pyqtSignal
+
+from CNCreator import add_CN3_from_CN2, add_cn_symbology
+from RunOffComputer import RunOffComputer
 
 
 class TASK_RunOff(QgsTask):
@@ -37,23 +37,26 @@ class TASK_RunOff(QgsTask):
                                      notifyUser=True)
             self.runoffLabel.setText("ERROR - check the message log.")
             self.taskError_RunOff.emit("Task of Run-off Computation failed.")
+
     def run(self):
         """Run the task to process Run-off layers."""
 
         try:
             # If CN3 is not present, create it from CN2
-            self.runoffLabel.setText("Checking attributes ...")
+            if self.runoffLabel is not None:
+                self.runoffLabel.setText("Checking attributes ...")
             if self.CN_Layer.fields().indexFromName("CN3") == -1:
                 add_CN3_from_CN2(self.CN_Layer, "CN2")
 
             runoff_computer = RunOffComputer(self.CN_Layer, self.reoccurence_intervals, self.RunOffFlag,
                                              self.user_defined_height, self.abstr_coeff,self.wps_conf_path,
                                              self.runoffLabel)
-
-            self.runoffLabel.setText("Computing run-off height ...")
+            if self.runoffLabel is not None:
+                self.runoffLabel.setText("Computing run-off height ...")
             self.RunOffLayer = runoff_computer.get_runoff_volume()
             if self.RunOffLayer is None or not self.RunOffLayer.isValid():
-                self.runoffLabel.setText("ERROR - check the message log.")
+                if self.runoffLabel is not None:
+                    self.runoffLabel.setText("ERROR - check the message log.")
                 QgsMessageLog.logMessage("Run-off layer is Invalid.", "CzLandUseCN", level=Qgis.Warning,
                                          notifyUser=True)
                 return False
@@ -68,20 +71,23 @@ class TASK_RunOff(QgsTask):
                 else:
                     last_reoccurence = self.reoccurence_intervals[-1]
                     fld = f"V_{last_reoccurence}_m3"
-                self.runoffLabel.setText("Adding symbology...")
+                if self.runoffLabel is not None:
+                    self.runoffLabel.setText("Adding symbology...")
                 add_cn_symbology(self.RunOffLayer, fld ,
                                  os.path.join(os.path.dirname(os.path.realpath(__file__)), "colortables",
                                               "RUNOFF_color_ramp.xml"), "RUNOFF")
             except Exception as e:
-                self.runoffLabel.setText("ERROR - check the message log.")
-                QgsMessageLog.logMessage(f"Error in CN symbology: {str(e)}", "CzLandUseCN", level=Qgis.Warning)
+                if self.runoffLabel is not None:
+                    self.runoffLabel.setText("ERROR - check the message log.")
+                QgsMessageLog.logMessage(f"Error in CN symbology: {str(e)}", "CzLandUseCN", level=Qgis.Critical)
 
             return True
 
 
         except Exception as e:
-            self.runoffLabel.setText("ERROR - check the message log.")
-            QgsMessageLog.logMessage(f"Error in Run-off Task: {str(e)}", "CzLandUseCN", level=Qgis.Warning,
+            if self.runoffLabel is not None:
+                self.runoffLabel.setText("ERROR - check the message log.")
+            QgsMessageLog.logMessage(f"Error in Run-off Task: {str(e)}", "CzLandUseCN", level=Qgis.Critical,
                                      notifyUser=True)
 
             return False

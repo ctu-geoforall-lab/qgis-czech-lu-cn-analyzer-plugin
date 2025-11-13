@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 
-# TODO: CN_table param
-
 import os
 import sys
 import argparse
 import requests
+import yaml
+
+from PyQt5.QtCore import QVariant
 
 sys.path.insert(0, "/usr/share/qgis/python/plugins")
-from qgis.core import QgsApplication, QgsVectorLayer, Qgis
+from qgis.core import QgsApplication, QgsVectorLayer, Qgis, QgsVectorFileWriter, QgsCoordinateTransformContext, QgsField
 from processing.core.Processing import Processing
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -21,6 +22,7 @@ from SoilTask import TASK_process_soil_layer
 from IntersectionTask import TASK_Intersection
 from InputChecker import is_valid_cn_csv
 from CNtask import TASK_CN
+from RunOffTask import TASK_RunOff
 
 config_path = os.path.join(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__))),
@@ -34,6 +36,7 @@ stacking_template = os.path.join(config_path,
 lu_symbology = os.path.join(os.path.dirname(config_path), "colortables", "landuse.sld")
 soil_symbology = os.path.join(os.path.dirname(config_path), "colortables", "soil.sld")
 CN_table = os.path.join(config_path, "CN_table.csv")
+WPS_config = os.path.join(config_path, "WPS_config.yaml")
 
 def message(msg):
     print(msg, file=sys.stderr)
@@ -42,7 +45,45 @@ def log_to_stderr(message, tag, level):
     if level >= Qgis.Critical:
         sys.stderr.write(f"[{tag}] {message}\n")
         sys.exit(1)
-        
+
+def read_config(config_file):
+    with open(config_file, "r", encoding="utf-8") as f:
+        config = yaml.safe_load(f)
+
+    return config
+
+def save_layer(layer, output_path):
+    # layer.startEditing()
+    # layer.addAttribute(QgsField("ogc_fid", QVariant.Int))
+    # fid_index = layer.fields().indexFromName("ogc_fid")
+    # for i, feature in enumerate(layer.getFeatures(), start=1):
+    #     print(feature.id(), fid_index, i)
+    #     layer.changeAttributeValue(feature.id(), fid_index, i)
+    # layer.commitChanges()
+
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
+    name = layer.name().replace(' ', '_')
+    gpkg_path = os.path.join(output_path, name + '.shp')
+
+    options = QgsVectorFileWriter.SaveVectorOptions()
+    # options.driverName = "GPKG"
+    options.driverName = "Esri Shapefile"
+    options.layerName = name
+    #options.layerOptions = ["FID=ogc_fid"]
+
+    error, _, _, error_message = QgsVectorFileWriter.writeAsVectorFormatV3(
+        layer,
+        gpkg_path,
+        QgsCoordinateTransformContext(),
+        options
+    )
+
+    if error != QgsVectorFileWriter.NoError:
+        message(f"Error storing {layer.name()}: {error_message}")
+        sys.exit(1)
+
 if __name__ == "__main__":
     # Initialize QGIS application in the main thread
     QgsApplication.setPrefixPath("/usr", True)
@@ -56,21 +97,22 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "aoi",
+        "config",
         type=str,
-        help="AOI polygon"
+        help="YAML config"
     )
 
     args = parser.parse_args()
 
-    if not os.path.isfile(args.aoi):
-        print(f"Chyba: Soubor '{args.aoi}' neexistuje.")
+    args_config = read_config(args.config)
+    if not os.path.isfile(args_config["download"]["aoi"]):
+        print(f"Chyba: Soubor '{args_config["download"]["aoi"]}' neexistuje.")
         sys.exit(1)
 
     layer_name = "testing_polygon"
     # Load the polygon GeoPackage layer
     polygon_layer = QgsVectorLayer(
-        f"{args.aoi}|layername={layer_name}", layer_name, "ogr"
+        f'{args_config["download"]["aoi"]}|layername={layer_name}', layer_name, "ogr"
     )
 
     # disslove the polygon layer for faster processing
@@ -95,6 +137,8 @@ if __name__ == "__main__":
                             None, None, LandUseLayers)
     task.run()
     merged_layer = task.merged_layer
+    save_layer(merged_layer, args_config["output"]["path"])
+    sys.exit(1)
     
     message("Downloading soil data...")
     polygon_buffer_layer = buffer_QgsVectorLayer(polygon_layer, 25) # TODO: ymin?
@@ -134,7 +178,17 @@ if __name__ == "__main__":
     task.run()
     CNLayer = task.CNLayer
     CNLayer.setName("CN Layer")
-            
+
+    message("Computing RunOff...")
+    if CNLayer.isValid() is False or CNLayer.fields().indexFromName("CN2") == -1:
+        QgsMessageLog.logMessage("CN layer is not valid.", "CzLandUseCN", level=Qgis.Critical)
+        
+    task = TASK_RunOff(CNLayer, args_config["runoff"]["return_periods"],
+                       False, None,
+                       args_config["runoff"]["coefficient"],
+                       None, WPS_config)
+    task.run()
+
     del SoilLayer
     del clipped_soil_layer
     del polygon_buffer_layer    
