@@ -343,7 +343,7 @@ class RunOffComputer:
                 "CzLandUseCN", level=Qgis.Info
             )
 
-            if len(msg) < 42:
+            if len(msg) < 42 and self.runoffLabel is not None:
                 self.runoffLabel.setText(f"WPS: {msg}")
 
     @staticmethod
@@ -515,18 +515,16 @@ class RunOffComputer:
         self.url = get_string_from_yaml(self.urlPath, "URL")
         self.process_identifier = get_string_from_yaml(self.urlPath, "process_identifier")
         self.runoff_layer = self.cn_layer.clone()
-
         try:
             # Update the shape area for the runoff layer
             self.update_shape_area(self.runoff_layer)
 
             # Create new fields in the runoff layer for storing runoff data
             self.runoff_layer = self.create_new_fields(self.runoff_layer)
-
+        
             # If RunOffFlag is False, retrieve CSV data via WPS
             if not self.RunOffFlag:
                 self.csv_list = self.get_csvs_via_WPS()
-
             # Calculate base runoff values (CN2 and CN3)
             self.calculate_base_runoffs()
 
@@ -538,5 +536,5 @@ class RunOffComputer:
 
         except Exception as e:
             # Log any errors that occur during the process
-            QgsMessageLog.logMessage(f"Error in RunOffComputer: {str(e)}", "CzLandUseCN", level=Qgis.Warning)
+            QgsMessageLog.logMessage(f"Error in RunOffComputer: {str(e)}", "CzLandUseCN", level=Qgis.Critical)
             return None

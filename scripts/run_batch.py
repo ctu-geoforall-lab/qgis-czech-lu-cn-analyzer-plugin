@@ -33,8 +33,6 @@ LPIS_config = os.path.join(config_path, "LPIS.yaml")
 attribute_template = os.path.join(config_path, "zabaged_to_LandUseCode_table.yaml")
 stacking_template = os.path.join(config_path,
                                  "layers_merging_order.csv")
-lu_symbology = os.path.join(os.path.dirname(config_path), "colortables", "landuse.sld")
-soil_symbology = os.path.join(os.path.dirname(config_path), "colortables", "soil.sld")
 CN_table = os.path.join(config_path, "CN_table.csv")
 WPS_config = os.path.join(config_path, "WPS_config.yaml")
 
@@ -65,11 +63,11 @@ def save_layer(layer, output_path):
         os.makedirs(output_path)
 
     name = layer.name().replace(' ', '_')
-    gpkg_path = os.path.join(output_path, name + '.shp')
+    gpkg_path = os.path.join(output_path, name + '.gml')
 
     options = QgsVectorFileWriter.SaveVectorOptions()
     # options.driverName = "GPKG"
-    options.driverName = "Esri Shapefile"
+    options.driverName = "GML"
     options.layerName = name
     #options.layerOptions = ["FID=ogc_fid"]
 
@@ -125,27 +123,26 @@ if __name__ == "__main__":
     ymin, xmin, ymax, xmax, extent = wfs_downloader.get_wfs_info(wfs_layers)
 
     LandUseLayers = []
-    task = TASK_process_wfs_layer(wfs_layers, ymin, xmin, ymax, xmax, extent,
-                                  polygon_layer, True,
-                                  None, None, None, None, None, None,
-                                  LandUseLayers)
-    task.run()
+    task_wfs = TASK_process_wfs_layer(wfs_layers, ymin, xmin, ymax, xmax, extent,
+                                      polygon_layer, True,
+                                      None, None, None, None, None, None,
+                                      LandUseLayers)
+    task_wfs.run()
     
     message("Processing downloaded data...")   
-    task = TASK_edit_layers(attribute_template, LPIS_config, ZABAGED_config, stacking_template,
-                            lu_symbology, True, polygon_layer, ymin, xmin, ymax, xmax,
-                            None, None, LandUseLayers)
-    task.run()
-    merged_layer = task.merged_layer
-    save_layer(merged_layer, args_config["output"]["path"])
-    sys.exit(1)
+    task_edit = TASK_edit_layers(attribute_template, LPIS_config, ZABAGED_config, stacking_template,
+                                 None, True, polygon_layer, ymin, xmin, ymax, xmax,
+                                 None, None, LandUseLayers)
+    task_edit.run()
+    save_layer(task_edit.merged_layer, args_config["output"]["path"])
+
     
     message("Downloading soil data...")
     polygon_buffer_layer = buffer_QgsVectorLayer(polygon_layer, 25) # TODO: ymin?
-    task = TASK_process_soil_layer(polygon_buffer_layer, ymin, xmin, ymax, xmax,
+    task_soil = TASK_process_soil_layer(polygon_buffer_layer, ymin, xmin, ymax, xmax,
                                    extent, None, None, None, None)
-    task.run()
-    SoilLayer = QgsVectorLayer(task.polygoniziedLayer_Path, "Soil Layer", "ogr")
+    task_soil.run()
+    SoilLayer = QgsVectorLayer(task_soil.polygoniziedLayer_Path, "Soil Layer", "ogr")
     # Clip the layer by polygon that is not buffered
     clipped_soil_layer = simple_clip(SoilLayer, polygon_layer)
     # Add HSG attribute to the area defining polygon and use it as underline layer for water bodies
@@ -154,17 +151,17 @@ if __name__ == "__main__":
     polygon_layer = apply_simple_difference(polygon_layer, clipped_soil_layer)
     # Merge the clipped soil layer with the polygon that is not buffered
     clipped_soil_layer = merge_layers([polygon_layer, clipped_soil_layer],"Soil Layer HSG")
-    clipped_soil_layer.loadSldStyle(soil_symbology)
-
+    save_layer(clipped_soil_layer, args_config["output"]["path"])
+    
     message("Perform intersection...")
-    task = TASK_Intersection(clipped_soil_layer, merged_layer,
-                             None, None)
-    task.run()
-    combined_layer = task.combined_layer
-
+    task_inter = TASK_Intersection(clipped_soil_layer, task_edit.merged_layer,
+                                   None, None)
+    task_inter.run()
+    save_layer(task_inter.combined_layer, args_config["output"]["path"])
+    
     message("Compute CN...")
-    if combined_layer.fields().indexFromName("HSG") == -1 or \
-       combined_layer.fields().indexFromName("LandUse_code") == -1:
+    if task_inter.combined_layer.fields().indexFromName("HSG") == -1 or \
+       task_inter.combined_layer.fields().indexFromName("LandUse_code") == -1:
         QgsMessageLog.logMessage("Intersection layer does not contain HSG or LandUse_code attribute.",
                                  "CzLandUseCN", level=Qgis.Critical)
 
@@ -174,21 +171,22 @@ if __name__ == "__main__":
     if not is_valid_cn_csv(CN_table):
         QgsMessageLog.logMessage("CN table file is not valid.", "CzLandUseCN", level=Qgis.Critical)
     
-    task = TASK_CN(combined_layer, CN_table)
-    task.run()
-    CNLayer = task.CNLayer
-    CNLayer.setName("CN Layer")
-
+    task_cn = TASK_CN(task_inter.combined_layer, CN_table)
+    task_cn.run()
+    task_cn.CNLayer.setName("CN Layer")
+    save_layer(task_cn.CNLayer, args_config["output"]["path"])
+    
     message("Computing RunOff...")
-    if CNLayer.isValid() is False or CNLayer.fields().indexFromName("CN2") == -1:
+    if task_cn.CNLayer.isValid() is False or task_cn.CNLayer.fields().indexFromName("CN2") == -1:
         QgsMessageLog.logMessage("CN layer is not valid.", "CzLandUseCN", level=Qgis.Critical)
-        
-    task = TASK_RunOff(CNLayer, args_config["runoff"]["return_periods"],
-                       False, None,
-                       args_config["runoff"]["coefficient"],
-                       None, WPS_config)
-    task.run()
 
+    task_runoff = TASK_RunOff(task_cn.CNLayer, args_config["runoff"]["return_periods"],
+                              False, None,
+                              args_config["runoff"]["coefficient"],
+                              None, WPS_config)
+    task_runoff.run()
+    save_layer(task_runoff.RunOffLayer, args_config["output"]["path"])
+    
     del SoilLayer
     del clipped_soil_layer
     del polygon_buffer_layer    
