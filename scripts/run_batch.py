@@ -5,6 +5,7 @@ import sys
 import argparse
 import requests
 import yaml
+import types
 
 from PyQt5.QtCore import QVariant
 
@@ -12,18 +13,27 @@ sys.path.insert(0, "/usr/share/qgis/python/plugins")
 from qgis.core import QgsApplication, QgsVectorLayer, Qgis, QgsVectorFileWriter, QgsCoordinateTransformContext, QgsField
 from processing.core.Processing import Processing
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-print(sys.path)
-from .WFSdownloader import WFSDownloader
-from .SoilDownloader import simple_clip
-from .LayerEditor import dissolve_polygon, buffer_QgsVectorLayer, add_constant_atr, merge_layers, apply_simple_difference
-from .WFStask import TASK_process_wfs_layer
-from .LayerEditorTask import TASK_edit_layers
-from .SoilTask import TASK_process_soil_layer
-from .IntersectionTask import TASK_Intersection
-from .InputChecker import is_valid_cn_csv
-from .CNtask import TASK_CN
-from .RunOffTask import TASK_RunOff
+from pathlib import Path
+
+plugin_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# root dir contains hyphens...
+pkg_name = "qgis_plugin"
+package = types.ModuleType(pkg_name)
+package.__path__ = [str(plugin_root)]
+sys.modules[pkg_name] = package
+
+sys.path.insert(0, plugin_root)
+from qgis_plugin.WFSdownloader import WFSDownloader
+from qgis_plugin.SoilDownloader import simple_clip
+from qgis_plugin.LayerEditor import dissolve_polygon, buffer_QgsVectorLayer, add_constant_atr, merge_layers, apply_simple_difference
+from qgis_plugin.WFStask import TASK_process_wfs_layer
+from qgis_plugin.LayerEditorTask import TASK_edit_layers
+from qgis_plugin.SoilTask import TASK_process_soil_layer
+from qgis_plugin.IntersectionTask import TASK_Intersection
+from qgis_plugin.InputChecker import is_valid_cn_csv
+from qgis_plugin.CNtask import TASK_CN
+from qgis_plugin.RunOffTask import TASK_RunOff
 
 config_path = os.path.join(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__))),
