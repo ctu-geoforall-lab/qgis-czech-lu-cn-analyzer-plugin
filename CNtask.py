@@ -37,6 +37,7 @@ class TASK_CN(QgsTask):
             # Create CN layer
 
             self.CNLayer = cn_creator.CreateCNLayer()
+            self.CNLayer.setName("CN Layer")
 
             try:
                 add_cn_symbology(self.CNLayer , "CN2",

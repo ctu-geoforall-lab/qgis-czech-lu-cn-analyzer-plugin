@@ -173,7 +173,6 @@ if __name__ == "__main__":
     
     task_cn = TASK_CN(task_inter.combined_layer, CN_table)
     task_cn.run()
-    task_cn.CNLayer.setName("CN Layer")
     save_layer(task_cn.CNLayer, args_config["output"]["path"])
     
     message("Computing RunOff...")
