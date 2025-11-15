@@ -3,8 +3,8 @@ import os
 from qgis.core import QgsTask, QgsMessageLog, Qgis
 from PyQt5.QtCore import pyqtSignal
 
-from CNCreator import add_CN3_from_CN2, add_cn_symbology
-from RunOffComputer import RunOffComputer
+from .CNCreator import add_CN3_from_CN2, add_cn_symbology
+from .RunOffComputer import RunOffComputer
 
 
 class TASK_RunOff(QgsTask):

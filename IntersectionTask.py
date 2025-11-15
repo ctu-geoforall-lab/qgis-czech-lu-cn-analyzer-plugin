@@ -4,7 +4,7 @@ from PyQt5.QtCore import pyqtSignal
 from qgis.core import QgsTask, QgsMessageLog, Qgis, QgsProject, QgsMapLayerProxyModel
 import processing
 
-from LayerEditor import clip_larger_layer_to_smaller
+from .LayerEditor import clip_larger_layer_to_smaller
 
 class TASK_Intersection(QgsTask):
     """Task Intersect Soil and LandUse layers."""

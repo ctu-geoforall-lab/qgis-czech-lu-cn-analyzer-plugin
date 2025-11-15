@@ -1,7 +1,7 @@
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.core import QgsTask, QgsMessageLog, Qgis
 
-from LayerEditor import LayerEditor, resolve_overlaping_buffers
+from .LayerEditor import LayerEditor, resolve_overlaping_buffers
 
 class TASK_edit_layers(QgsTask):
     """Task to process WFS layers."""

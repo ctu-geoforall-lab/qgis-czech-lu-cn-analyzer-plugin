@@ -13,16 +13,17 @@ from qgis.core import QgsApplication, QgsVectorLayer, Qgis, QgsVectorFileWriter,
 from processing.core.Processing import Processing
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from WFSdownloader import WFSDownloader
-from SoilDownloader import simple_clip
-from LayerEditor import dissolve_polygon, buffer_QgsVectorLayer, add_constant_atr, merge_layers, apply_simple_difference
-from WFStask import TASK_process_wfs_layer
-from LayerEditorTask import TASK_edit_layers
-from SoilTask import TASK_process_soil_layer
-from IntersectionTask import TASK_Intersection
-from InputChecker import is_valid_cn_csv
-from CNtask import TASK_CN
-from RunOffTask import TASK_RunOff
+print(sys.path)
+from .WFSdownloader import WFSDownloader
+from .SoilDownloader import simple_clip
+from .LayerEditor import dissolve_polygon, buffer_QgsVectorLayer, add_constant_atr, merge_layers, apply_simple_difference
+from .WFStask import TASK_process_wfs_layer
+from .LayerEditorTask import TASK_edit_layers
+from .SoilTask import TASK_process_soil_layer
+from .IntersectionTask import TASK_Intersection
+from .InputChecker import is_valid_cn_csv
+from .CNtask import TASK_CN
+from .RunOffTask import TASK_RunOff
 
 config_path = os.path.join(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__))),

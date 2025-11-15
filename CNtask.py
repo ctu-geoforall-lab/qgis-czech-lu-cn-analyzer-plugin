@@ -3,7 +3,7 @@ import os
 from qgis.core import QgsTask, QgsMessageLog, Qgis
 from PyQt5.QtCore import pyqtSignal
 
-from CNCreator import CNCreator, add_cn_symbology, prune_cn_layer_fields
+from .CNCreator import CNCreator, add_cn_symbology, prune_cn_layer_fields
 
 
 class TASK_CN(QgsTask):

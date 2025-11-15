@@ -3,8 +3,8 @@ import os
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.core import QgsTask, QgsMessageLog, Qgis
 
-from WFSdownloader import WFSDownloader
-from PluginUtils import get_string_from_yaml
+from .WFSdownloader import WFSDownloader
+from .PluginUtils import get_string_from_yaml
 
 
 class TASK_process_wfs_layer(QgsTask):

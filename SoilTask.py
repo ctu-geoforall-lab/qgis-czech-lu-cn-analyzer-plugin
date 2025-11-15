@@ -9,9 +9,9 @@ from owslib.wps import WebProcessingService, monitorExecution
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.core import QgsTask, QgsMessageLog, Qgis, QgsVectorLayer, QgsFeature, QgsFeatureRequest, QgsWkbTypes, QgsGeometry, QgsRasterLayer, QgsProject, QgsApplication, QgsVectorLayer
 
-from WFSdownloader import WFSDownloader
-from PluginUtils import get_string_from_yaml
-from SoilDownloader import SoilDownloader, load_tiff_from_zip, polygonize_raster
+from .WFSdownloader import WFSDownloader
+from .PluginUtils import get_string_from_yaml
+from .SoilDownloader import SoilDownloader, load_tiff_from_zip, polygonize_raster
 
 
 class TASK_process_soil_layer(QgsTask):
