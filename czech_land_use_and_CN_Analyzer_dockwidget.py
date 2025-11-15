@@ -1,4 +1,4 @@
-\# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  czech_land_use_and_CN_AnalyzerDockWidget
