@@ -539,10 +539,6 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         self.CNButton.setEnabled(True)
         iface.messageBar().clearWidgets()
 
-        layer.setName("CN Layer")
-        # Apply the symbology to the CN layer
-
-
         self.mMapLayerComboBox_CN.setLayer(QgsProject.instance().addMapLayer(layer))
         iface.messageBar().pushMessage("Success", "Task completed successfully", level=Qgis.Success, duration=5)
 
@@ -600,7 +596,7 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
         # Add the RunOff layer to the QGIS project
         RunOffLayer = RunOffLayer[0]
-        RunOffLayer.setName("RunOff Layer")
+
         QgsProject.instance().addMapLayer(RunOffLayer)
         self.pushButton_runoff.setEnabled(True)
         self.runoffLabel.setText("Success!")

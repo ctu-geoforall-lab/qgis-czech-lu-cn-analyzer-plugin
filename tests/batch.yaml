@@ -1,0 +1,13 @@
+download:
+  aoi: "tests/input_files/testing_polygon.gpkg"
+runoff:
+  coefficient: 0.2
+  return_periods:
+    - "N2"
+    - "N5"
+    - "N10"
+    - "N20"
+    - "N50"
+    - "N100"
+output:
+  path: /tmp/batch

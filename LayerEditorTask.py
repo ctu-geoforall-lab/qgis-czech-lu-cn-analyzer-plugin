@@ -1,6 +1,6 @@
-from .WFSdownloader import WFSDownloader
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.core import QgsTask, QgsMessageLog, Qgis
+
 from .LayerEditor import LayerEditor, resolve_overlaping_buffers
 
 class TASK_edit_layers(QgsTask):
@@ -28,7 +28,8 @@ class TASK_edit_layers(QgsTask):
         self.LandUseLayers = LandUseLayers
         self._is_canceled = False
         self.merged_layer = None
-        self.abortButton.clicked.connect(self.cancel)
+        if self.abortButton is not None:
+            self.abortButton.clicked.connect(self.cancel)
 
     def _update_progress_bar(self, new_value):
         """Update the progress bar"""

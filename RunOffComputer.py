@@ -343,7 +343,7 @@ class RunOffComputer:
                 "CzLandUseCN", level=Qgis.Info
             )
 
-            if len(msg) < 42:
+            if len(msg) < 42 and self.runoffLabel is not None:
                 self.runoffLabel.setText(f"WPS: {msg}")
 
     @staticmethod
@@ -538,5 +538,5 @@ class RunOffComputer:
 
         except Exception as e:
             # Log any errors that occur during the process
-            QgsMessageLog.logMessage(f"Error in RunOffComputer: {str(e)}", "CzLandUseCN", level=Qgis.Warning)
+            QgsMessageLog.logMessage(f"Error in RunOffComputer: {str(e)}", "CzLandUseCN", level=Qgis.Critical)
             return None
