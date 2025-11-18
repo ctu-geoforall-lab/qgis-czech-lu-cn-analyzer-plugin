@@ -139,6 +139,7 @@ if __name__ == "__main__":
                                       None, None, None, None, None, None,
                                       LandUseLayers)
     task_wfs.run()
+    sys.exit(1)
     
     message("Processing downloaded data...")   
     task_edit = TASK_edit_layers(attribute_template, LPIS_config, ZABAGED_config, stacking_template,

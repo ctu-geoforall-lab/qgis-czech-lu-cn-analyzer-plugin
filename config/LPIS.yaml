@@ -1,5 +1,5 @@
 # URL: https://mze.gov.cz/public/app/wms/plpis_wfs.fcgi
-DATA_SOURCE: /home/martin/geodata/lpis_20250104.gdb
+URI: file://home/martin/geodata/lpis_20250104.gdb
 # LPIS WFS layer name with desired polygons.
 # layer_name: LPIS_DPB_UCINNE
 layer_name: lpis_20250104
