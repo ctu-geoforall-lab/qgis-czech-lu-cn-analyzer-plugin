@@ -61,7 +61,7 @@ class TASK_process_wfs_layer(QgsTask):
 
         try:
             zabaged_URL = get_string_from_yaml(os.path.join(os.path.dirname(__file__), 'config', 'ZABAGED.yaml'),
-                                               "URL")
+                                               "URI")
 
             i = 1
             for self.layer in self.wfs_layers:

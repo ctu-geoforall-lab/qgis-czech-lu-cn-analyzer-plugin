@@ -3,7 +3,7 @@ URI: file://home/martin/geodata/ZABAGED202412.gdb
 
 # This list contains buffer options, values in controlling_atr_name change length of buffers for point/line objects. Distance is in meters.
 buffer_layers:
-  - input_layer_name: "ZABAGED_POLOHOPIS:Silnice__dálnice"
+  - input_layer_name: "SilniceDalnice"
     controlling_atr_name: "typsil_k"
     buffer_levels:
       - priority: "1"
@@ -17,7 +17,7 @@ buffer_layers:
         distance: 5
     default_buffer: 4.5
 
-  - input_layer_name: "ZABAGED_POLOHOPIS:Osa_letištní_dráhy" # since buffering by random int in controlling_atr is not implemented yet, default_buffer is  20 wich is mean value of all of them and most common widths are also here
+  - input_layer_name: "OsaLetistniDrahy" # since buffering by random int in controlling_atr is not implemented yet, default_buffer is  20 wich is mean value of all of them and most common widths are also here
     controlling_atr_name: "sirka"
     buffer_levels:
       - priority: "1"
@@ -40,30 +40,30 @@ buffer_layers:
         distance: 40
     default_buffer: 20
 
-  - input_layer_name: "ZABAGED_POLOHOPIS:Silnice_neevidovaná"
+  - input_layer_name: "SilniceNeevidovana"
     controlling_atr_name: "NaN"
     default_buffer: 2.5
 
-  - input_layer_name: "ZABAGED_POLOHOPIS:Ulice"
+  - input_layer_name: "Ulice"
     controlling_atr_name: "NaN"
     default_buffer: 3
     
-  - input_layer_name: "ZABAGED_POLOHOPIS:Liniová_vegetace"
+  - input_layer_name: "LiniovaVegetace"
     controlling_atr_name: "NaN"
     default_buffer: 3
  
-  - input_layer_name: "ZABAGED_POLOHOPIS:Železniční_trať"
-    controlling_atr_name: "NaN"
-    default_buffer: 2.5
-    
-  - input_layer_name: "ZABAGED_POLOHOPIS:Železniční_vlečka"
+  - input_layer_name: "ZeleznicniTrat"
     controlling_atr_name: "NaN"
     default_buffer: 2.5
 
+  - input_layer_name: "ZeleznicniVlecka"
+    controlling_atr_name: "NaN"
+    default_buffer: 2.5
+    
 # This list contains settings for ZABAGED layers where their LandUse code is updated by some value in its attribute.
 # base_use_code is the LandUse code for the whole layer, and numbers from values in the controlling attribute are added to base_use_code.
 layers:
-  - name: "ZABAGED_POLOHOPIS:Lesní_půda_se_stromy_kategorizovaná__plocha_"
+  - name: "LesniPudaSeStromyKategorizovana"
     base_use_code: 30000
     controlling_attribute: "druh_k"
     value_increments:
@@ -72,7 +72,7 @@ layers:
       L: 3100 # listnaty
       S: 3300 # smiseny
 
-  - name: "ZABAGED_POLOHOPIS:Heliport"
+  - name: "Heliport"
     base_use_code: 44100
     controlling_attribute: "povrfato_k"
     value_increments:
@@ -81,14 +81,14 @@ layers:
       H: 100 # nedostatečně zpevněný (tráva, hlína, písek, kamení)
       S: 100 # smíšený (nejednotný povrch)
 
-  - name: "ZABAGED_POLOHOPIS:Orná_půda_a_ostatní_dále_nespecifikované_plochy"
+  - name: "OrnaPudaAOstatniDaleNespecifikovanePlochy"
     base_use_code: 10000  
-    controlling_attribute: "TYP_PUDY_K"
+    controlling_attribute: "typ_pudy_p"
     value_increments:
       OR: 0      # orna
       OSN: 34200 # ostatni
 
-  - name: "ZABAGED_POLOHOPIS:Elektrárna__plocha_"
+  - name: "Elektrarna"
     base_use_code: 44200
     controlling_attribute: "PODTYPEL_K"
     value_increments:
@@ -100,7 +100,7 @@ layers:
       "011": 100  # vodní přečerpávací
       "012": 100  # ostatní alternativní
 
-  - name: "ZABAGED_POLOHOPIS:Rozvalina__zřícenina"
+  - name: "RozvalinaZricenina"
     base_use_code: 44200
     controlling_attribute: "podtypob_k"
     value_increments:
@@ -108,7 +108,7 @@ layers:
       Z: 100  # zricenina
       ZH: 100 # zricenina hradu
       ZZ: 100 # zricenina zamku
-  - name: "ZABAGED_POLOHOPIS:Areál_účelové_zástavby" # while selecting from INTRAVILAN/EXTRAVILAN temporary was selected the lower number (more water resilient Land Use code)
+  - name: "ArealUceloveZastavby" # while selecting from INTRAVILAN/EXTRAVILAN temporary was selected the lower number (more water resilient Land Use code)
     base_use_code: 44100
     controlling_attribute: "typzast_k"
     value_increments:
@@ -174,7 +174,7 @@ layers:
       418: 100  # policejní areál - bez omezení
       
       
-  - name: "ZABAGED_POLOHOPIS:Povrchová_těžba__lom"
+  - name: "PovrchovaTezbaLom"
     base_use_code: 44100
     controlling_attribute: "DRUHTEZ_K"
     value_increments:
@@ -190,7 +190,7 @@ layers:
       39: 100   # ostatní nerudy
       −1: 100   # nezadáno/neznámo
       
-  - name: "ZABAGED_POLOHOPIS:Osa_letištní_dráhy"
+  - name: "OsaLetistniDrahy"
     base_use_code: 22100
     controlling_attribute: "povrch_k"
     value_increments:

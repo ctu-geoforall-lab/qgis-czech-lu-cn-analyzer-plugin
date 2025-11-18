@@ -131,6 +131,7 @@ if __name__ == "__main__":
     wfs_downloader = WFSDownloader(os.path.join(config_path, "layers_merging_order.csv"),
                                    True, polygon_layer, True)
     wfs_layers = wfs_downloader.get_ZABAGED_layers_list()
+
     ymin, xmin, ymax, xmax, extent = wfs_downloader.get_wfs_info(wfs_layers)
 
     LandUseLayers = []
@@ -139,7 +140,6 @@ if __name__ == "__main__":
                                       None, None, None, None, None, None,
                                       LandUseLayers)
     task_wfs.run()
-    sys.exit(1)
     
     message("Processing downloaded data...")   
     task_edit = TASK_edit_layers(attribute_template, LPIS_config, ZABAGED_config, stacking_template,
