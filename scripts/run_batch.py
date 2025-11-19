@@ -7,6 +7,7 @@ import requests
 import yaml
 import types
 
+os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 from PyQt5.QtCore import QVariant
 
 sys.path.insert(0, "/usr/share/qgis/python/plugins")
@@ -114,8 +115,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     args_config = read_config(args.config)
-    if not os.path.isfile(args_config["download"]["aoi"]):
-        print(f"Chyba: Soubor '{args_config["download"]["aoi"]}' neexistuje.")
+    aoi_file = args_config["download"]["aoi"]
+    if not os.path.isfile(aoi_file):
+        print(f"Chyba: Soubor '{aoi_file}' neexistuje.")
         sys.exit(1)
 
     layer_name = "testing_polygon"
