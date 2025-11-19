@@ -147,7 +147,6 @@ if __name__ == "__main__":
                                  None, None, LandUseLayers)
     task_edit.run()
     save_layer(task_edit.merged_layer, args_config["output"]["path"])
-
     
     message("Downloading soil data...")
     polygon_buffer_layer = buffer_QgsVectorLayer(polygon_layer, 25) # TODO: ymin?
