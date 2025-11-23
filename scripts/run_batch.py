@@ -36,6 +36,7 @@ from qgis_plugin.InputChecker import is_valid_cn_csv
 from qgis_plugin.CNtask import TASK_CN
 from qgis_plugin.RunOffTask import TASK_RunOff
 
+### os.environ["GDAL_NUM_THREADS"] = "8"
 config_path = os.path.join(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__))),
     "config"
@@ -120,10 +121,10 @@ if __name__ == "__main__":
         print(f"Chyba: Soubor '{aoi_file}' neexistuje.")
         sys.exit(1)
 
-    layer_name = "testing_polygon"
+    layer_name = "aoi"
     # Load the polygon GeoPackage layer
     polygon_layer = QgsVectorLayer(
-        f'{args_config["download"]["aoi"]}|layername={layer_name}', layer_name, "ogr"
+        f'{args_config["download"]["aoi"]}', layer_name, "ogr"
     )
 
     # disslove the polygon layer for faster processing
@@ -142,14 +143,14 @@ if __name__ == "__main__":
                                       None, None, None, None, None, None,
                                       LandUseLayers)
     task_wfs.run()
-    
+
     message("Processing downloaded data...")   
     task_edit = TASK_edit_layers(attribute_template, LPIS_config, ZABAGED_config, stacking_template,
                                  None, True, polygon_layer, ymin, xmin, ymax, xmax,
                                  None, None, LandUseLayers)
     task_edit.run()
     save_layer(task_edit.merged_layer, args_config["output"]["path"])
-    
+
     message("Downloading soil data...")
     polygon_buffer_layer = buffer_QgsVectorLayer(polygon_layer, 25) # TODO: ymin?
     task_soil = TASK_process_soil_layer(polygon_buffer_layer, ymin, xmin, ymax, xmax,

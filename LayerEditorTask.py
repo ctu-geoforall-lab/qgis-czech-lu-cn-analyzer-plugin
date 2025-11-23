@@ -85,7 +85,7 @@ class TASK_edit_layers(QgsTask):
             return True
 
         except Exception as e:
-            QgsMessageLog.logMessage(f"Error occurred: {e}", "CzLandUseCN", level=Qgis.Warning,
+            QgsMessageLog.logMessage(f"Error occurred: {e}", "CzLandUseCN", level=Qgis.Critical,
                                      notifyUser=True)
             self.taskError_edit.emit(str(e))
             return False
