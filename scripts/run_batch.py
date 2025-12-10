@@ -6,35 +6,10 @@ import argparse
 import requests
 import yaml
 import types
+from pathlib import Path
 
 os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 from PyQt5.QtCore import QVariant
-
-sys.path.insert(0, "/usr/share/qgis/python/plugins")
-from qgis.core import QgsApplication, QgsVectorLayer, Qgis, QgsVectorFileWriter, QgsCoordinateTransformContext, QgsField
-from processing.core.Processing import Processing
-
-from pathlib import Path
-
-plugin_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# root dir contains hyphens...
-pkg_name = "qgis_plugin"
-package = types.ModuleType(pkg_name)
-package.__path__ = [str(plugin_root)]
-sys.modules[pkg_name] = package
-
-sys.path.insert(0, plugin_root)
-from qgis_plugin.WFSdownloader import WFSDownloader
-from qgis_plugin.SoilDownloader import simple_clip
-from qgis_plugin.LayerEditor import dissolve_polygon, buffer_QgsVectorLayer, add_constant_atr, merge_layers, apply_simple_difference
-from qgis_plugin.WFStask import TASK_process_wfs_layer
-from qgis_plugin.LayerEditorTask import TASK_edit_layers
-from qgis_plugin.SoilTask import TASK_process_soil_layer
-from qgis_plugin.IntersectionTask import TASK_Intersection
-from qgis_plugin.InputChecker import is_valid_cn_csv
-from qgis_plugin.CNtask import TASK_CN
-from qgis_plugin.RunOffTask import TASK_RunOff
 
 ### os.environ["GDAL_NUM_THREADS"] = "8"
 config_path = os.path.join(os.path.dirname(
@@ -95,41 +70,7 @@ def save_layer(layer, output_path):
         message(f"Error storing {layer.name()}: {error_message}")
         sys.exit(1)
 
-if __name__ == "__main__":
-    # Initialize QGIS application in the main thread
-    QgsApplication.setPrefixPath("/usr", True)
-    qgs = QgsApplication([], False)
-    qgs.initQgis()
-    Processing.initialize()
-    QgsApplication.messageLog().messageReceived.connect(log_to_stderr)
-
-    parser = argparse.ArgumentParser(
-        description="Run computation in batch process."
-    )
-
-    parser.add_argument(
-        "config",
-        type=str,
-        help="YAML config"
-    )
-
-    args = parser.parse_args()
-
-    args_config = read_config(args.config)
-    aoi_file = args_config["download"]["aoi"]
-    if not os.path.isfile(aoi_file):
-        print(f"Chyba: Soubor '{aoi_file}' neexistuje.")
-        sys.exit(1)
-
-    layer_name = "aoi"
-    # Load the polygon GeoPackage layer
-    polygon_layer = QgsVectorLayer(
-        f'{args_config["download"]["aoi"]}', layer_name, "ogr"
-    )
-
-    # disslove the polygon layer for faster processing
-    polygon_layer = dissolve_polygon(polygon_layer)
-
+def process_aoi(polygon_layer, output_path):
     message("Downloading ZABAGED and LPIS data...")
     wfs_downloader = WFSDownloader(os.path.join(config_path, "layers_merging_order.csv"),
                                    True, polygon_layer, True)
@@ -149,7 +90,7 @@ if __name__ == "__main__":
                                  None, True, polygon_layer, ymin, xmin, ymax, xmax,
                                  None, None, LandUseLayers)
     task_edit.run()
-    save_layer(task_edit.merged_layer, args_config["output"]["path"])
+    save_layer(task_edit.merged_layer, output_path)
 
     message("Downloading soil data...")
     polygon_buffer_layer = buffer_QgsVectorLayer(polygon_layer, 25) # TODO: ymin?
@@ -165,13 +106,13 @@ if __name__ == "__main__":
     polygon_layer = apply_simple_difference(polygon_layer, clipped_soil_layer)
     # Merge the clipped soil layer with the polygon that is not buffered
     clipped_soil_layer = merge_layers([polygon_layer, clipped_soil_layer],"Soil Layer HSG")
-    save_layer(clipped_soil_layer, args_config["output"]["path"])
+    save_layer(clipped_soil_layer, output_path)
     
     message("Perform intersection...")
     task_inter = TASK_Intersection(clipped_soil_layer, task_edit.merged_layer,
                                    None, None)
     task_inter.run()
-    save_layer(task_inter.combined_layer, args_config["output"]["path"])
+    save_layer(task_inter.combined_layer, output_path)
     
     message("Compute CN...")
     if task_inter.combined_layer.fields().indexFromName("HSG") == -1 or \
@@ -187,7 +128,7 @@ if __name__ == "__main__":
     
     task_cn = TASK_CN(task_inter.combined_layer, CN_table)
     task_cn.run()
-    save_layer(task_cn.CNLayer, args_config["output"]["path"])
+    save_layer(task_cn.CNLayer, output_path)
     
     message("Computing RunOff...")
     if task_cn.CNLayer.isValid() is False or task_cn.CNLayer.fields().indexFromName("CN2") == -1:
@@ -198,13 +139,119 @@ if __name__ == "__main__":
                               args_config["runoff"]["coefficient"],
                               None, WPS_config)
     task_runoff.run()
-    save_layer(task_runoff.RunOffLayer, args_config["output"]["path"])
+    save_layer(task_runoff.RunOffLayer, output_path)
     
     del SoilLayer
     del clipped_soil_layer
     del polygon_buffer_layer    
     del polygon_layer
-    # Exit QGIS application
+
+def create_layer(layer, feature):
+    # create memory layer for single feature
+    mem_layer = QgsVectorLayer(
+        f"{QgsWkbTypes.displayString(layer.wkbType())}?crs={layer.crs().authid()}",
+        "aoi_layer",
+        "memory"
+    )
+
+    mem_layer_data = mem_layer.dataProvider()
+    mem_layer_data.addAttributes(layer.fields())
+    mem_layer.updateFields()
+
+    new_f = QgsFeature(mem_layer.fields())
+    new_f.setGeometry(feature.geometry())
+    new_f.setAttributes(feature.attributes())
+
+    mem_layer_data.addFeature(new_f)
+    mem_layer.updateExtents()
+
+    return mem_layer
+
+if __name__ == "__main__":
+    # define parser
+    parser = argparse.ArgumentParser(
+        description="Run computation in batch process."
+    )
+
+    parser.add_argument(
+        "config",
+        type=str,
+        help="YAML config"
+    )
+
+    args = parser.parse_args()
+
+    args_config = read_config(args.config)
+
+    sys.path.insert(0, str(Path(
+        args_config["settings"]["qgis_path"]) / "share" / "qgis" / "python" / "plugins")
+    )
+    from qgis.core import QgsApplication, QgsVectorLayer, Qgis, QgsVectorFileWriter, QgsCoordinateTransformContext, QgsField, QgsFeature, QgsWkbTypes
+    from processing.core.Processing import Processing
+
+    plugin_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    # root dir contains hyphens...
+    pkg_name = "qgis_plugin"
+    package = types.ModuleType(pkg_name)
+    package.__path__ = [str(plugin_root)]
+    sys.modules[pkg_name] = package
+
+    sys.path.insert(0, plugin_root)
+    from qgis_plugin.WFSdownloader import WFSDownloader
+    from qgis_plugin.SoilDownloader import simple_clip
+    from qgis_plugin.LayerEditor import dissolve_polygon, buffer_QgsVectorLayer, add_constant_atr, merge_layers, apply_simple_difference
+    from qgis_plugin.WFStask import TASK_process_wfs_layer
+    from qgis_plugin.LayerEditorTask import TASK_edit_layers
+    from qgis_plugin.SoilTask import TASK_process_soil_layer
+    from qgis_plugin.IntersectionTask import TASK_Intersection
+    from qgis_plugin.InputChecker import is_valid_cn_csv
+    from qgis_plugin.CNtask import TASK_CN
+    from qgis_plugin.RunOffTask import TASK_RunOff
+
+    # initialize QGIS application in the main thread
+    QgsApplication.setPrefixPath(args_config["settings"]["qgis_path"], True)
+    qgs = QgsApplication([], False)
+    qgs.initQgis()
+    Processing.initialize()
+    QgsApplication.messageLog().messageReceived.connect(log_to_stderr)
+
+    # process area of interest
+    aoi_path = Path(args_config["download"]["aoi"])
+    if not aoi_path.exists():
+        print(f"Chyba: Soubor '{aoi_path}' neexistuje.")
+        sys.exit(1)
+
+    # Load the polygon GeoPackage layer
+    polygon_layer = QgsVectorLayer(
+        str(aoi_path), aoi_path.stem, "ogr"
+    )
+
+    if args_config["download"]["aoi_per_feature"] is False:
+        # disolve the polygon layer for faster processing
+        polygon_layer = dissolve_polygon(polygon_layer)
+
+    output_path = Path(args_config["output"]["path"])
+    n_workers = args_config["settings"]["workers"]
+    if n_workers > 1:
+        from joblib import Parallel, delayed 
+
+        Parallel(n_jobs=n_workers, backend="threading")(
+            delayed(process_aoi)
+            (create_layer(polygon_layer, aoi_feat),
+                output_path if args_config["download"]["aoi_per_feature"] is False
+                else output_path / str(aoi_feat.id()).zfill(3)) for aoi_feat in polygon_layer.getFeatures()
+        )
+    else:
+        for aoi_feat in polygon_layer.getFeatures():
+            process_aoi(
+                create_layer(polygon_layer, aoi_feat),
+                output_path if args_config["download"]["aoi_per_feature"] is False
+                else output_path / str(aoi_feat.id()).zfill(3)
+            )
+
+    del polygon_layer
+
+    # exit QGIS application
     qgs.exitQgis()
 
-    

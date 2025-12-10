@@ -1,5 +1,6 @@
 download:
   aoi: "tests/input_files/testing_polygon.gpkg"
+  aoi_per_feature: False
 runoff:
   coefficient: 0.2
   return_periods:
@@ -11,3 +12,6 @@ runoff:
     - "N100"
 output:
   path: /tmp/batch
+settings:
+  qgis_path: /usr
+  workers: 1
