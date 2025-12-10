@@ -11,3 +11,6 @@ runoff:
     - "N100"
 output:
   path: /tmp/batch
+settings:
+  qgis_path: /usr
+  workers: 8

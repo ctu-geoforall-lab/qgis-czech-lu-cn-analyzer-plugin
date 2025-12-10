@@ -93,35 +93,14 @@ def save_layer(layer, output_path):
         message(f"Error storing {layer.name()}: {error_message}")
         sys.exit(1)
 
-if __name__ == "__main__":
-    # Initialize QGIS application in the main thread
-    QgsApplication.setPrefixPath("/usr", True)
-    qgs = QgsApplication([], False)
-    qgs.initQgis()
-    Processing.initialize()
-    QgsApplication.messageLog().messageReceived.connect(log_to_stderr)
-
-    parser = argparse.ArgumentParser(
-        description="Run computation in batch process."
-    )
-
-    parser.add_argument(
-        "config",
-        type=str,
-        help="YAML config"
-    )
-
-    args = parser.parse_args()
-
-    args_config = read_config(args.config)
+def process_aoi(aoi_path):
     if not os.path.isfile(args_config["download"]["aoi"]):
         print(f"Chyba: Soubor '{args_config["download"]["aoi"]}' neexistuje.")
-        sys.exit(1)
+        return
 
-    layer_name = "testing_polygon"
     # Load the polygon GeoPackage layer
     polygon_layer = QgsVectorLayer(
-        f'{args_config["download"]["aoi"]}|layername={layer_name}', layer_name, "ogr"
+        aoi_path, "aoi", "ogr"
     )
 
     # disslove the polygon layer for faster processing
@@ -201,7 +180,35 @@ if __name__ == "__main__":
     del clipped_soil_layer
     del polygon_buffer_layer    
     del polygon_layer
-    # Exit QGIS application
+
+if __name__ == "__main__":
+    # define parser
+    parser = argparse.ArgumentParser(
+        description="Run computation in batch process."
+    )
+
+    parser.add_argument(
+        "config",
+        type=str,
+        help="YAML config"
+    )
+
+    args = parser.parse_args()
+
+    args_config = read_config(args.config)
+   
+    # initialize QGIS application in the main thread
+    QgsApplication.setPrefixPath(args_config["settings"]["qgis_path"], True)
+    qgs = QgsApplication([], False)
+    qgs.initQgis()
+    Processing.initialize()
+    QgsApplication.messageLog().messageReceived.connect(log_to_stderr)
+
+    # process area of interest
+    process_aoi(
+        args_config["download"]["aoi"]
+    )
+
+    # exit QGIS application
     qgs.exitQgis()
 
-    
