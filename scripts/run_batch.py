@@ -68,19 +68,8 @@ def save_layer(layer, output_path):
         message(f"Error storing {layer.name()}: {error_message}")
         sys.exit(1)
 
-def process_aoi(aoi_path, output_path):
-    if not aoi_path.exists():
-        print(f"Chyba: Soubor '{aoi_path}' neexistuje.")
-        return
-
-    # Load the polygon GeoPackage layer
-    polygon_layer = QgsVectorLayer(
-        str(aoi_path), aoi_path.stem, "ogr"
-    )
-
-    # disslove the polygon layer for faster processing
-    polygon_layer = dissolve_polygon(polygon_layer)
-
+def process_aoi(polygon_layer, output_path):
+    print(polygon_layer, output_path)
     message("Downloading ZABAGED and LPIS data...")
     wfs_downloader = WFSDownloader(os.path.join(config_path, "layers_merging_order.csv"),
                                    True, polygon_layer, True)
@@ -156,6 +145,27 @@ def process_aoi(aoi_path, output_path):
     del polygon_buffer_layer    
     del polygon_layer
 
+def create_layer(layer, feature):
+    # create memory layer for single feature
+    mem_layer = QgsVectorLayer(
+        f"{QgsWkbTypes.displayString(layer.wkbType())}?crs={layer.crs().authid()}",
+        "aoi_layer",
+        "memory"
+    )
+
+    mem_layer_data = mem_layer.dataProvider()
+    mem_layer_data.addAttributes(layer.fields())
+    mem_layer.updateFields()
+
+    new_f = QgsFeature(mem_layer.fields())
+    new_f.setGeometry(feature.geometry())
+    new_f.setAttributes(feature.attributes())
+
+    mem_layer_data.addFeature(new_f)
+    mem_layer.updateExtents()
+
+    return mem_layer
+
 if __name__ == "__main__":
     # define parser
     parser = argparse.ArgumentParser(
@@ -175,7 +185,7 @@ if __name__ == "__main__":
     sys.path.insert(0, str(Path(
         args_config["settings"]["qgis_path"]) / "share" / "qgis" / "python" / "plugins")
     )
-    from qgis.core import QgsApplication, QgsVectorLayer, Qgis, QgsVectorFileWriter, QgsCoordinateTransformContext, QgsField
+    from qgis.core import QgsApplication, QgsVectorLayer, Qgis, QgsVectorFileWriter, QgsCoordinateTransformContext, QgsField, QgsFeature, QgsWkbTypes
     from processing.core.Processing import Processing
 
     plugin_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -206,22 +216,41 @@ if __name__ == "__main__":
     QgsApplication.messageLog().messageReceived.connect(log_to_stderr)
 
     # process area of interest
+    aoi_path = Path(args_config["download"]["aoi"])
+    if not aoi_path.exists():
+        print(f"Chyba: Soubor '{aoi_path}' neexistuje.")
+        sys.exit(1)
+
+    # Load the polygon GeoPackage layer
+    polygon_layer = QgsVectorLayer(
+        str(aoi_path), aoi_path.stem, "ogr"
+    )
+
+    if args_config["download"]["aoi_per_feature"] is False:
+        print('dissolve')
+        # disolve the polygon layer for faster processing
+        polygon_layer = dissolve_polygon(polygon_layer)
+
+    output_path = Path(args_config["output"]["path"])
     n_workers = args_config["settings"]["workers"]
     if n_workers > 1:
         from joblib import Parallel, delayed 
 
-        aoi_path = Path(args_config["download"]["aoi"])
-        dir_path = Path(aoi_path).parent
-        aoi_files = dir_path.glob(Path(aoi_path).name)
         Parallel(n_jobs=n_workers, backend="threading")(
             delayed(process_aoi)
-            (aoi_filename, Path(args_config["output"]["path"]) / aoi_filename.stem) for aoi_filename in aoi_files
+            (create_layer(polygon_layer, aoi_feat),
+             Path(args_config["output"]["path"]) / str(aoi_feat.id())) for aoi_feat in polygon_layer.getFeatures()
         )
     else:
-        process_aoi(
-            Path(args_config["download"]["aoi"]),
-            Path(args_config["output"]["path"])
-        )
+        for aoi_feat in polygon_layer.getFeatures():
+            print(aoi_feat)
+            process_aoi(
+                create_layer(polygon_layer, aoi_feat),
+                output_path if args_config["download"]["aoi_per_feature"] is False
+                else output_path / str(aoi_feat.id()).zfill(3)
+            )
+
+    del polygon_layer
 
     # exit QGIS application
     qgs.exitQgis()
