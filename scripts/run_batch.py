@@ -204,10 +204,13 @@ if __name__ == "__main__":
     Processing.initialize()
     QgsApplication.messageLog().messageReceived.connect(log_to_stderr)
 
-    # process area of interest
-    process_aoi(
-        args_config["download"]["aoi"]
-    )
+    if args_config["settings"]["workers"] > 1:
+        import joblib
+    else:
+        # process area of interest
+        process_aoi(
+            args_config["download"]["aoi"]
+        )
 
     # exit QGIS application
     qgs.exitQgis()

@@ -13,4 +13,4 @@ output:
   path: /tmp/batch
 settings:
   qgis_path: /usr
-  workers: 8
+  workers: 1
