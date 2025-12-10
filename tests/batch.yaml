@@ -1,5 +1,6 @@
 download:
-  aoi: "tests/input_files/testing_polygon.gpkg"
+#  aoi: "tests/input_files/testing_polygon.gpkg"
+  aoi: "tests/input_files/testing_polygon*.gpkg"
 runoff:
   coefficient: 0.2
   return_periods:
@@ -13,4 +14,4 @@ output:
   path: /tmp/batch
 settings:
   qgis_path: /usr
-  workers: 1
+  workers: 2

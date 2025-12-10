@@ -10,8 +10,6 @@ from pathlib import Path
 
 from PyQt5.QtCore import QVariant
 
-from pathlib import Path
-
 config_path = os.path.join(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__))),
     "config"
@@ -70,14 +68,14 @@ def save_layer(layer, output_path):
         message(f"Error storing {layer.name()}: {error_message}")
         sys.exit(1)
 
-def process_aoi(aoi_path):
-    if not os.path.isfile(args_config["download"]["aoi"]):
-        print(f"Chyba: Soubor '{args_config["download"]["aoi"]}' neexistuje.")
+def process_aoi(aoi_path, output_path):
+    if not aoi_path.exists():
+        print(f"Chyba: Soubor '{aoi_path}' neexistuje.")
         return
 
     # Load the polygon GeoPackage layer
     polygon_layer = QgsVectorLayer(
-        aoi_path, "aoi", "ogr"
+        str(aoi_path), aoi_path.stem, "ogr"
     )
 
     # disslove the polygon layer for faster processing
@@ -101,7 +99,7 @@ def process_aoi(aoi_path):
                                  None, True, polygon_layer, ymin, xmin, ymax, xmax,
                                  None, None, LandUseLayers)
     task_edit.run()
-    save_layer(task_edit.merged_layer, args_config["output"]["path"])
+    save_layer(task_edit.merged_layer, output_path)
 
     
     message("Downloading soil data...")
@@ -118,13 +116,13 @@ def process_aoi(aoi_path):
     polygon_layer = apply_simple_difference(polygon_layer, clipped_soil_layer)
     # Merge the clipped soil layer with the polygon that is not buffered
     clipped_soil_layer = merge_layers([polygon_layer, clipped_soil_layer],"Soil Layer HSG")
-    save_layer(clipped_soil_layer, args_config["output"]["path"])
+    save_layer(clipped_soil_layer, output_path)
     
     message("Perform intersection...")
     task_inter = TASK_Intersection(clipped_soil_layer, task_edit.merged_layer,
                                    None, None)
     task_inter.run()
-    save_layer(task_inter.combined_layer, args_config["output"]["path"])
+    save_layer(task_inter.combined_layer, output_path)
     
     message("Compute CN...")
     if task_inter.combined_layer.fields().indexFromName("HSG") == -1 or \
@@ -140,7 +138,7 @@ def process_aoi(aoi_path):
     
     task_cn = TASK_CN(task_inter.combined_layer, CN_table)
     task_cn.run()
-    save_layer(task_cn.CNLayer, args_config["output"]["path"])
+    save_layer(task_cn.CNLayer, output_path)
     
     message("Computing RunOff...")
     if task_cn.CNLayer.isValid() is False or task_cn.CNLayer.fields().indexFromName("CN2") == -1:
@@ -151,7 +149,7 @@ def process_aoi(aoi_path):
                               args_config["runoff"]["coefficient"],
                               None, WPS_config)
     task_runoff.run()
-    save_layer(task_runoff.RunOffLayer, args_config["output"]["path"])
+    save_layer(task_runoff.RunOffLayer, output_path)
     
     del SoilLayer
     del clipped_soil_layer
@@ -207,12 +205,22 @@ if __name__ == "__main__":
     Processing.initialize()
     QgsApplication.messageLog().messageReceived.connect(log_to_stderr)
 
-    if args_config["settings"]["workers"] > 1:
-        import joblib
+    # process area of interest
+    n_workers = args_config["settings"]["workers"]
+    if n_workers > 1:
+        from joblib import Parallel, delayed 
+
+        aoi_path = Path(args_config["download"]["aoi"])
+        dir_path = Path(aoi_path).parent
+        aoi_files = dir_path.glob(Path(aoi_path).name)
+        Parallel(n_jobs=n_workers, backend="threading")(
+            delayed(process_aoi)
+            (aoi_filename, Path(args_config["output"]["path"]) / aoi_filename.stem) for aoi_filename in aoi_files
+        )
     else:
-        # process area of interest
         process_aoi(
-            args_config["download"]["aoi"]
+            Path(args_config["download"]["aoi"]),
+            Path(args_config["output"]["path"])
         )
 
     # exit QGIS application
