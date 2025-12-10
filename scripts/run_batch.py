@@ -69,7 +69,6 @@ def save_layer(layer, output_path):
         sys.exit(1)
 
 def process_aoi(polygon_layer, output_path):
-    print(polygon_layer, output_path)
     message("Downloading ZABAGED and LPIS data...")
     wfs_downloader = WFSDownloader(os.path.join(config_path, "layers_merging_order.csv"),
                                    True, polygon_layer, True)
@@ -227,7 +226,6 @@ if __name__ == "__main__":
     )
 
     if args_config["download"]["aoi_per_feature"] is False:
-        print('dissolve')
         # disolve the polygon layer for faster processing
         polygon_layer = dissolve_polygon(polygon_layer)
 
@@ -244,7 +242,6 @@ if __name__ == "__main__":
         )
     else:
         for aoi_feat in polygon_layer.getFeatures():
-            print(aoi_feat)
             process_aoi(
                 create_layer(polygon_layer, aoi_feat),
                 output_path if args_config["download"]["aoi_per_feature"] is False
