@@ -1,0 +1,3 @@
+# URI: https://rain1.fsv.cvut.cz/services/wps
+URI: file://home/martin/geodata/hsg.tif
+process_identifier: soil-texture-hsg
