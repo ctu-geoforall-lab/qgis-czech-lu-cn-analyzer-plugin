@@ -1,4 +1,4 @@
-URL: https://ags.cuzk.cz/arcgis/services/ZABAGED_POLOHOPIS/MapServer/WFSServer
+URI: https://ags.cuzk.cz/arcgis/services/ZABAGED_POLOHOPIS/MapServer/WFSServer
 
 # This list contains buffer options, values in controlling_atr_name change length of buffers for point/line objects. Distance is in meters.
 buffer_layers:
