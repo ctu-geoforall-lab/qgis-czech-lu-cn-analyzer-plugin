@@ -8,8 +8,10 @@ import yaml
 import types
 from pathlib import Path
 
+os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 from PyQt5.QtCore import QVariant
 
+### os.environ["GDAL_NUM_THREADS"] = "8"
 config_path = os.path.join(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__))),
     "config"
@@ -73,6 +75,7 @@ def process_aoi(polygon_layer, output_path):
     wfs_downloader = WFSDownloader(os.path.join(config_path, "layers_merging_order.csv"),
                                    True, polygon_layer, True)
     wfs_layers = wfs_downloader.get_ZABAGED_layers_list()
+
     ymin, xmin, ymax, xmax, extent = wfs_downloader.get_wfs_info(wfs_layers)
 
     LandUseLayers = []
@@ -81,7 +84,7 @@ def process_aoi(polygon_layer, output_path):
                                       None, None, None, None, None, None,
                                       LandUseLayers)
     task_wfs.run()
-    
+
     message("Processing downloaded data...")   
     task_edit = TASK_edit_layers(attribute_template, LPIS_config, ZABAGED_config, stacking_template,
                                  None, True, polygon_layer, ymin, xmin, ymax, xmax,
@@ -89,7 +92,6 @@ def process_aoi(polygon_layer, output_path):
     task_edit.run()
     save_layer(task_edit.merged_layer, output_path)
 
-    
     message("Downloading soil data...")
     polygon_buffer_layer = buffer_QgsVectorLayer(polygon_layer, 25) # TODO: ymin?
     task_soil = TASK_process_soil_layer(polygon_buffer_layer, ymin, xmin, ymax, xmax,
