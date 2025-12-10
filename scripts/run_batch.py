@@ -6,34 +6,11 @@ import argparse
 import requests
 import yaml
 import types
+from pathlib import Path
 
 from PyQt5.QtCore import QVariant
 
-sys.path.insert(0, "/usr/share/qgis/python/plugins")
-from qgis.core import QgsApplication, QgsVectorLayer, Qgis, QgsVectorFileWriter, QgsCoordinateTransformContext, QgsField
-from processing.core.Processing import Processing
-
 from pathlib import Path
-
-plugin_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# root dir contains hyphens...
-pkg_name = "qgis_plugin"
-package = types.ModuleType(pkg_name)
-package.__path__ = [str(plugin_root)]
-sys.modules[pkg_name] = package
-
-sys.path.insert(0, plugin_root)
-from qgis_plugin.WFSdownloader import WFSDownloader
-from qgis_plugin.SoilDownloader import simple_clip
-from qgis_plugin.LayerEditor import dissolve_polygon, buffer_QgsVectorLayer, add_constant_atr, merge_layers, apply_simple_difference
-from qgis_plugin.WFStask import TASK_process_wfs_layer
-from qgis_plugin.LayerEditorTask import TASK_edit_layers
-from qgis_plugin.SoilTask import TASK_process_soil_layer
-from qgis_plugin.IntersectionTask import TASK_Intersection
-from qgis_plugin.InputChecker import is_valid_cn_csv
-from qgis_plugin.CNtask import TASK_CN
-from qgis_plugin.RunOffTask import TASK_RunOff
 
 config_path = os.path.join(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__))),
@@ -196,7 +173,33 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     args_config = read_config(args.config)
-   
+
+    sys.path.insert(0, str(Path(
+        args_config["settings"]["qgis_path"]) / "share" / "qgis" / "python" / "plugins")
+    )
+    from qgis.core import QgsApplication, QgsVectorLayer, Qgis, QgsVectorFileWriter, QgsCoordinateTransformContext, QgsField
+    from processing.core.Processing import Processing
+
+    plugin_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    # root dir contains hyphens...
+    pkg_name = "qgis_plugin"
+    package = types.ModuleType(pkg_name)
+    package.__path__ = [str(plugin_root)]
+    sys.modules[pkg_name] = package
+
+    sys.path.insert(0, plugin_root)
+    from qgis_plugin.WFSdownloader import WFSDownloader
+    from qgis_plugin.SoilDownloader import simple_clip
+    from qgis_plugin.LayerEditor import dissolve_polygon, buffer_QgsVectorLayer, add_constant_atr, merge_layers, apply_simple_difference
+    from qgis_plugin.WFStask import TASK_process_wfs_layer
+    from qgis_plugin.LayerEditorTask import TASK_edit_layers
+    from qgis_plugin.SoilTask import TASK_process_soil_layer
+    from qgis_plugin.IntersectionTask import TASK_Intersection
+    from qgis_plugin.InputChecker import is_valid_cn_csv
+    from qgis_plugin.CNtask import TASK_CN
+    from qgis_plugin.RunOffTask import TASK_RunOff
+
     # initialize QGIS application in the main thread
     QgsApplication.setPrefixPath(args_config["settings"]["qgis_path"], True)
     qgs = QgsApplication([], False)
