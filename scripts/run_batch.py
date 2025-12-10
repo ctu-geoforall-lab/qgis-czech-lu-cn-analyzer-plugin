@@ -239,7 +239,8 @@ if __name__ == "__main__":
         Parallel(n_jobs=n_workers, backend="threading")(
             delayed(process_aoi)
             (create_layer(polygon_layer, aoi_feat),
-             Path(args_config["output"]["path"]) / str(aoi_feat.id())) for aoi_feat in polygon_layer.getFeatures()
+                output_path if args_config["download"]["aoi_per_feature"] is False
+                else output_path / str(aoi_feat.id()).zfill(3)) for aoi_feat in polygon_layer.getFeatures()
         )
     else:
         for aoi_feat in polygon_layer.getFeatures():
