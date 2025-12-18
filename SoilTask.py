@@ -11,7 +11,7 @@ from qgis.core import QgsTask, QgsMessageLog, Qgis, QgsVectorLayer, QgsFeature, 
 
 from .WFSdownloader import WFSDownloader
 from .PluginUtils import get_string_from_yaml
-from .SoilDownloader import SoilDownloader, load_tiff_from_zip, polygonize_raster
+from .SoilDownloader import SoilDownloader, load_tiff_from_zip, polygonize_raster, clip_raster_by_extent
 
 
 class TASK_process_soil_layer(QgsTask):
@@ -52,28 +52,31 @@ class TASK_process_soil_layer(QgsTask):
                                  level=Qgis.Info, notifyUser=False)
         self._update_progress_bar(10)
         try:
-            URL = get_string_from_yaml(os.path.join(os.path.dirname(__file__), 'config', 'Soil.yaml'), "URL")
+            URI = get_string_from_yaml(os.path.join(os.path.dirname(__file__), 'config', 'Soil.yaml'), "URI")
             process_identifier = get_string_from_yaml(os.path.join(os.path.dirname(__file__), 'config', 'Soil.yaml'), "process_identifier")
             XML_template = os.path.join(os.path.dirname(__file__), 'config', 'Soil_template.xml')
 
-            soil_downloader = SoilDownloader(URL, XML_template, process_identifier, self.polygon_Soil, self.ymin_s, self.xmin_s, self.ymax_s, self.xmax_s)
+            soil_downloader = SoilDownloader(URI, XML_template, process_identifier, self.polygon_Soil, self.ymin_s, self.xmin_s, self.ymax_s, self.xmax_s)
 
             if self._is_canceled:
                 return False
 
             self._update_progress_bar(20)
-            # Execute the WPS request
-            output_files = soil_downloader.execute_wps_request()
+            if URI.startswith('file://'):
+                soil_raster = clip_raster_by_extent(URI[len('file://')-1:], self.extent)
+            else:
+                # Execute the WPS request
+                output_files = soil_downloader.execute_wps_request()
 
-            if self._is_canceled:
-                return False
+                if self._is_canceled:
+                    return False
 
-            self._update_progress_bar(50)
-            # Load the tiff from the output file .zip
-            soil_raster = load_tiff_from_zip(output_files)
+                self._update_progress_bar(50)
+                # Load the tiff from the output file .zip
+                soil_raster = load_tiff_from_zip(output_files)
 
-            if self._is_canceled:
-                return False
+                if self._is_canceled:
+                    return False
 
             self._update_progress_bar(70)
             # Polygonize the raster
