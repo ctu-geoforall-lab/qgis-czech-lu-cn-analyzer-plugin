@@ -196,6 +196,12 @@ layers:
       N: 0     # nezpevněný
       Z: 22000 # zpevněný >> 44100
 
+   - name: "OrnaPudaAOstatniDaleNespecifikovanePlochy"
+         base_use_code: 10000
+         controlling_attribute: "typ_pudy_k"
+         value_increments:
+              OR: 0    # orná půda
+              OSN: 78500   # Ostatní nespecifikované plochy
       
       
       
