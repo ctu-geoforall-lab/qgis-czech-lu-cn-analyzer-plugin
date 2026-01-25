@@ -45,12 +45,27 @@ a pro případnou změnu některých výpočetních postupů <br> <br>
   
 ## Další informace
 - na další bodové a linové prvky je potřeba zvolit buffer
-- Je nuntné doplnit další LandUse kódy pro více ZABAGED vrstev
-
-<br><br>
+- Je nutné doplnit další LandUse kódy pro více ZABAGED vrstev
 
 Některé požadované ZABAGED vrstvy není možné zahrnout kvůli následujícím problémům poskytovatele dat: <br>
 - Usazovací nádrž - 2024-01-01: 1.07 USAZOVACÍ NÁDRŽ - objekt zrušen z kategorie 1. SÍDELNÍ, HOSPODÁŘSKÉ A KULTURNÍ OBJEKTY <br>
 - Dobývací prostor - (*) Typ objektu bude publikován po smluvním zajištění dat od správce. <br>
 - Chráněné ložiskové území -   (*) Typ objektu bude publikován po smluvním zajištění dat od správce. <br> <br>
 
+### Spuštění testů lokálně
+
+```
+export QGIS_PREFIX_PATH="/usr"
+export PYTHONPATH="/usr/lib/python3/dist-packages:/usr/share/qgis/python:/usr/share/qgis/python/plugins:$GITHUB_WORKSPACE"
+export LD_LIBRARY_PATH="/usr/lib"
+export QGIS_DEBUG=0
+export QGIS_LOG_FILE=/dev/null
+export QGIS_PLUGINPATH="$HOME/.local/share/QGIS/QGIS3/profiles/default/python/plugins"
+export QT_QPA_PLATFORM=offscreen
+
+pytest -s tests/test_WFSdownloader.py
+pytest -s tests/test_LayerEditor.py
+pytest -s tests/test_SoilDownloader.py
+pytest -s tests/test_CNCreator.py
+pytest -s tests/test_RunOffComputer.py
+```
