@@ -98,10 +98,28 @@ def load_tiff_from_zip(path_to_zip):
                     return None
     return None
 
+def clip_raster_by_extent(filepath, extent):
+    clip_raster = processing.run(
+        "gdal:cliprasterbyextent",
+        {
+            "INPUT": filepath,
+            "PROJWIN": ','.join(map(str, [extent.xMinimum(), extent.xMaximum(), extent.yMinimum(), extent.yMaximum()])) + ' [EPSG:5514]',
+            "OUTPUT": 'TEMPORARY_OUTPUT'
+        }
+    )['OUTPUT']
+
+    raster_layer = QgsRasterLayer(clip_raster, os.path.basename(filepath))
+
+    if raster_layer.isValid():
+        return raster_layer
+    else:
+        QgsMessageLog.logMessage(f"Failed to clip raster layer: {filepath}", "CzLandUseCN", level=Qgis.Critical)
+        return None
+
 class SoilDownloader:
     """Class to download soil data using a WPS service."""
-    def __init__(self, url, xml_template,process_identifier, polygon_Soil, ymin_s, xmin_s, ymax_s, xmax_s):
-        self.url = url
+    def __init__(self, uri, xml_template,process_identifier, polygon_Soil, ymin_s, xmin_s, ymax_s, xmax_s):
+        self.uri = uri
         self.xml_template = xml_template
         self.polygon_Soil = polygon_Soil
         self.process_identifier = process_identifier
@@ -163,7 +181,7 @@ class SoilDownloader:
         # Initialize the WPS service
         QgsMessageLog.logMessage("Soil - Executing WPS request", "CzLandUseCN", level=Qgis.Info)
         try:
-            wps = WebProcessingService(self.url)
+            wps = WebProcessingService(self.uri)
 
 
             # Read the request from the XML file

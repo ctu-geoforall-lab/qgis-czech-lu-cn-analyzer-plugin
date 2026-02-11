@@ -54,14 +54,14 @@ class TASK_process_wfs_layer(QgsTask):
 
         self._update_progress_bar()
         LPISconfigpath = os.path.join(os.path.dirname(__file__), 'config', 'LPIS.yaml')
-        LPISURL = get_string_from_yaml(LPISconfigpath, "URL")
+        LPISURI = get_string_from_yaml(LPISconfigpath, "URI")
         LPISlayername = get_string_from_yaml(LPISconfigpath, "layer_name")
-        self.LandUseLayers = wfs_downloader.GetLPISLayer(LPISURL, LPISlayername, LPISconfigpath, self.ymin, self.xmin,
+        self.LandUseLayers = wfs_downloader.GetLPISLayer(LPISURI, LPISlayername, LPISconfigpath, self.ymin, self.xmin,
                                                          self.ymax, self.xmax, self.current_extent, self.LandUseLayers)
 
         try:
             zabaged_URL = get_string_from_yaml(os.path.join(os.path.dirname(__file__), 'config', 'ZABAGED.yaml'),
-                                               "URL")
+                                               "URI")
 
             i = 1
             for self.layer in self.wfs_layers:
