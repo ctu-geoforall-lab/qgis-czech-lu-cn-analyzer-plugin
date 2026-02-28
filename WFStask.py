@@ -15,7 +15,8 @@ class TASK_process_wfs_layer(QgsTask):
     taskFinished = pyqtSignal(list)
 
     def __init__(self, wfs_layers, ymin, xmin, ymax, xmax, current_extent, polygon, flag, label, progress_bar,
-                 run_button, abort_button, polygon_button, extent_button, LandUseLayers):
+                 run_button, abort_button, polygon_button, extent_button, LandUseLayers,
+                 config_path=None):
 
         super().__init__("Process WFS Layers", QgsTask.CanCancel)
         self.wfs_layers = wfs_layers
@@ -28,6 +29,10 @@ class TASK_process_wfs_layer(QgsTask):
         self.LandUseLayers = LandUseLayers
         if self.abortButton is not None:
             self.abortButton.clicked.connect(self.cancel)
+        if config_path is not None:
+            self.config_path = config_path
+        else:
+            self.config_path = os.path.join(os.path.dirname(__file__), 'config')
 
     def _update_progress_bar(self):
         """Update the progress bar based on the number of WFS layers in config."""
@@ -53,14 +58,14 @@ class TASK_process_wfs_layer(QgsTask):
                                        self.AreaFlag, self.polygon, False)
 
         self._update_progress_bar()
-        LPISconfigpath = os.path.join(os.path.dirname(__file__), 'config', 'LPIS.yaml')
+        LPISconfigpath = os.path.join(self.config_path, 'LPIS.yaml')
         LPISURI = get_string_from_yaml(LPISconfigpath, "URI")
         LPISlayername = get_string_from_yaml(LPISconfigpath, "layer_name")
         self.LandUseLayers = wfs_downloader.GetLPISLayer(LPISURI, LPISlayername, LPISconfigpath, self.ymin, self.xmin,
                                                          self.ymax, self.xmax, self.current_extent, self.LandUseLayers)
 
         try:
-            zabaged_URL = get_string_from_yaml(os.path.join(os.path.dirname(__file__), 'config', 'ZABAGED.yaml'),
+            zabaged_URL = get_string_from_yaml(os.path.join(self.config_path, 'ZABAGED.yaml'),
                                                "URI")
 
             i = 1

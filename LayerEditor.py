@@ -19,6 +19,8 @@ from qgis.core import (
     QgsProcessingFeatureSourceDefinition,
     QgsWkbTypes
 )
+from qgis.core import QgsProcessingUtils
+
 
 # Based on the environment, import the WFSdownloader/SoilDownloader module
 try:
@@ -630,25 +632,42 @@ class LayerEditor:
         accum_union = None
 
         for idx, lyr in enumerate(ordered):
+            fixed_lyr_gpkg = processing.run(
+                "native:fixgeometries",
+                {'INPUT': lyr,
+                 # 'OUTPUT': 'memory:fixed'
+                 'OUTPUT': QgsProcessingUtils.generateTempFilename(f'fixed_{lyr.name()}.gpkg')
+                 }
+            )['OUTPUT']
+            fixed_lyr = QgsVectorLayer(fixed_lyr_gpkg, "fixed", "ogr")
+
             # A) First layer: clone to avoid altering source
             if idx == 0:
-                clipped = lyr.clone()
+                clipped = fixed_lyr.clone()
             else:
                 # B) Subtract higher-priority areas
-                clipped = processing.run(
+                clipped_gpkg = processing.run(
                     "native:difference",
                     {
-                        'INPUT': lyr,
+                        'INPUT': fixed_lyr,
                         'OVERLAY': accum_union,
-                        'OUTPUT': 'memory:clipped'
+                        # 'OUTPUT': 'memory:clipped'
+                        'OUTPUT': QgsProcessingUtils.generateTempFilename(f'diff_{lyr.name()}.gpkg')
                     }
                 )['OUTPUT']
+                clipped = QgsVectorLayer(clipped_gpkg, "clipped", "ogr")
 
             # C) Remove null & empty geometries (essential!)
-            clipped = processing.run(
+            clipped_gpkg = processing.run(
                 "native:removenullgeometries",
-                {'INPUT': clipped, 'OUTPUT': 'memory:clean_clipped'}
+                {
+                    'INPUT': clipped,
+                    # 'OUTPUT': 'memory:clean_clipped'
+                    'OUTPUT': QgsProcessingUtils.generateTempFilename(f'clean_clipped_{lyr.name()}.gpkg')
+                }
             )['OUTPUT']
+
+            clipped = QgsVectorLayer(clipped_gpkg, "clipped", "ogr")
 
             # E) Append for later merging (post-clean)
             processed.append(clipped)
@@ -658,26 +677,48 @@ class LayerEditor:
                 accum_union = clipped.clone()
             else:
                 # 1) Fix geometries on both sides
-                fixed_acc = processing.run(
+                fixed_acc_gpkg = processing.run(
                     "native:fixgeometries",
-                    {'INPUT': accum_union, 'OUTPUT': 'memory:fixed_acc'}
+                    {'INPUT': accum_union,
+                     # 'OUTPUT': 'memory:fixed_acc'
+                     'OUTPUT': QgsProcessingUtils.generateTempFilename(f'fixed_acc_{lyr.name()}.gpkg')
+                    }
                 )['OUTPUT']
-                fixed_clip = processing.run(
+                fixed_acc = QgsVectorLayer(fixed_acc_gpkg, "fixed_acc", "ogr")
+
+                fixed_clip_gpkg = processing.run(
                     "native:fixgeometries",
-                    {'INPUT': clipped, 'OUTPUT': 'memory:fixed_clip'}
+                    {'INPUT': clipped,
+                     # 'OUTPUT': 'memory:fixed_clip'
+                     'OUTPUT': QgsProcessingUtils.generateTempFilename(f'fixed_clip_{lyr.name()}.gpkg')
+                    }
                 )['OUTPUT']
+                fixed_clip = QgsVectorLayer(fixed_clip_gpkg, "fixed_clip", "ogr")
 
                 # 2) Finally union the clean, valid inputs
                 try:
-                    accum_union = processing.run(
+                    accum_union_gpkg = processing.run(
                         "native:union",
                         {
                             'INPUT': fixed_acc,
                             'OVERLAY': fixed_clip,
-                            'OUTPUT': 'memory:accum_union'
+                            # https://github.com/qgis/QGIS/issues/57279
+                            'OUTPUT': QgsProcessingUtils.generateTempFilename(f'accum_union_{lyr.name()}.gpkg')
+                            # 'OUTPUT': 'memory:accum_union'
                         }
                     )['OUTPUT']
+                    del fixed_acc
+                    del fixed_clip
+                    accum_union_tmp = QgsVectorLayer(accum_union_gpkg, "accum_union", "ogr")
 
+                    fixed_accum_union = processing.run(
+                        "native:fixgeometries",
+                        {'INPUT': accum_union_tmp,
+                         # 'OUTPUT': 'memory:fixed'
+                         'OUTPUT': QgsProcessingUtils.generateTempFilename(f'fixed_accum_union_{lyr.name()}.gpkg')
+                         }
+                    )['OUTPUT']
+                    accum_union = QgsVectorLayer(fixed_lyr_gpkg, "fixed_accum_union", "ogr")
                 except:
                     continue
 
@@ -686,15 +727,19 @@ class LayerEditor:
                 "CzLandUseCN", level=Qgis.Info
             )
 
+        del accum_union
+
         # 4) Merge all non-overlapping pieces
-        final = processing.run(
+        final_gpkg = processing.run(
             "native:mergevectorlayers",
             {
                 'LAYERS': processed,
                 'CRS': processed[0].crs().toWkt(),
-                'OUTPUT': 'memory:Stacked_NoOverlap'
+                #'OUTPUT': 'memory:Stacked_NoOverlap'
+                'OUTPUT': QgsProcessingUtils.generateTempFilename(f'stacked_nooverlap.gpkg')
             }
         )['OUTPUT']
+        final = QgsVectorLayer(final_gpkg, "final", "ogr")
 
         # 5) Style & add to project
         final = self.apply_symbology(final)

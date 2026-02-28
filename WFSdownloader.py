@@ -1,5 +1,6 @@
 from qgis.core import QgsMessageLog, Qgis, QgsVectorLayer, QgsRectangle, QgsGeometry, QgsFeature, QgsFeatureRequest, \
     QgsWkbTypes
+
 from qgis.utils import iface
 import processing
 from typing import Optional, List
@@ -94,15 +95,33 @@ class WFSDownloader:
             return None
 
         clipped_layer = self.clip_layer(vlayer, extent, layer_name)
+        del vlayer # release data source
+
         if clipped_layer.isValid():
             return clipped_layer
         return None
 
     def ClipByPolygon(self, layer: QgsVectorLayer) -> QgsVectorLayer:
         """ Clip the layer to the polygon extent"""
+        fixed_input = processing.run(
+            "native:fixgeometries",
+            {
+                "INPUT": layer,
+                "OUTPUT": "memory:"
+            }
+        )["OUTPUT"]
+
+        fixed_polygon = processing.run(
+            "native:fixgeometries",
+            {
+                "INPUT": self.polygon,
+                "OUTPUT": "memory:"
+            }
+        )["OUTPUT"]
+
         params = {
-            'INPUT': layer,
-            'OVERLAY': self.polygon,
+            'INPUT': fixed_input,
+            'OVERLAY': fixed_polygon,
             'OUTPUT': 'memory:'
         }
         clipped_result = processing.run("native:clip", params)

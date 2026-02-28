@@ -1,4 +1,4 @@
-URI: file://data/projects/lu_cn_analyzer_cr/lpis_20250104.gdb
+URI: file://data/projects/lu_cn_analyzer_cr/lpis_20250104.gpkg
 # LPIS WFS layer name with desired polygons.
 layer_name: lpis_20250104
 # This list contains settings for LPIS layer where their LandUse code is updated by some value in its attribute.

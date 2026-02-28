@@ -12,25 +12,16 @@ os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 from PyQt5.QtCore import QVariant
 
 ### os.environ["GDAL_NUM_THREADS"] = "8"
-config_path = os.path.join(os.path.dirname(
-    os.path.dirname(os.path.abspath(__file__))),
-    "config"
-)
-ZABAGED_config = os.path.join(config_path, "ZABAGED.yaml")
-LPIS_config = os.path.join(config_path, "LPIS.yaml")
-attribute_template = os.path.join(config_path, "zabaged_to_LandUseCode_table.yaml")
-stacking_template = os.path.join(config_path,
-                                 "layers_merging_order.csv")
-CN_table = os.path.join(config_path, "CN_table.csv")
-WPS_config = os.path.join(config_path, "WPS_config.yaml")
 
 def message(msg):
     print(msg, file=sys.stderr)
 
 def log_to_stderr(message, tag, level):
     if level >= Qgis.Critical:
-        sys.stderr.write(f"[{tag}] {message}\n")
+        sys.stderr.write(f"CRITICAL ERROR: [{tag}] {message}\n")
         sys.exit(1)
+    else:
+        sys.stderr.write(f"[{tag}] {message}\n")
 
 def read_config(config_file):
     with open(config_file, "r", encoding="utf-8") as f:
@@ -72,7 +63,7 @@ def save_layer(layer, output_path):
 
 def process_aoi(polygon_layer, output_path):
     message("Downloading ZABAGED and LPIS data...")
-    wfs_downloader = WFSDownloader(os.path.join(config_path, "layers_merging_order.csv"),
+    wfs_downloader = WFSDownloader(stacking_template,
                                    True, polygon_layer, True)
     wfs_layers = wfs_downloader.get_ZABAGED_layers_list()
 
@@ -82,7 +73,7 @@ def process_aoi(polygon_layer, output_path):
     task_wfs = TASK_process_wfs_layer(wfs_layers, ymin, xmin, ymax, xmax, extent,
                                       polygon_layer, True,
                                       None, None, None, None, None, None,
-                                      LandUseLayers)
+                                      LandUseLayers, config_path)
     task_wfs.run()
 
     message("Processing downloaded data...")   
@@ -93,9 +84,9 @@ def process_aoi(polygon_layer, output_path):
     save_layer(task_edit.merged_layer, output_path)
 
     message("Downloading soil data...")
-    polygon_buffer_layer = buffer_QgsVectorLayer(polygon_layer, 25) # TODO: ymin?
+    polygon_buffer_layer = buffer_QgsVectorLayer(polygon_layer, 25)
     task_soil = TASK_process_soil_layer(polygon_buffer_layer, ymin, xmin, ymax, xmax,
-                                   extent, None, None, None, None)
+                                        extent, None, None, None, None, config_path)
     task_soil.run()
     SoilLayer = QgsVectorLayer(task_soil.polygoniziedLayer_Path, "Soil Layer", "ogr")
     # Clip the layer by polygon that is not buffered
@@ -216,6 +207,23 @@ if __name__ == "__main__":
     Processing.initialize()
     QgsApplication.messageLog().messageReceived.connect(log_to_stderr)
 
+    # configs
+    config_path = os.path.join(os.path.dirname(
+        os.path.dirname(os.path.abspath(__file__))),
+        "config"
+    )
+    attribute_template = os.path.join(config_path, "zabaged_to_LandUseCode_table.yaml")
+    CN_table = os.path.join(config_path, "CN_table.csv")
+    WPS_config = os.path.join(config_path, "WPS_config.yaml")
+
+    if args_config["download"]["local_data"] is True:
+        config_path = os.path.join(config_path, "local_data")
+
+    ZABAGED_config = os.path.join(config_path, "ZABAGED.yaml")
+    LPIS_config = os.path.join(config_path, "LPIS.yaml")
+    stacking_template = os.path.join(config_path,
+                                     "layers_merging_order.csv")
+
     # process area of interest
     aoi_path = Path(args_config["download"]["aoi"])
     if not aoi_path.exists():
@@ -244,6 +252,9 @@ if __name__ == "__main__":
         )
     else:
         for aoi_feat in polygon_layer.getFeatures():
+            if "skip_feature" in args_config["download"] and \
+               aoi_feat.id() in args_config["download"]["skip_feature"]:
+                continue
             process_aoi(
                 create_layer(polygon_layer, aoi_feat),
                 output_path if args_config["download"]["aoi_per_feature"] is False

@@ -21,7 +21,7 @@ class TASK_process_soil_layer(QgsTask):
     taskError_Soil = pyqtSignal(str)
     taskFinished_Soil = pyqtSignal(str)
 
-    def __init__(self, polygon_Soil, ymin_s, xmin_s, ymax_s, xmax_s, extent, label_Soil, progressBar_Soil, runButton_Soil, abortButton_Soil):
+    def __init__(self, polygon_Soil, ymin_s, xmin_s, ymax_s, xmax_s, extent, label_Soil, progressBar_Soil, runButton_Soil, abortButton_Soil, config_path=None):
         super().__init__("Process Soil Layer", QgsTask.CanCancel)
         self.polygon_Soil = polygon_Soil
         self.ymin_s, self.xmin_s, self.ymax_s, self.xmax_s = ymin_s, xmin_s, ymax_s, xmax_s
@@ -33,6 +33,10 @@ class TASK_process_soil_layer(QgsTask):
         self._is_canceled = False
         if self.abortButton_Soil:
             self.abortButton_Soil.clicked.connect(self.cancel)
+        if config_path is not None:
+            self.config_path = config_path
+        else:
+            self.config_path = os.path.join(os.path.dirname(__file__), 'config')
 
     def _update_progress_bar(self, new_value):
         """Update the progress bar"""
@@ -52,19 +56,20 @@ class TASK_process_soil_layer(QgsTask):
                                  level=Qgis.Info, notifyUser=False)
         self._update_progress_bar(10)
         try:
-            URI = get_string_from_yaml(os.path.join(os.path.dirname(__file__), 'config', 'Soil.yaml'), "URI")
-            process_identifier = get_string_from_yaml(os.path.join(os.path.dirname(__file__), 'config', 'Soil.yaml'), "process_identifier")
-            XML_template = os.path.join(os.path.dirname(__file__), 'config', 'Soil_template.xml')
-
-            soil_downloader = SoilDownloader(URI, XML_template, process_identifier, self.polygon_Soil, self.ymin_s, self.xmin_s, self.ymax_s, self.xmax_s)
-
-            if self._is_canceled:
-                return False
+            URI = get_string_from_yaml(os.path.join(self.config_path, 'Soil.yaml'), "URI")
 
             self._update_progress_bar(20)
             if URI.startswith('file://'):
                 soil_raster = clip_raster_by_extent(URI[len('file://')-1:], self.extent)
             else:
+                process_identifier = get_string_from_yaml(os.path.join(self.config_path, 'Soil.yaml'), "process_identifier")
+
+                XML_template = os.path.join(os.path.dirname(__file__), 'config', 'Soil_template.xml')
+                soil_downloader = SoilDownloader(URI, XML_template, process_identifier, self.polygon_Soil, self.ymin_s, self.xmin_s, self.ymax_s, self.xmax_s)
+
+                if self._is_canceled:
+                    return False
+
                 # Execute the WPS request
                 output_files = soil_downloader.execute_wps_request()
 
