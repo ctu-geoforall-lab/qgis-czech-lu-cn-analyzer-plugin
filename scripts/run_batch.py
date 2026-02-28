@@ -30,14 +30,6 @@ def read_config(config_file):
     return config
 
 def save_layer(layer, output_path):
-    # layer.startEditing()
-    # layer.addAttribute(QgsField("ogc_fid", QVariant.Int))
-    # fid_index = layer.fields().indexFromName("ogc_fid")
-    # for i, feature in enumerate(layer.getFeatures(), start=1):
-    #     print(feature.id(), fid_index, i)
-    #     layer.changeAttributeValue(feature.id(), fid_index, i)
-    # layer.commitChanges()
-
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
