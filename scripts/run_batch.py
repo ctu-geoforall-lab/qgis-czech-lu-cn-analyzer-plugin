@@ -42,13 +42,12 @@ def save_layer(layer, output_path):
         os.makedirs(output_path)
 
     name = layer.name().replace(' ', '_')
-    gpkg_path = os.path.join(output_path, name + '.gml')
+    gpkg_path = os.path.join(output_path, name + '.gpkg')
 
     options = QgsVectorFileWriter.SaveVectorOptions()
-    # options.driverName = "GPKG"
-    options.driverName = "GML"
+    options.driverName = "GPKG"
     options.layerName = name
-    #options.layerOptions = ["FID=ogc_fid"]
+    options.layerOptions = ["FID=ogc_fid"]
 
     error, _, _, error_message = QgsVectorFileWriter.writeAsVectorFormatV3(
         layer,
