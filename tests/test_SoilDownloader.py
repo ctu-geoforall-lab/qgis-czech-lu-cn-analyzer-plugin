@@ -23,7 +23,7 @@ def test_soil_downloader():
     config_folder = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config")
 
     # Mock parameters
-    URL = get_string_from_yaml(os.path.join(config_folder, 'Soil.yaml'), "URL")
+    URI = get_string_from_yaml(os.path.join(config_folder, 'Soil.yaml'), "URI")
     XML_template = os.path.join(config_folder, 'Soil_template.xml')
     process_identifier = get_string_from_yaml(os.path.join(config_folder, 'Soil.yaml'), "process_identifier")
 
@@ -41,7 +41,7 @@ def test_soil_downloader():
                               polygon.extent().yMaximum(), polygon.extent().xMaximum())
 
     # Initialize the SoilDownloader
-    soil_downloader = SoilDownloader(URL, XML_template, process_identifier, polygon, ymin, xmin, ymax, xmax)
+    soil_downloader = SoilDownloader(URI, XML_template, process_identifier, polygon, ymin, xmin, ymax, xmax)
     assert soil_downloader is not None, "Failed to initialize SoilDownloader"
     print("[OK] SoilDownloader initialized successfully")
 

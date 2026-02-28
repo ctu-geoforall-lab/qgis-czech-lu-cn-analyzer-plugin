@@ -49,11 +49,11 @@ class TestWFSDownloader:
         assert len(layer_list) > 2, f"Expected more than 2 layers, but got {len(layer_list)}"
         print("[OK] Successfuly loaded ZABAGED layers from the configuration file")
 
-        # Load the URL from the ZABAGED.yaml file
-        ZABAGED_URL = get_string_from_yaml(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                                                        "config", "ZABAGED.yaml"), "URL")
+        # Load the URI from the ZABAGED.yaml file
+        ZABAGED_URI = get_string_from_yaml(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                                        "config", "ZABAGED.yaml"), "URI")
 
-        assert ZABAGED_URL, "URL not found in ZABAGED.yaml"
+        assert ZABAGED_URI, "URI not found in ZABAGED.yaml"
         print("[OK] Successfuly downloaded the ZABAGED layers from WFS")
 
         # Get extent of the polygon layer
@@ -65,7 +65,7 @@ class TestWFSDownloader:
 
         # Download ZABAGED layers from the WFS service
         for layer in layer_list:
-            ZABAGED_layers.append(wfs_downloader.process_wfs_layer(layer, ymin, xmin, ymax, xmax, extent, ZABAGED_URL))
+            ZABAGED_layers.append(wfs_downloader.process_wfs_layer(layer, ymin, xmin, ymax, xmax, extent, ZABAGED_URI))
 
         assert len(ZABAGED_layers) > 0, "Failed to download ZABAGED layers"
         print("[OK] Successfuly downloaded ZABAGED layers")
@@ -74,12 +74,12 @@ class TestWFSDownloader:
         LPIS_configpath = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                                                         "config", "LPIS.yaml")
         LPIS_layername = get_string_from_yaml(LPIS_configpath, "layer_name")
-        LPIS_URL = get_string_from_yaml(LPIS_configpath, "URL")
+        LPIS_URI = get_string_from_yaml(LPIS_configpath, "URI")
 
         assert LPIS_layername, "Layer name not found in LPIS.yaml"
-        assert LPIS_URL, "URL not found in LPIS.yaml"
+        assert LPIS_URI, "URI not found in LPIS.yaml"
         print("[OK] Successfuly loaded the LPIS configuration file")
 
-        response = requests.get(LPIS_URL)
-        assert response.status_code == 200, f"Failed to access LPIS URL: {LPIS_URL}"
-        print("[OK] Successfully accessed the LPIS URL")
+        response = requests.get(LPIS_URI)
+        assert response.status_code == 200, f"Failed to access LPIS URI: {LPIS_URI}"
+        print("[OK] Successfully accessed the LPIS URI")
