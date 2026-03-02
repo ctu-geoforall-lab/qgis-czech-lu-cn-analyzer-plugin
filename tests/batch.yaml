@@ -12,6 +12,6 @@ runoff:
     - "N50"
     - "N100"
 output:
-  path: tests/output_local/
+  path: tests/output/
 settings:
   workers: 1
