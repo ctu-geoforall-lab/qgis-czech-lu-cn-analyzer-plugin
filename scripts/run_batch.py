@@ -165,9 +165,15 @@ if __name__ == "__main__":
 
     args_config = read_config(args.config)
 
-    sys.path.insert(0, str(Path(
-        args_config["settings"]["qgis_path"]) / "share" / "qgis" / "python" / "plugins")
-    )
+    if os.environ.get("QGIS_PATH"):
+        qgis_path = os.environ.get("QGIS_PATH")
+        sys.path.insert(0, str(Path(qgis_path, "python")))
+        sys.path.insert(0, str(Path(qgis_path, "python", "plugins")))
+    else:
+        # Linux expected
+        qgis_path = "/usr"
+        sys.path.insert(0, str(Path(qgis_path, "share", "qgis", "python", "plugins"))
+        )
     from qgis.core import QgsApplication, QgsVectorLayer, Qgis, QgsVectorFileWriter, QgsCoordinateTransformContext, QgsField, QgsFeature, QgsWkbTypes
     from processing.core.Processing import Processing
 
@@ -192,7 +198,7 @@ if __name__ == "__main__":
     from qgis_plugin.RunOffTask import TASK_RunOff
 
     # initialize QGIS application in the main thread
-    QgsApplication.setPrefixPath(args_config["settings"]["qgis_path"], True)
+    QgsApplication.setPrefixPath(qgis_path, True)
     qgs = QgsApplication([], False)
     qgs.initQgis()
     Processing.initialize()

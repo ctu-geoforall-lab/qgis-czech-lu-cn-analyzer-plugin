@@ -62,7 +62,7 @@ class TASK_process_soil_layer(QgsTask):
             if URI.startswith('file://'):
                 # GDAL 3.10 may return clipped raster which doesn't fully cover specified extent (raster 20m)
                 self.extent.grow(40)
-                soil_raster = clip_raster_by_extent(URI[len('file://')-1:], self.extent)
+                soil_raster = clip_raster_by_extent(URI[len('file://'):], self.extent)
             else:
                 process_identifier = get_string_from_yaml(os.path.join(self.config_path, 'Soil.yaml'), "process_identifier")
 

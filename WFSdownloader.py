@@ -76,7 +76,7 @@ class WFSDownloader:
                           extent: QgsGeometry, URI: str) -> Optional[QgsVectorLayer]:
         """ Load and clip a WFS layer to the given extent"""
         if URI.startswith('file://'):
-            uri = f"{URI[len('file://')-1:]}|layername={layer_name}"
+            uri = f"{URI[len('file://'):]}|layername={layer_name}"
             data_provider = "ogr"
         else:
             # WFS
