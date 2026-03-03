@@ -116,8 +116,19 @@ def process_aoi(polygon_layer, output_path):
     if task_cn.CNLayer.isValid() is False or task_cn.CNLayer.fields().indexFromName("CN2") == -1:
         QgsMessageLog.logMessage("CN layer is not valid.", "CzLandUseCN", level=Qgis.Critical)
 
-    task_runoff = TASK_RunOff(task_cn.CNLayer, args_config["runoff"]["return_periods"],
-                              False, None,
+    if args_config["runoff"].get("rainfall_depth") is not None:
+        input_checker = InputChecker(None, None, None, None, None, None,
+                                     None, None, None, None,
+                                     None)
+        user_defined_height = input_checker.validate_user_defined_height(
+            ';'.join(map(str,args_config["runoff"].get("rainfall_depth")))
+        )
+        print(user_defined_height)
+    else:
+        user_defined_height = None
+    task_runoff = TASK_RunOff(task_cn.CNLayer, args_config["runoff"].get("return_periods"),
+                              "rainfall_depth" in args_config["runoff"],
+                              user_defined_height,
                               args_config["runoff"]["coefficient"],
                               None, WPS_config)
     task_runoff.run()
@@ -165,6 +176,9 @@ if __name__ == "__main__":
 
     args_config = read_config(args.config)
 
+    if args_config["runoff"].get("return_periods") and args_config["runoff"].get("rainfall_depth"):
+        sys.exit("Options 'return_periods' and 'rainfall_depth' are mutually exclusive")
+
     if os.environ.get("QGIS_PATH"):
         qgis_path = os.environ.get("QGIS_PATH")
         sys.path.insert(0, str(Path(qgis_path, "python")))
@@ -196,6 +210,7 @@ if __name__ == "__main__":
     from qgis_plugin.InputChecker import is_valid_cn_csv
     from qgis_plugin.CNtask import TASK_CN
     from qgis_plugin.RunOffTask import TASK_RunOff
+    from qgis_plugin.InputChecker import InputChecker
 
     # initialize QGIS application in the main thread
     QgsApplication.setPrefixPath(qgis_path, True)
