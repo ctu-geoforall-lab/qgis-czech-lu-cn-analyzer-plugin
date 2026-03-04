@@ -69,26 +69,17 @@ def process_aoi(polygon_layer, output_path):
 
     message("Processing downloaded data...")   
     task_edit = TASK_edit_layers(attribute_template, LPIS_config, ZABAGED_config, stacking_template,
-                                 None, True, polygon_layer, ymin, xmin, ymax, xmax,
+                                 str(Path(__file__).parent.parent / "colortables" / "landuse.qml"),
+                                 True, polygon_layer, ymin, xmin, ymax, xmax,
                                  None, None, LandUseLayers)
     task_edit.run()
     save_layer(task_edit.merged_layer, output_path)
 
     message("Downloading soil data...")
-    polygon_buffer_layer = buffer_QgsVectorLayer(polygon_layer, 25)
-    task_soil = TASK_process_soil_layer(polygon_buffer_layer, ymin, xmin, ymax, xmax,
+    task_soil = TASK_process_soil_layer(polygon_layer, ymin, xmin, ymax, xmax,
                                         extent, None, None, None, None, config_path)
     task_soil.run()
-    SoilLayer = QgsVectorLayer(task_soil.polygoniziedLayer_Path, "Soil Layer", "ogr")
-    # Clip the layer by polygon that is not buffered
-    clipped_soil_layer = simple_clip(SoilLayer, polygon_layer)
-    # Add HSG attribute to the area defining polygon and use it as underline layer for water bodies
-    polygon_layer = add_constant_atr(polygon_layer, "HSG", 0)
-    # Clip the water bodies layer to the polygon by the soil layer
-    polygon_layer = apply_simple_difference(polygon_layer, clipped_soil_layer)
-    # Merge the clipped soil layer with the polygon that is not buffered
-    clipped_soil_layer = merge_layers([polygon_layer, clipped_soil_layer],"Soil Layer HSG")
-    save_layer(clipped_soil_layer, output_path)
+    save_layer(task_soil.clipped_soil_layer, output_path)
     
     message("Perform intersection...")
     task_inter = TASK_Intersection(clipped_soil_layer, task_edit.merged_layer,

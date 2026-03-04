@@ -591,7 +591,7 @@ class LayerEditor:
             QgsMessageLog.logMessage("Invalid layer for symbology", "CzLandUseCN", level=Qgis.Warning, notifyUser=True)
             return layer
 
-        success = layer.loadSldStyle(self.symbology_path)
+        success = layer.loadNamedStyle(self.symbology_path)
         if success:
             QgsMessageLog.logMessage("Symbology applied successfully", "CzLandUseCN", level=Qgis.Info)
         else:
