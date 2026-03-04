@@ -93,7 +93,7 @@ def process_aoi(polygon_layer, output_path):
     save_layer(task_soil.clipped_soil_layer, output_path)
     
     message("Perform intersection...")
-    task_inter = TASK_Intersection(clipped_soil_layer, task_edit.merged_layer,
+    task_inter = TASK_Intersection(task_soil.clipped_soil_layer, task_edit.merged_layer,
                                    None, None)
     task_inter.run()
     save_layer(task_inter.combined_layer, output_path)
@@ -135,9 +135,6 @@ def process_aoi(polygon_layer, output_path):
     task_runoff.run()
     save_layer(task_runoff.RunOffLayer, output_path)
     
-    del SoilLayer
-    del clipped_soil_layer
-    del polygon_buffer_layer    
     del polygon_layer
 
 def create_layer(layer, feature):
