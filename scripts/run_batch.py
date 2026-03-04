@@ -52,6 +52,17 @@ def save_layer(layer, output_path):
         message(f"Error storing {layer.name()}: {error_message}")
         sys.exit(1)
 
+    # save style
+    uri = f"{gpkg_path}|layername={name}"
+    gpkg_layer = QgsVectorLayer(uri, layer.name(), "ogr")
+    gpkg_layer.setRenderer(layer.renderer().clone())
+    gpkg_layer.saveStyleToDatabase(
+        name="Default style",
+        description=f"{layer.name()} style",
+        useAsDefault=True,
+        uiFileContent=""
+    )
+
 def process_aoi(polygon_layer, output_path):
     message("Downloading ZABAGED and LPIS data...")
     wfs_downloader = WFSDownloader(stacking_template,
@@ -114,7 +125,6 @@ def process_aoi(polygon_layer, output_path):
         user_defined_height = input_checker.validate_user_defined_height(
             ';'.join(map(str,args_config["runoff"].get("rainfall_depth")))
         )
-        print(user_defined_height)
     else:
         user_defined_height = None
     task_runoff = TASK_RunOff(task_cn.CNLayer, args_config["runoff"].get("return_periods"),
