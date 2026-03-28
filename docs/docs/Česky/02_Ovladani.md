@@ -76,3 +76,25 @@
 <p align="center">
     <img src="../../img/ovl4.png" alt="ovl4" style="height: 60vh;">
 </p>
+
+## Dávkové spuštění
+
+Dávkové spuštění umožňuje `run_batch.py` umístěný v adresáři
+`scripts`. Nástavení dávkové úlohy je specifikováno konfiguračním
+souborem ve formátu YAML. Příklad konfigurace je dostupná v souboru
+`tests/batch.yaml`. Příklad spuštění:
+
+```
+python3 scripts/run_batch.py tests/batch.yaml
+```
+
+Pro OS MS Windows je určen dávkový soubor `run_batch.bat`, který
+automaticky nastaví výpočetní prostředí QGIS. Před spuštěním upravte v
+tomto souboru cestu k instalaci QGISu.
+
+### Využití lokálních dat
+
+Stáhněte data LPIS a ZABAGED a upravte cesty k datovým zdrojům (`URI`)
+v konfiguračních souborech umístěných v adresáři
+`config/local_data/`. Dále v nastavení dávkové úlohy změňte
+`local_data` na `True`.

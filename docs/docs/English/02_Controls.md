@@ -75,3 +75,17 @@
  <p align="center">  
      <img src="../../img/ovl4.png" alt="ovl4" style="height: 60vh;">  
  </p>  
+
+## Batch Execution
+
+Batch execution is enabled by `run_batch.py` located in the `scripts` directory. The batch job configuration is specified using a YAML configuration file. An example configuration is available in `tests/batch.yaml`. Example execution:
+
+```
+python3 scripts/run_batch.py tests/batch.yaml
+```
+
+For MS Windows, a batch file `run_batch.bat` is provided, which automatically sets up the QGIS runtime environment. Before running it, adjust the path to your QGIS installation in this file.
+
+### Using Local Data
+
+Download LPIS and ZABAGED datasets and update the data source paths (`URI`) in the configuration files located in the `config/local_data/` directory. Then, in the batch job settings, set `local_data` to `True`.
