@@ -46,7 +46,7 @@ extra:
       link: /English/
       lang: en
     - name: Česky
-      link: /Česky/
+      link: /czech/
       lang: cs
 
 markdown_extensions:
@@ -64,16 +64,16 @@ use_directory_urls: true
 nav:
   - Home: index.md
   - English:
-      - Home: English/index.md
-      - Installation: English/01_Installation.md
-      - Usage: English/02_Usage.md
-      - Attribute tables: English/03_Attribute_tables.md
-      - Configutation files: English/04_Configuration_files.md
-      - Symbology: English/05_Symbology.md
+      - Home: english/index.md
+      - Installation: english/01_Installation.md
+      - Usage: english/02_Usage.md
+      - Attribute tables: english/03_Attribute_tables.md
+      - Configutation files: english/04_Configuration_files.md
+      - Symbology: english/05_Symbology.md
   - Česky:
-      - Úvod: Česky/index.md
-      - Instalace: Česky/01_isntalace.md
-      - Ovládání: Česky/02_Ovladani.md
-      - Atributové tabulky: Česky/03_Atributove_tabulky.md
-      - Konfigurační soubory: Česky/04_Konfiguracni_soubory.md
-      - Symbologie: Česky/05_Symbologie.md
+      - Úvod: czech/index.md
+      - Instalace: czech/01_isntalace.md
+      - Ovládání: czech/02_Ovladani.md
+      - Atributové tabulky: czech/03_Atributove_tabulky.md
+      - Konfigurační soubory: czech/04_Konfiguracni_soubory.md
+      - Symbologie: czech/05_Symbologie.md
