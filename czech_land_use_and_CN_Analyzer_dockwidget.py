@@ -37,14 +37,13 @@ from qgis.utils import iface
 from .RunOffTask import TASK_RunOff
 from .CNtask import TASK_CN
 from .IntersectionTask import TASK_Intersection
-from .SoilDownloader import simple_clip
 from .SoilTask import TASK_process_soil_layer
 from .UIupdater import UIUpdater, get_checked_return_periods
 from .WFSdownloader import WFSDownloader
 from .InputChecker import InputChecker, overlap_check, is_valid_cn_csv
 from .WFStask import TASK_process_wfs_layer
-from .LayerEditor import (LayerEditor, buffer_QgsVectorLayer, get_polygon_from_extent, dissolve_polygon,
-                          clip_larger_layer_to_smaller, add_constant_atr, merge_layers, apply_simple_difference,
+from .LayerEditor import (LayerEditor, get_polygon_from_extent, dissolve_polygon,
+                          clip_larger_layer_to_smaller,
                           resolve_overlaping_buffers)
 from .LayerEditorTask import TASK_edit_layers
 
@@ -323,11 +322,11 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
         stacking_template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config",
                                               "layers_merging_order.csv")
         # Get a symbology (.sld) path for the final stacked layer
-        symbology_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "colortables", "landuse.sld")
+        symbology_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "colortables", "landuse.qml")
 
         # Create a task to process Soil layers
         task = TASK_edit_layers(attribute_template_path, LPIS_config_path, ZABAGED_config_path, stacking_template_path,
-                 symbology_path, self.AreaFlag, self.polygon, self.ymin, self.xmin, self.ymax, self.xmax,
+                                symbology_path, self.AreaFlag, self.polygon, self.ymin, self.xmin, self.ymax, self.xmax,
                                 self.progressBar, self.abortButton, self.LandUseLayers)
 
         # Connect signals from Task to update the progress bar and handle task completion
@@ -343,26 +342,9 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
                                  level=Qgis.Info, notifyUser=False)
         return None
 
-    def TaskFinished_Soil(self, SoilLayer_Path):
+    def TaskFinished_Soil(self, clipped_soil_layer):
         """Handle task completion for Soil layers."""
-
-        SoilLayer = QgsVectorLayer(SoilLayer_Path, "Soil Layer", "ogr")
-
-        # Clip the layer by polygon that is not buffered
-        clipped_soil_layer = simple_clip(SoilLayer,self.not_buffered_plg)
-
-        # Add HSG attribute to the area defining polygon and use it as underline layer for water bodies
-        self.not_buffered_plg = add_constant_atr(self.not_buffered_plg, "HSG", 0)
-
-        # Clip the water bodies layer to the polygon by the soil layer
-        self.not_buffered_plg = apply_simple_difference(self.not_buffered_plg, clipped_soil_layer)
-
-        # Merge the clipped soil layer with the polygon that is not buffered
-        clipped_soil_layer = merge_layers([self.not_buffered_plg,clipped_soil_layer],"Soil Layer HSG")
-        style_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "colortables", "soil.sld")
-        clipped_soil_layer.loadSldStyle(style_path)
-
-        self.mMapLayerComboBox_HSG.setLayer(QgsProject.instance().addMapLayer(clipped_soil_layer))
+        self.mMapLayerComboBox_HSG.setLayer(QgsProject.instance().addMapLayer(clipped_soil_layer[0]))
 
         if self.reset_AreaFlag: # If created polygon from extent, reset the AreaFlag
             self.AreaFlag = False
@@ -424,10 +406,6 @@ class czech_land_use_and_CN_AnalyzerDockWidget(QtWidgets.QDockWidget, FORM_CLASS
 
         self.not_buffered_plg = self.polygon # Store the polygon that is not buffered for clipping after buffering
         try:
-
-            # Buffer the polygon by 40m (to avoid missing edges)
-            self.polygon = buffer_QgsVectorLayer(self.polygon, 25)
-
 
             # Check input by user, Qgis project settings and integrity of configuration files
             input_checker = InputChecker(self.polygon, self.ymin, self.xmin, self.ymax, self.xmax, None,

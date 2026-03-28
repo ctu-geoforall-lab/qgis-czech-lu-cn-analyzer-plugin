@@ -11,28 +11,32 @@ from qgis.core import QgsTask, QgsMessageLog, Qgis, QgsVectorLayer, QgsFeature, 
 
 from .WFSdownloader import WFSDownloader
 from .PluginUtils import get_string_from_yaml
-from .SoilDownloader import SoilDownloader, load_tiff_from_zip, polygonize_raster
-
+from .SoilDownloader import SoilDownloader, load_tiff_from_zip, polygonize_raster, clip_raster_by_extent, simple_clip
+from .LayerEditor import buffer_QgsVectorLayer, add_constant_atr, merge_layers, apply_simple_difference
 
 class TASK_process_soil_layer(QgsTask):
     """Task to process WFS layers."""
     progressChanged_Soil = pyqtSignal(int)
     taskCanceled_Soil = pyqtSignal(bool)
     taskError_Soil = pyqtSignal(str)
-    taskFinished_Soil = pyqtSignal(str)
+    taskFinished_Soil = pyqtSignal(list)
 
-    def __init__(self, polygon_Soil, ymin_s, xmin_s, ymax_s, xmax_s, extent, label_Soil, progressBar_Soil, runButton_Soil, abortButton_Soil):
+    def __init__(self, polygon_Soil, ymin_s, xmin_s, ymax_s, xmax_s, extent, label_Soil, progressBar_Soil, runButton_Soil, abortButton_Soil, config_path=None):
         super().__init__("Process Soil Layer", QgsTask.CanCancel)
         self.polygon_Soil = polygon_Soil
         self.ymin_s, self.xmin_s, self.ymax_s, self.xmax_s = ymin_s, xmin_s, ymax_s, xmax_s
         self.extent = extent
         self.label_Soil, self.progressBar_Soil = label_Soil, progressBar_Soil
         self.runButton_Soil, self.abortButton_Soil = runButton_Soil, abortButton_Soil
-        self.SoilLayer = None
-        self.polygoniziedLayer_Path = None
+        self.not_buffered_plg = None
+        self.clipped_soil_layer = None
         self._is_canceled = False
         if self.abortButton_Soil:
             self.abortButton_Soil.clicked.connect(self.cancel)
+        if config_path is not None:
+            self.config_path = config_path
+        else:
+            self.config_path = os.path.join(os.path.dirname(__file__), 'config')
 
     def _update_progress_bar(self, new_value):
         """Update the progress bar"""
@@ -42,7 +46,7 @@ class TASK_process_soil_layer(QgsTask):
         """Handle the completion of the task."""
         QgsMessageLog.logMessage("Task of processing soil layers completed.", "CzLandUseCN", level=Qgis.Info, notifyUser=False)
 
-        self.taskFinished_Soil.emit(self.polygoniziedLayer_Path )
+        self.taskFinished_Soil.emit([self.clipped_soil_layer])
 
 
 
@@ -51,33 +55,58 @@ class TASK_process_soil_layer(QgsTask):
         QgsMessageLog.logMessage("Soil task started.", "CzLandUseCN",
                                  level=Qgis.Info, notifyUser=False)
         self._update_progress_bar(10)
+        not_buffered_plg = self.polygon_Soil
         try:
-            URL = get_string_from_yaml(os.path.join(os.path.dirname(__file__), 'config', 'Soil.yaml'), "URL")
-            process_identifier = get_string_from_yaml(os.path.join(os.path.dirname(__file__), 'config', 'Soil.yaml'), "process_identifier")
-            XML_template = os.path.join(os.path.dirname(__file__), 'config', 'Soil_template.xml')
-
-            soil_downloader = SoilDownloader(URL, XML_template, process_identifier, self.polygon_Soil, self.ymin_s, self.xmin_s, self.ymax_s, self.xmax_s)
-
-            if self._is_canceled:
-                return False
+            URI = get_string_from_yaml(os.path.join(self.config_path, 'Soil.yaml'), "URI")
 
             self._update_progress_bar(20)
-            # Execute the WPS request
-            output_files = soil_downloader.execute_wps_request()
+            if URI.startswith('file://'):
+                # grow the extent by 25m (to avoid missing edges)
+                self.extent.grow(25)
+                soil_raster = clip_raster_by_extent(URI[len('file://'):], self.extent)
+            else:
+                # buffer the polygon by 25m (to avoid missing edges)
+                self.polygon_Soil = buffer_QgsVectorLayer(self.polygon_Soil, 25)
+                process_identifier = get_string_from_yaml(os.path.join(self.config_path, 'Soil.yaml'), "process_identifier")
 
-            if self._is_canceled:
-                return False
+                XML_template = os.path.join(os.path.dirname(__file__), 'config', 'Soil_template.xml')
+                soil_downloader = SoilDownloader(URI, XML_template, process_identifier, self.polygon_Soil, self.ymin_s, self.xmin_s, self.ymax_s, self.xmax_s)
 
-            self._update_progress_bar(50)
-            # Load the tiff from the output file .zip
-            soil_raster = load_tiff_from_zip(output_files)
+                if self._is_canceled:
+                    return False
 
-            if self._is_canceled:
-                return False
+                # Execute the WPS request
+                output_files = soil_downloader.execute_wps_request()
+
+                if self._is_canceled:
+                    return False
+
+                self._update_progress_bar(50)
+                # Load the tiff from the output file .zip
+                soil_raster = load_tiff_from_zip(output_files)
+
+                if self._is_canceled:
+                    return False
 
             self._update_progress_bar(70)
             # Polygonize the raster
-            self.polygoniziedLayer_Path  = polygonize_raster(soil_raster)
+            polygoniziedLayer_Path  = polygonize_raster(soil_raster)
+
+            SoilLayer = QgsVectorLayer(polygoniziedLayer_Path, "Soil Layer", "ogr")
+
+            # Clip the layer by polygon that is not buffered
+            self.clipped_soil_layer = simple_clip(SoilLayer, not_buffered_plg)
+
+            # Add HSG attribute to the area defining polygon and use it as underline layer for water bodies
+            not_buffered_plg = add_constant_atr(not_buffered_plg, "HSG", 0)
+
+            # Clip the water bodies layer to the polygon by the soil layer
+            not_buffered_plg = apply_simple_difference(not_buffered_plg, self.clipped_soil_layer)
+
+            # Merge the clipped soil layer with the polygon that is not buffered
+            self.clipped_soil_layer = merge_layers([not_buffered_plg, self.clipped_soil_layer],"Soil Layer HSG")
+            style_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "colortables", "soil.qml")
+            self.clipped_soil_layer.loadNamedStyle(style_path)
 
             if self._is_canceled:
                 return False

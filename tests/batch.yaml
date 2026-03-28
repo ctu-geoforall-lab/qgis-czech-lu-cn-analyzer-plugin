@@ -1,6 +1,7 @@
 download:
-  aoi: "tests/input_files/testing_polygon.gpkg"
-  aoi_per_feature: False
+  aoi: tests/input_files/testing_polygons_multi.gpkg
+  aoi_per_feature: True
+  local_data: False
 runoff:
   coefficient: 0.2
   return_periods:
@@ -10,8 +11,10 @@ runoff:
     - "N20"
     - "N50"
     - "N100"
+  # rainfall_depth:
+  #   - 10
+  #   - 15
 output:
-  path: /tmp/batch
+  path: tests/output/
 settings:
-  qgis_path: /usr
   workers: 1

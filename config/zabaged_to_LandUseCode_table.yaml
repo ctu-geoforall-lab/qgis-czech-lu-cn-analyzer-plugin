@@ -7,9 +7,9 @@ land_use:
     code: 30000
   - keywords: [Křovinatým, křovinatým, Krovinatym, krovinatym]
     code: 33500
-  - keywords: [Vodní_plocha, "Vodní plocha", vodní_plocha, "vodní plocha", Vodni_plocha, "Vodni plocha", vodni_plocha, "vodni plocha"]
+  - keywords: [Vodní_plocha, "Vodní plocha", vodní_plocha, "vodní plocha", Vodni_plocha, "Vodni plocha", vodni_plocha, "vodni plocha", "VodniPlocha"]
     code: 77200
-  - keywords: [Vodní_tok, "Vodní tok", vodní_tok, "vodní tok", Vodni_tok, "Vodni tok", vodni_tok, "vodni tok"]
+  - keywords: [Vodní_tok, "Vodní tok", vodní_tok, "vodní tok", Vodni_tok, "Vodni tok", vodni_tok, "vodni tok", "VodniTok"]
     code: 77100
   - keywords: [Skalní, skalní, Skalni, skalni]
     code: 88200

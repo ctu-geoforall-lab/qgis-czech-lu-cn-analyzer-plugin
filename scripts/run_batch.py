@@ -8,27 +8,20 @@ import yaml
 import types
 from pathlib import Path
 
+os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 from PyQt5.QtCore import QVariant
 
-config_path = os.path.join(os.path.dirname(
-    os.path.dirname(os.path.abspath(__file__))),
-    "config"
-)
-ZABAGED_config = os.path.join(config_path, "ZABAGED.yaml")
-LPIS_config = os.path.join(config_path, "LPIS.yaml")
-attribute_template = os.path.join(config_path, "zabaged_to_LandUseCode_table.yaml")
-stacking_template = os.path.join(config_path,
-                                 "layers_merging_order.csv")
-CN_table = os.path.join(config_path, "CN_table.csv")
-WPS_config = os.path.join(config_path, "WPS_config.yaml")
+### os.environ["GDAL_NUM_THREADS"] = "8"
 
 def message(msg):
     print(msg, file=sys.stderr)
 
 def log_to_stderr(message, tag, level):
     if level >= Qgis.Critical:
-        sys.stderr.write(f"[{tag}] {message}\n")
+        sys.stderr.write(f"CRITICAL ERROR: [{tag}] {message}\n")
         sys.exit(1)
+    else:
+        sys.stderr.write(f"[{tag}] {message}\n")
 
 def read_config(config_file):
     with open(config_file, "r", encoding="utf-8") as f:
@@ -37,25 +30,16 @@ def read_config(config_file):
     return config
 
 def save_layer(layer, output_path):
-    # layer.startEditing()
-    # layer.addAttribute(QgsField("ogc_fid", QVariant.Int))
-    # fid_index = layer.fields().indexFromName("ogc_fid")
-    # for i, feature in enumerate(layer.getFeatures(), start=1):
-    #     print(feature.id(), fid_index, i)
-    #     layer.changeAttributeValue(feature.id(), fid_index, i)
-    # layer.commitChanges()
-
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
     name = layer.name().replace(' ', '_')
-    gpkg_path = os.path.join(output_path, name + '.gml')
+    gpkg_path = os.path.join(output_path, name + '.gpkg')
 
     options = QgsVectorFileWriter.SaveVectorOptions()
-    # options.driverName = "GPKG"
-    options.driverName = "GML"
+    options.driverName = "GPKG"
     options.layerName = name
-    #options.layerOptions = ["FID=ogc_fid"]
+    options.layerOptions = ["FID=ogc_fid"]
 
     error, _, _, error_message = QgsVectorFileWriter.writeAsVectorFormatV3(
         layer,
@@ -68,46 +52,48 @@ def save_layer(layer, output_path):
         message(f"Error storing {layer.name()}: {error_message}")
         sys.exit(1)
 
+    # save style
+    uri = f"{gpkg_path}|layername={name}"
+    gpkg_layer = QgsVectorLayer(uri, layer.name(), "ogr")
+    gpkg_layer.setRenderer(layer.renderer().clone())
+    gpkg_layer.saveStyleToDatabase(
+        name="Default style",
+        description=f"{layer.name()} style",
+        useAsDefault=True,
+        uiFileContent=""
+    )
+
 def process_aoi(polygon_layer, output_path):
     message("Downloading ZABAGED and LPIS data...")
-    wfs_downloader = WFSDownloader(os.path.join(config_path, "layers_merging_order.csv"),
+    wfs_downloader = WFSDownloader(stacking_template,
                                    True, polygon_layer, True)
     wfs_layers = wfs_downloader.get_ZABAGED_layers_list()
+
     ymin, xmin, ymax, xmax, extent = wfs_downloader.get_wfs_info(wfs_layers)
 
     LandUseLayers = []
     task_wfs = TASK_process_wfs_layer(wfs_layers, ymin, xmin, ymax, xmax, extent,
                                       polygon_layer, True,
                                       None, None, None, None, None, None,
-                                      LandUseLayers)
+                                      LandUseLayers, config_path)
     task_wfs.run()
-    
+
     message("Processing downloaded data...")   
     task_edit = TASK_edit_layers(attribute_template, LPIS_config, ZABAGED_config, stacking_template,
-                                 None, True, polygon_layer, ymin, xmin, ymax, xmax,
+                                 str(Path(__file__).parent.parent / "colortables" / "landuse.qml"),
+                                 True, polygon_layer, ymin, xmin, ymax, xmax,
                                  None, None, LandUseLayers)
     task_edit.run()
     save_layer(task_edit.merged_layer, output_path)
 
-    
     message("Downloading soil data...")
-    polygon_buffer_layer = buffer_QgsVectorLayer(polygon_layer, 25) # TODO: ymin?
-    task_soil = TASK_process_soil_layer(polygon_buffer_layer, ymin, xmin, ymax, xmax,
-                                   extent, None, None, None, None)
+    task_soil = TASK_process_soil_layer(polygon_layer, ymin, xmin, ymax, xmax,
+                                        extent, None, None, None, None, config_path)
     task_soil.run()
-    SoilLayer = QgsVectorLayer(task_soil.polygoniziedLayer_Path, "Soil Layer", "ogr")
-    # Clip the layer by polygon that is not buffered
-    clipped_soil_layer = simple_clip(SoilLayer, polygon_layer)
-    # Add HSG attribute to the area defining polygon and use it as underline layer for water bodies
-    polygon_layer = add_constant_atr(polygon_layer, "HSG", 0)
-    # Clip the water bodies layer to the polygon by the soil layer
-    polygon_layer = apply_simple_difference(polygon_layer, clipped_soil_layer)
-    # Merge the clipped soil layer with the polygon that is not buffered
-    clipped_soil_layer = merge_layers([polygon_layer, clipped_soil_layer],"Soil Layer HSG")
-    save_layer(clipped_soil_layer, output_path)
+    save_layer(task_soil.clipped_soil_layer, output_path)
     
     message("Perform intersection...")
-    task_inter = TASK_Intersection(clipped_soil_layer, task_edit.merged_layer,
+    task_inter = TASK_Intersection(task_soil.clipped_soil_layer, task_edit.merged_layer,
                                    None, None)
     task_inter.run()
     save_layer(task_inter.combined_layer, output_path)
@@ -132,16 +118,23 @@ def process_aoi(polygon_layer, output_path):
     if task_cn.CNLayer.isValid() is False or task_cn.CNLayer.fields().indexFromName("CN2") == -1:
         QgsMessageLog.logMessage("CN layer is not valid.", "CzLandUseCN", level=Qgis.Critical)
 
-    task_runoff = TASK_RunOff(task_cn.CNLayer, args_config["runoff"]["return_periods"],
-                              False, None,
+    if args_config["runoff"].get("rainfall_depth") is not None:
+        input_checker = InputChecker(None, None, None, None, None, None,
+                                     None, None, None, None,
+                                     None)
+        user_defined_height = input_checker.validate_user_defined_height(
+            ';'.join(map(str,args_config["runoff"].get("rainfall_depth")))
+        )
+    else:
+        user_defined_height = None
+    task_runoff = TASK_RunOff(task_cn.CNLayer, args_config["runoff"].get("return_periods"),
+                              "rainfall_depth" in args_config["runoff"],
+                              user_defined_height,
                               args_config["runoff"]["coefficient"],
                               None, WPS_config)
     task_runoff.run()
     save_layer(task_runoff.RunOffLayer, output_path)
     
-    del SoilLayer
-    del clipped_soil_layer
-    del polygon_buffer_layer    
     del polygon_layer
 
 def create_layer(layer, feature):
@@ -181,9 +174,18 @@ if __name__ == "__main__":
 
     args_config = read_config(args.config)
 
-    sys.path.insert(0, str(Path(
-        args_config["settings"]["qgis_path"]) / "share" / "qgis" / "python" / "plugins")
-    )
+    if args_config["runoff"].get("return_periods") and args_config["runoff"].get("rainfall_depth"):
+        sys.exit("Options 'return_periods' and 'rainfall_depth' are mutually exclusive")
+
+    if os.environ.get("QGIS_PATH"):
+        qgis_path = os.environ.get("QGIS_PATH")
+        sys.path.insert(0, str(Path(qgis_path, "python")))
+        sys.path.insert(0, str(Path(qgis_path, "python", "plugins")))
+    else:
+        # Linux expected
+        qgis_path = "/usr"
+        sys.path.insert(0, str(Path(qgis_path, "share", "qgis", "python", "plugins"))
+        )
     from qgis.core import QgsApplication, QgsVectorLayer, Qgis, QgsVectorFileWriter, QgsCoordinateTransformContext, QgsField, QgsFeature, QgsWkbTypes
     from processing.core.Processing import Processing
 
@@ -206,13 +208,31 @@ if __name__ == "__main__":
     from qgis_plugin.InputChecker import is_valid_cn_csv
     from qgis_plugin.CNtask import TASK_CN
     from qgis_plugin.RunOffTask import TASK_RunOff
+    from qgis_plugin.InputChecker import InputChecker
 
     # initialize QGIS application in the main thread
-    QgsApplication.setPrefixPath(args_config["settings"]["qgis_path"], True)
+    QgsApplication.setPrefixPath(qgis_path, True)
     qgs = QgsApplication([], False)
     qgs.initQgis()
     Processing.initialize()
     QgsApplication.messageLog().messageReceived.connect(log_to_stderr)
+
+    # configs
+    config_path = os.path.join(os.path.dirname(
+        os.path.dirname(os.path.abspath(__file__))),
+        "config"
+    )
+    attribute_template = os.path.join(config_path, "zabaged_to_LandUseCode_table.yaml")
+    CN_table = os.path.join(config_path, "CN_table.csv")
+    WPS_config = os.path.join(config_path, "WPS_config.yaml")
+
+    if args_config["download"]["local_data"] is True:
+        config_path = os.path.join(config_path, "local_data")
+
+    ZABAGED_config = os.path.join(config_path, "ZABAGED.yaml")
+    LPIS_config = os.path.join(config_path, "LPIS.yaml")
+    stacking_template = os.path.join(config_path,
+                                     "layers_merging_order.csv")
 
     # process area of interest
     aoi_path = Path(args_config["download"]["aoi"])
@@ -242,6 +262,9 @@ if __name__ == "__main__":
         )
     else:
         for aoi_feat in polygon_layer.getFeatures():
+            if "skip_feature" in args_config["download"] and \
+               aoi_feat.id() in args_config["download"]["skip_feature"]:
+                continue
             process_aoi(
                 create_layer(polygon_layer, aoi_feat),
                 output_path if args_config["download"]["aoi_per_feature"] is False
