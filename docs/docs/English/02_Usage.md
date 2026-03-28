@@ -1,4 +1,4 @@
-# Control  
+# Usage  
 !!! warning "Attention"  
      Before starting data download, it is necessary to set the project to __EPSG:5514__<br>
      [How?](https://www.youtube.com/watch?v=OmPH1es1w1k)  
