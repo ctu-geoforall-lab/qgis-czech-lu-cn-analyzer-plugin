@@ -1,6 +1,4 @@
 land_use:
-  - keywords: [Orná, orná, Orna, orna]
-    code: 10000
   - keywords: [Travní, travní, Travni, travni]
     code: 20000
   - keywords: [Lesní, lesní, Lesni, lesni]
@@ -51,7 +49,7 @@ land_use:
     code: 55100
   - keywords: [Rozvodna, rozvodna]
     code: 44300 
-  - keywords: [Okrasna, okrasna, Okrasná, okrasná]
+  - keywords: [Udrzovana, udrzovana, Udržovaná, udržovaná]
     code: 44200
   - keywords: [Hřbitov, Hrbitov, hrbitov, hřbitov]
     code: 44200
@@ -65,8 +63,6 @@ land_use:
     code: 44100
   - keywords: [Bažina, bazina, Bazina, bažina]
     code: 66600
-  - keywords: [Tezba, těžba, tezba, Těžba]
-    code: 44100
   - keywords: [zřícenina, Zricenina, zricenina, Zřícenina]
     code: 44100   
   - keywords: [liniova, Liniova, Liniová, liniová]
@@ -79,9 +75,7 @@ land_use:
     code: 22200  
   - keywords: [Kulna, kulna, kůlna, Kulna]
     code: 44100  
-  - keywords: [Ostatni, ostanti, ostatní, Ostatní]
-    code: 44200
-  - keywords: [Těžba, tezba, Tezba, těžba]
+  - keywords: [Sidlech, sidlech, sídlech, Sídlech]
     code: 44200
   - keywords: [Letiste, letiste, letiště, Letiště]
     code: 20000
