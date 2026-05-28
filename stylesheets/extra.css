@@ -1,0 +1,28 @@
+/* Hide the language-selector menu button */
+.md-header__button.md-header__button--menu[title="Welcome, select your language. "] {
+  display: none;
+}
+
+/* center the footer nav and space out links */
+.md-footer-nav__inner {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+/* style each link as a pill-shaped button */
+.md-footer-nav__link {
+  background-color: var(--md-primary-fg-color);
+  color: var(--md-secondary-bg-color) !important;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  font-weight: 500;
+  box-shadow: var(--md-elevation-level-1);
+  transition: background-color 0.2s ease-in-out;
+}
+
+.md-footer-nav__link:hover {
+  background-color: var(--md-primary-color);
+}
