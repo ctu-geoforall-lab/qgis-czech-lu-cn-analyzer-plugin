@@ -1,6 +1,5 @@
 BudovaJednotlivaNeboBlokBudov
 KulnaSklenikFoliovnikPristresek
-VezovitaStavba
 LPIS_layer
 VodniPlocha
 Raseliniste
@@ -10,7 +9,6 @@ SilniceDalnice
 SilniceNeevidovana
 Ulice
 Cesta
-Pesina
 OsaLetistniDrahy
 Letiste
 Kolejiste
@@ -29,6 +27,7 @@ RozvalinaZricenina
 UlozneMisto
 Heliport
 ZeleznicniTocnaPresuvna
+ZeleznicniVlecka
 ArealZeleznicniStaniceZastavky
 Elektrarna
 ArealUceloveZastavby
@@ -43,7 +42,12 @@ PovrchovaTezbaLom
 TrvalyTravniPorost
 OrnaPudaAOstatniDaleNespecifikovanePlochy
 OstatniPlochaVSidlech
-LesniPudaSKrovinatymPorostem
 LesniPudaSeStromyKategorizovana
 LesniPudaSKosodrevinou
-ZeleznicniVlecka
+LesniPudaSKrovinatymPorostem
+ObvodLetistniDrahy
+PozemniNadrz
+Tunel
+VezovitaStavba
+LesniPrusek
+SilniceVeVystavbe
