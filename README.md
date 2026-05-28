@@ -5,9 +5,9 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) <br>
 
 _Qgis plugin umožňuje automatizovaně generovat vrstvu využití území a vrstvu hydrologických skupin půd. Z této kombinace vrstev přiřazuje hodnotu CN a  dále je možné získat hodnotu objemu přímého odtoku ze srážkových úhrnů poskytovaných z [rain.fsv.cvut.cz](https://www.rain.fsv.cvut.cz) či definovaných uživatelem._
-<br><br>
+
 📖 [**Dokumentace**](https://ctu-geoforall-lab.github.io/qgis-czech-lu-cn-analyzer-plugin/)
-<br><br>
+
 Pro správnou funkci je potřeba mít v projektu nastaven CRS na EPSG:5514 <br>
 Testováno na MS Windows a Linux(Ubuntu). <br> <br>
 
@@ -30,9 +30,8 @@ Testováno na MS Windows a Linux(Ubuntu). <br> <br>
 
   
 ## Popis konfiguračních souborů
-Tyto soubory se nachází ve složce *config* <br>
-Slouží k uchování paramterů webových služeb (a k jejich editaci pro případ změn na straně poskytovatele) <br>
-a pro případnou změnu některých výpočetních postupů <br> <br>
+
+Tyto soubory se nachází ve složce *config*. Slouží k uchování paramterů webových služeb (a k jejich editaci pro případ změn na straně poskytovatele) a pro případnou změnu některých výpočetních postupů.
 
 - **layers_merging_order.csv** - uchovává názvy stahovaných ZABAGED vrstev, které jsou dány poskytovatelem. Nachází se zde pouze vrstvy relevantní pro výpočet. Jsou uchovávány v pořadí dle priority sloučení do LandUse vrstvy. Priorita LPIS vrstvy je zde uvedena pod klíčovým slovem _LPIS_layer_.
 - **LPIS.yaml** - obsahuje URL adresu, kde se nachází WFS služba poskytující LPIS data. Také název stahované LPIS vrstvy a  řídící atribut pro změnu hodnoty LandUse kódu, typy atributů, základní hodnotu LandUse kódu a definované přírůstky.
@@ -47,25 +46,8 @@ a pro případnou změnu některých výpočetních postupů <br> <br>
 - na další bodové a linové prvky je potřeba zvolit buffer
 - Je nutné doplnit další LandUse kódy pro více ZABAGED vrstev
 
-Některé požadované ZABAGED vrstvy není možné zahrnout kvůli následujícím problémům poskytovatele dat: <br>
-- Usazovací nádrž - 2024-01-01: 1.07 USAZOVACÍ NÁDRŽ - objekt zrušen z kategorie 1. SÍDELNÍ, HOSPODÁŘSKÉ A KULTURNÍ OBJEKTY <br>
-- Dobývací prostor - (*) Typ objektu bude publikován po smluvním zajištění dat od správce. <br>
-- Chráněné ložiskové území -   (*) Typ objektu bude publikován po smluvním zajištění dat od správce. <br> <br>
+Některé požadované ZABAGED vrstvy není možné zahrnout kvůli následujícím problémům poskytovatele dat:
 
-### Spuštění testů lokálně
-
-```
-export QGIS_PREFIX_PATH="/usr"
-export PYTHONPATH="/usr/lib/python3/dist-packages:/usr/share/qgis/python:/usr/share/qgis/python/plugins:$GITHUB_WORKSPACE"
-export LD_LIBRARY_PATH="/usr/lib"
-export QGIS_DEBUG=0
-export QGIS_LOG_FILE=/dev/null
-export QGIS_PLUGINPATH="$HOME/.local/share/QGIS/QGIS3/profiles/default/python/plugins"
-export QT_QPA_PLATFORM=offscreen
-
-pytest -s tests/test_WFSdownloader.py
-pytest -s tests/test_LayerEditor.py
-pytest -s tests/test_SoilDownloader.py
-pytest -s tests/test_CNCreator.py
-pytest -s tests/test_RunOffComputer.py
-```
+- Usazovací nádrž - 2024-01-01: 1.07 USAZOVACÍ NÁDRŽ - objekt zrušen z kategorie 1. SÍDELNÍ, HOSPODÁŘSKÉ A KULTURNÍ OBJEKTY
+- Dobývací prostor - (*) Typ objektu bude publikován po smluvním zajištění dat od správce.
+- Chráněné ložiskové území -   (*) Typ objektu bude publikován po smluvním zajištění dat od správce. 
