@@ -16,6 +16,10 @@ buffer_layers:
         distance: 5
     default_buffer: 4.5
 
+  - input_layer_name: "ZABAGED_POLOHOPIS:Silnice_ve_výstavbě"
+    controlling_atr_name: "NaN"
+    default_buffer: 5.5
+
   - input_layer_name: "ZABAGED_POLOHOPIS:Osa_letištní_dráhy" # since buffering by random int in controlling_atr is not implemented yet, default_buffer is  20 wich is mean value of all of them and most common widths are also here
     controlling_atr_name: "sirka"
     buffer_levels:
@@ -46,6 +50,20 @@ buffer_layers:
   - input_layer_name: "ZABAGED_POLOHOPIS:Ulice"
     controlling_atr_name: "NaN"
     default_buffer: 3
+
+  - input_layer_name: "ZABAGED_POLOHOPIS:Cesta"
+    controlling_atr_name: "typcesty_k"
+    buffer_levels:
+      - priority: "1"
+        values: ["026"]
+        distance: 2.5
+      - priority: "2"
+        values: ["025"]
+        distance: 2.0
+      - priority: "3"
+        values: ["099"]
+        distance: 1.0
+    default_buffer: 2.0
     
   - input_layer_name: "ZABAGED_POLOHOPIS:Liniová_vegetace"
     controlling_atr_name: "NaN"
@@ -85,7 +103,7 @@ layers:
     controlling_attribute: "TYP_PUDY_K"
     value_increments:
       OR: 0      # orna
-      OSN: 34200 # ostatni
+      OSN: 23500 # ostatni
 
   - name: "ZABAGED_POLOHOPIS:Elektrárna__plocha_"
     base_use_code: 44200
@@ -107,6 +125,7 @@ layers:
       Z: 100  # zricenina
       ZH: 100 # zricenina hradu
       ZZ: 100 # zricenina zamku
+      
   - name: "ZABAGED_POLOHOPIS:Areál_účelové_zástavby" # while selecting from INTRAVILAN/EXTRAVILAN temporary was selected the lower number (more water resilient Land Use code)
     base_use_code: 44100
     controlling_attribute: "typzast_k"
@@ -202,4 +221,23 @@ layers:
     controlling_attribute: "typ_pudy_k"
     value_increments:
       OR: 0    # orná půda
-      OSN: 78500   # Ostatní nespecifikované plochy
+      OSN: 23500   # Ostatní nespecifikované plochy
+
+  - name: "ZABAGED_POLOHOPIS:Udržovaná_zeleň"
+    base_use_code: 20000
+    controlling_attribute: "typ_pudy_k"
+    value_increments:
+      PO: 0    # park, okrasná zahrada
+      UZ: 0    # ostatní udržovaná zeleň
+      N: 0   # nezadáno/neznámo
+
+  - name: "ZABAGED_POLOHOPIS:Cesta"
+    base_use_code: 44100
+    controlling_attribute: "povrch_k"
+    value_increments:
+      H: 200 # nedostatečně zpevněný (tráva, hlína, písek, kamení)
+      K: 100 # zpevněný (dřevěná, kovová, ostatní konstrukce)
+      O: 100 # neurčeno
+      P: 0   # zpevněný (panel, dlažba)
+      T: 100 # zpevněný (nosný terén, štěrk, kalený povrch)
+      Z: 0   # zpevněný (asfalt, beton)
