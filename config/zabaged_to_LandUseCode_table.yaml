@@ -1,16 +1,14 @@
 land_use:
-  - keywords: [Orná, orná, Orna, orna]
-    code: 10000
   - keywords: [Travní, travní, Travni, travni]
     code: 20000
   - keywords: [Lesní, lesní, Lesni, lesni]
     code: 30000
   - keywords: [Křovinatým, křovinatým, Krovinatym, krovinatym]
     code: 33500
+  - keywords: [Průsek, průsek, Prusek, prusek]
+    code: 33500
   - keywords: [Vodní_plocha, "Vodní plocha", vodní_plocha, "vodní plocha", Vodni_plocha, "Vodni plocha", vodni_plocha, "vodni plocha", "VodniPlocha"]
     code: 77200
-  - keywords: [Vodní_tok, "Vodní tok", vodní_tok, "vodní tok", Vodni_tok, "Vodni tok", vodni_tok, "vodni tok", "VodniTok"]
-    code: 77100
   - keywords: [Skalní, skalní, Skalni, skalni]
     code: 88200
   - keywords: [Budova, budova, budov, Budov]
@@ -19,6 +17,8 @@ land_use:
     code: 44100
   - keywords: [Nadrz, nadrz, Nádrž, nádrž]
     code: 44100
+  - keywords: [Pozemni, pozemni, Pozemní, pozemní]
+    code: 77200
   - keywords: [Silo, silo]
     code: 44100
   - keywords: [Hrad , hrad ]
@@ -47,11 +47,9 @@ land_use:
     code: 55100 
   - keywords: [Zahrada, zahrada]
     code: 42000 
-  - keywords: [Vinice, vinice]
-    code: 55100
   - keywords: [Rozvodna, rozvodna]
     code: 44300 
-  - keywords: [Okrasna, okrasna, Okrasná, okrasná]
+  - keywords: [Udrzovana, udrzovana, Udržovaná, udržovaná]
     code: 44200
   - keywords: [Hřbitov, Hrbitov, hrbitov, hřbitov]
     code: 44200
@@ -65,8 +63,6 @@ land_use:
     code: 44100
   - keywords: [Bažina, bazina, Bazina, bažina]
     code: 66600
-  - keywords: [Tezba, těžba, tezba, Těžba]
-    code: 44100
   - keywords: [zřícenina, Zricenina, zricenina, Zřícenina]
     code: 44100   
   - keywords: [liniova, Liniova, Liniová, liniová]
@@ -75,13 +71,7 @@ land_use:
     code: 66600   
   - keywords: [precerpavaci, přečerpávací, Precerpavaci, Přečerpávací]
     code: 44200   
-  - keywords: [sucha, Sucha, suchá, Suchá]
-    code: 22200  
-  - keywords: [Kulna, kulna, kůlna, Kulna]
-    code: 44100  
-  - keywords: [Ostatni, ostanti, ostatní, Ostatní]
-    code: 44200
-  - keywords: [Těžba, tezba, Tezba, těžba]
+  - keywords: [Sidlech, sidlech, sídlech, Sídlech]
     code: 44200
   - keywords: [Letiste, letiste, letiště, Letiště]
     code: 20000
@@ -93,7 +83,5 @@ land_use:
     code: 44300
   - keywords: [Úložné, ulozne, úložné, Ulozne]
     code: 44300
-  - keywords: [Bažina, bazina, bažina, Bazina]
-    code: 66600
   - keywords: [Vlečka, vlecka, vlečka, Vlecka]
     code: 44200
