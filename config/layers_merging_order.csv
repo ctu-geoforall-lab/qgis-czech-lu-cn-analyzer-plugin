@@ -1,17 +1,14 @@
 ZABAGED_POLOHOPIS:Budova_jednotlivá_nebo_blok_budov__plocha_
 ZABAGED_POLOHOPIS:Kůlna__skleník__fóliovník__přístřešek
-ZABAGED_POLOHOPIS:Věž__věžovitá_nástavba
 LPIS_layer
 ZABAGED_POLOHOPIS:Vodní_plocha
 ZABAGED_POLOHOPIS:Rašeliniště__plocha_
 ZABAGED_POLOHOPIS:Bažina__močál
-ZABAGED_POLOHOPIS:Železniční_stanice__zastávka
 ZABAGED_POLOHOPIS:Liniová_vegetace
 ZABAGED_POLOHOPIS:Silnice__dálnice
 ZABAGED_POLOHOPIS:Silnice_neevidovaná
 ZABAGED_POLOHOPIS:Ulice
 ZABAGED_POLOHOPIS:Cesta
-ZABAGED_POLOHOPIS:Pěšina
 ZABAGED_POLOHOPIS:Osa_letištní_dráhy
 ZABAGED_POLOHOPIS:Letiště
 ZABAGED_POLOHOPIS:Kolejiště
@@ -25,7 +22,6 @@ ZABAGED_POLOHOPIS:Parkoviště__odpočívka
 ZABAGED_POLOHOPIS:Hřbitov
 ZABAGED_POLOHOPIS:Tribuna
 ZABAGED_POLOHOPIS:Nadzemní_zásobní_nádrž
-ZABAGED_POLOHOPIS:Silo
 ZABAGED_POLOHOPIS:Chladící_věž
 ZABAGED_POLOHOPIS:Rozvalina__zřícenina
 ZABAGED_POLOHOPIS:Úložné_místo
@@ -49,3 +45,9 @@ ZABAGED_POLOHOPIS:Ostatní_plocha_v_sídlech
 ZABAGED_POLOHOPIS:Lesní_půda_se_stromy_kategorizovaná__plocha_
 ZABAGED_POLOHOPIS:Lesní_půda_s_kosodřevinou
 ZABAGED_POLOHOPIS:Lesní_půda_s_křovinatým_porostem
+ZABAGED_POLOHOPIS:Obvod_letištní_dráhy
+ZABAGED_POLOHOPIS:Pozemní_nádrž
+ZABAGED_POLOHOPIS:Tunel
+ZABAGED_POLOHOPIS:Věžovitá_stavba
+ZABAGED_POLOHOPIS:Lesní_průsek
+ZABAGED_POLOHOPIS:Silnice_ve_výstavbě
