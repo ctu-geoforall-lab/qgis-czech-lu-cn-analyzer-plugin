@@ -51,7 +51,7 @@ class TASK_process_wfs_layer(QgsTask):
 
     def run(self):
         """Run the task to process WFS layers."""
-        QgsMessageLog.logMessage("WFS task started.", "CzLandUseCN",
+        QgsMessageLog.logMessage("Download task started.", "CzLandUseCN",
                                  level=Qgis.Info, notifyUser=False)
 
         wfs_downloader = WFSDownloader(os.path.join(os.path.dirname(__file__), 'config', 'layers_merging_order.csv'),
