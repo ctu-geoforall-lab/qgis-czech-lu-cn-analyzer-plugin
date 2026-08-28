@@ -86,7 +86,6 @@ def process_aoi(polygon_layer, output_path):
     task_edit.run()
     save_layer(task_edit.merged_layer, output_path)
 
-    sys.exit(0)
     message("Downloading soil data...")
     task_soil = TASK_process_soil_layer(polygon_layer, ymin, xmin, ymax, xmax,
                                         extent, None, None, None, None, config_path)

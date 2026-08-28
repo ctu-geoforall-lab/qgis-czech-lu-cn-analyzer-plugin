@@ -99,12 +99,12 @@ class WFSDownloader:
         if URI.startswith('file://'):
             data_path = URI[len('file://'):]
             if layer_name.startswith("ZABAGED"):
-                layer_name = convert_wfs_layer_name_to_local(layer_name)
+                ds_layer_name = convert_wfs_layer_name_to_local(layer_name)
             else: # LPIS expected here
                 ds = QgsProviderRegistry.instance().querySublayers(data_path)
-                layer_name = ds[0].name()
+                ds_layer_name = ds[0].name()
 
-            uri = f"{data_path}|layername={layer_name}"
+            uri = f"{data_path}|layername={ds_layer_name}"
             data_provider = "ogr"
         else:
             # WFS
