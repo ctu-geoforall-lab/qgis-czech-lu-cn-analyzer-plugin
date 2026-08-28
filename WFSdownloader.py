@@ -9,6 +9,23 @@ from qgis.utils import iface
 import processing
 
 
+def convert_wfs_layer_name_to_local(name: str) -> str:
+    """Converts a WFS layer name to a local data source name."""
+    if name.startswith("LPIS"):
+        return name
+
+    value = name.split(":", 1)[1].removesuffix('__plocha_')
+    parts = [p for p in re.split(r"_+", value) if p]
+
+    return "".join(
+        unicodedata.normalize("NFKD", part)
+        .encode("ascii", "ignore")
+        .decode("ascii")
+        .capitalize()
+        for part in parts
+    )
+
+
 class WFSDownloaderError(Exception):
     pass
 
@@ -76,28 +93,13 @@ class WFSDownloader:
         return extent.yMinimum(), extent.xMinimum(), extent.yMaximum(), extent.xMaximum(), extent
 
 
-    @staticmethod
-    def local_layer_name(name: str) -> str:
-        """Converts a WFS layer name to a local data source name."""
-        value = name.split(":", 1)[1].removesuffix('__plocha_')
-        parts = [p for p in re.split(r"_+", value) if p]
-
-        return "".join(
-            unicodedata.normalize("NFKD", part)
-            .encode("ascii", "ignore")
-            .decode("ascii")
-            .capitalize()
-            for part in parts
-        )
-
-
     def process_wfs_layer(self, layer_name: str, ymin: float, xmin: float, ymax: float, xmax: float,
                           extent: QgsGeometry, URI: str) -> Optional[QgsVectorLayer]:
         """ Load and clip a WFS layer to the given extent"""
         if URI.startswith('file://'):
             data_path = URI[len('file://'):]
             if layer_name.startswith("ZABAGED"):
-                layer_name = self.local_layer_name(layer_name)
+                layer_name = convert_wfs_layer_name_to_local(layer_name)
             else: # LPIS expected here
                 ds = QgsProviderRegistry.instance().querySublayers(data_path)
                 layer_name = ds[0].name()

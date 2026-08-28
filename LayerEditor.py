@@ -24,14 +24,17 @@ from qgis.core import QgsProcessingUtils
 
 # Based on the environment, import the WFSdownloader/SoilDownloader module
 try:
-    from .WFSdownloader import WFSDownloader
+    from .WFSdownloader import WFSDownloader, convert_wfs_layer_name_to_local
 except ImportError:
-    from WFSdownloader import WFSDownloader
+    from WFSdownloader import WFSDownloader, convert_wfs_layer_name_to_local
 try:
     from .SoilDownloader import simple_clip
 except ImportError:
     from SoilDownloader import simple_clip
-
+try:
+    from .PluginUtils import get_string_from_yaml
+except ImportError:
+    from PluginUtils import get_string_from_yaml
 
 
 def apply_simple_difference(layer1: QgsVectorLayer, layer2: QgsVectorLayer) -> QgsVectorLayer:
@@ -399,6 +402,7 @@ class LayerEditor:
         try:
             with open(self.LPIS_config_path , 'r') as file:
                 config = yaml.safe_load(file)
+
                 # Get the LPIS layer configuration from the YAML file
                 lpis_layer_config = next((layer for layer in config['layers'] if layer['name'] == 'LPIS_layer'), None)
                 if not lpis_layer_config:
@@ -609,7 +613,10 @@ class LayerEditor:
         # 1) Read stacking order
         try:
             with open(self.stacking_template_path, 'r') as f:
-                order = [ln.strip() for ln in f if ln.strip()]
+                uri = get_string_from_yaml(self.ZABAGED_config_path,
+                                           "URI")
+                order = [convert_wfs_layer_name_to_local(ln.strip()) if uri.startswith('file://') else ln.strip() for ln in f if ln.strip()]
+                print(order)
         except Exception as e:
             QgsMessageLog.logMessage(f"Failed reading stacking template: {e}",
                                      "CzLandUseCN", level=Qgis.Critical)
