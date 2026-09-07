@@ -5,15 +5,15 @@
 
 ## Záložka Stahování dat (Download)
 
-- Nejprve je nutné vybrat zájmové území pro stažení dat
-	- Pro stažení dat ve výřezu obrazovky vyberte možnost _Compute inside window extent_
-	- Pro stažení dat uvnitř polygonu vyberte možnost _Compute inside polygon_
-		- Tato akce umožní vybrat polygn z projektu v rozbalovacím okně níže
+- Nejprve je nutné vybrat zájmové území
+	- Pro stažení dat pro aktuální rozsah mapového okna vyberte možnost _Current window extent_
+	- Pro stažení dat pro území definované polygonovou vrstvou vyberte možnost _Polygon layer_
+		- Tato akce umožní vybrat polygn z projektu v rozbalovací nabídce níže
 
-- Dále je možné vybrat jaká data stáhnout
-	- Pro stažení dat využití území i dat hydrologických skupin půd vyberte _Land Use and Soil Groups_
-	- Pro stažení pouze dat využití území vyberte _only Land Use_
-	- Pro stažení pouze dat hydrologických skupin půd vyberte _only Hydrology Soil Groups_
+- Dále je možné zvolit požadovaná data ke stažení
+	- Pro stažení dat o půdním pokryvu (využití území) i hydrologických skupin půd vyberte _Land Use + Hydrologic Soil Groups_
+	- Pro získání dat pouze o půdním pokryvu (využití území) vyberte _only Land Use_
+	- Pro stažení pouze vrstvy hydrologických skupin půd vyberte _only Hydrologic Soil Groups_
 
 - Pro zahájení stahování klikněte na tlačítko _Download_
 - Pro zastavení procesu stahování klikněte na tlačítko _Abort_
@@ -22,56 +22,58 @@
     <img src="../../img/ovl1.png" alt="ovl1" style="height: 60vh;">
 </p>
 
-## Záložka Propojení vrstev (Intersection)
- - V rozbalovacím okně _Select Land Use layer_ vyberte vrstvu využití území
-	- Po jejím úspěšném stažení v předchozí záložce se do rozbalovacího okna nastaví sama
-	- Pokud chcete použít vrstvu vlastní, musí tato vrstva obsahovat atribut s názvem _LandUse_code_ s celými čísly
+## Záložka Propojení vrstev (Combine layers)
+ - V rozbalovacím seznamu _Select Land Use layer_ vyberte vrstvu půdního pokryvu (využití území)
+	- Po jejím úspěšném sestavení v předchozí záložce se do rozbalovacího okna nastaví jako výchozí volba
+	- Pokud chcete použít vrstvu vlastní, musí tato vrstva obsahovat pole s názvem _LandUse_code_ s celočíselnými kódy
 
-- V rozbalovacím okně _Select Hydrology Soil Group layer_ vyberte vrstvu hydrologických skupin půd
-	- Po jejím úspěšném stažení v předchozí záložce se do rozbalovacího okna nastaví sama
-	- Pokud chcete použít vrstvu vlastní, musí tato vrstva obsahovat atribut s názvem _HSG_ s celými čísly, kde 
-		- číslo 1 zastupuje skupinu A
-		- číslo 2 zastupuje skupinu B
-		- číslo 3 zastupuje skupinu C
-		- číslo 4 zastupuje skupinu D
-		- číslo 0 zastupuje skupinu vodní plochy
+- V rozbalovacím seznamu _Select Hydrologic Soil Group layer_ vyberte vrstvu hydrologických skupin půd
+	- Po jejím úspěšném stažení v předchozí záložce se do rozbalovacího okna nastaví jako výchozí volba
+	- Pokud chcete použít vrstvu vlastní, musí tato vrstva obsahovat pole s názvem _HSG_ s celočíselnými kódy, kde:
+		- hodnota 1 zastupuje skupinu A
+		- hodnota 2 zastupuje skupinu B
+		- hodnota 3 zastupuje skupinu C
+		- hodnota 4 zastupuje skupinu D
+		- hodnotou 0 je možné reprezentovat vodní plochy nebo plochy s nedefinovanou skupinou půd
 		
-- Zahajte propojení vrstev tlačítkem _Intersect_
+- Zahajte propojení vrstev tlačítkem _Combine_
 
 <p align="center">
     <img src="../../img/ovl2.png" alt="ovl2" style="height: 60vh;">
 </p>
 
-## Záložka Tvorby CN vrstvy (CN)
-- V rozbalovacím okně _Select Land Use and HSF Intersected layer_ vyberte vrstvu využití území propojenou s vrstvou hydrologických skupin půd.
-	- Po jejím úspěšném propojení v předchozí záložce se do rozbalovacího okna nastaví sama
-	- Pokud chcete použít vrstvu vlastní, musí tato vrstva obsahovat atribut s názvem _LandUse_code_ s celými čísly a atribut s názvem _HSG_ s celými čísly.
+## Záložka Čísla odtokových křivek (CN)
+- V rozbalovacím seznamu _Select layer combining Land Use and HSG_ vyberte vrstvu s propojením půdního pokryvu (využití území) a hydrologických skupin půd
+	- Po jejím úspěšném propojení v předchozí záložce se do rozbalovacího okna nastaví jako výchozí volba
+	- Pokud chcete použít vrstvu vlastní, musí obsahovat celočíselná pole s názvy _LandUse_code_ a _HSG_
 
 - Řádek níže obsahuje cestu k CSV tabulce konverze CN hodnot
-- Pro výběr úmístění vlastní CSV tabulky klikněte na ikonu tří teček vedle  tohoto řádku
-- Pro vytvoření CN vrstvy klikněte na tlačítko _Create CN layer_
+- Výchozí hodnota odkazuje na převodní tabulku hodnot CN sestavenou speciálně pro LU vrstvu na základě ZABAGED a LPIS 
+- Pro výběr úmístění vlastní převodní tabulky klikněte na ikonu tří teček vedle tohoto řádku
+- Pro vytvoření nové polygonové vrstvy CN klikněte na tlačítko _Create CN layer_
 
 <p align="center">
     <img src="../../img/ovl3.png" alt="ovl3" style="height: 60vh;">
 </p>
 
-## Záložka Výpočtu objemu přímého odtoku (Run-off)
- - V rozbalovacím okně _Select CN layer_ vyberte vrstvu CN
-	- Po jejím úspěšném získání v předchozí záložce se do rozbalovacího okna nastaví sama
-	- Pokud chcete použít vrstvuu vlastní, musí tato vrstva obsahovat atribut s názvem _CN2_ s desítkovými čísly
-		- může a nemusí obsahovat atribut s názvem _CN3_ s desítkovými čísly
+## Záložka Výpočet objemu přímého odtoku (Runoff)
+ - V rozbalovacím seznamu _Select CN layer_ vyberte vrstvu CN
+	- Po jejím úspěšném získání v předchozí záložce se do rozbalovacího okna nastaví jako výchozí hodnota
+	- Pokud chcete použít vrstvu vlastní, musí obsahovat pole s názvem _CN2_ s hodnotami v rozmezí (0.0 - 100.0>
+		- může a nemusí obsahovat pole s názvem _CN3_ s hodnotami v rozmezí (0.0 - 100.0>
 
-- Níže v poli _Inital Abstraction Coefficient_ můžete vložit vlastní hodnotu poměrového koeficientu počáteční ztráty.
-	- Ten je možný volit v rozmezí 0.1 - 0.3
+- Níže v poli _Inital Abstraction Coefficient (lambda)_ můžete zvolit vlastní hodnotu koeficientu počáteční ztráty
+    - Přednastavená hodnota 0.2 pokrývá běžné případy bez bližší znalosti hydrologického chování území
+	- V odůvodněných případech je možné koeficient měnit v rozmezí 0.05 - 0.3
 
-- Pokud si přejete vypočíst objemy přímých odtoků z návrhových výšek úhrnů ze služby [rain.fsv.cvut.cz](https://www.rain.fsv.cvut.cz) pro různé doby opakování vyberte možnost _Use rainfall depth from rain.fsv.cvut.cz_
-	- Následně si vyberte požadované doby opakování zasškrtávacími tlačítky výše _Select Recurrence Intervals_
+- Pokud si přejete vyčíslit výšky a objemy přímého odtoku z návrhových 6hodinových srážkových úhrnů ze služby [rain.fsv.cvut.cz](https://www.rain.fsv.cvut.cz), vyberte možnost _Use 6-hour rainfall depth from rain.fsv.cvut.cz_
+	- Následně zvolte požadované doby opakování použitím příslušných zaškrtávacích polí v sekci _Select Return Periods_
 
-- Pokud si přejete vypočíst objemy přímých odtoků z vlastních návrhových výšek úhrnů zaškrtněte možnost _Define your own rainfall depth  [mm]_
-	-  Následně vepište takovou hodnot v milimetrech do pole níže 
-		- Pokud si přejete provést výpočet pro více návrhových výšek úhrnů najdenou, odělte je v tomto poli středníkem _;_
+- Pokud si přejete vyčíslit výšky a objemy přímého odtoku z vlastních návrhových úhrnů, zaškrtněte možnost _User-defined rainfall depth  [mm]_
+	-  Do níže umístěného textového pole vepište výšku vlastního návrhového úhrnu v milimetrech 
+		- Pokud si přejete provést výpočet pro více návrhových úhrnů najdenou, oddělte je v tomto poli středníkem _;_
 
-- Proces spustíte tlačítkem _Compute run-off_
+- Proces výpočtu spustíte tlačítkem _Compute runoff volume_
 
 <p align="center">
     <img src="../../img/ovl4.png" alt="ovl4" style="height: 60vh;">
