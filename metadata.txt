@@ -4,7 +4,7 @@
 
 [general]
 name=Czech Land Use and CN Analyzer
-qgisMinimumVersion=3.0
+qgisMinimumVersion=3.44
 description=This plugin aquires Land Use, HSG, CN and Run-off layers from Czech geo-data.
 version=1.2.0
 author=GeoForAll Lab at CTU in Prague (J.Jehlicka,M.Landa,P.Kavka,L.Strouhal)
