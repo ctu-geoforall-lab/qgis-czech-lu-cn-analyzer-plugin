@@ -9,6 +9,6 @@
 ## Popis
 
 
-QGIS plugin umožňuje automatizovaně generovat vrstvu využití území a vrstvu hydrologických skupin půd. Z této kombinace vrstev přiřazuje hodnotu CN a  dále je možné získat hodnotu objemu přímého odtoku ze srážkových úhrnů poskytovaných z [rain.fsv.cvut.cz](https://www.rain.fsv.cvut.cz) či definovaných uživatelem.
+QGIS plugin umožňuje automatizovaně generovat vrstvu půdního pokryvu (využití území) a vrstvu hydrologických skupin půd. Z této kombinace vrstev přiřazuje hodnotu CN a dále je možné získat hodnotu výšky a objemu přímého odtoku ze srážkových úhrnů poskytovaných z [rain.fsv.cvut.cz](https://www.rain.fsv.cvut.cz) či definovaných uživatelem.
 
 

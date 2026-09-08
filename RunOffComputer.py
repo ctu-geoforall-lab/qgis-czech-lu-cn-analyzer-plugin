@@ -148,8 +148,11 @@ class RunOffComputer:
         Ia_CN3 = self.abstr_coeff * A_CN3
 
         # Calculate the runoff height for CN2 and CN3
-        CN2_h = (rainfall_depth - Ia_CN2) ** 2 / (rainfall_depth - Ia_CN2 + A_CN2)
-        CN3_h = (rainfall_depth - Ia_CN3) ** 2 / (rainfall_depth - Ia_CN3 + A_CN3)
+        Pe_CN2 = rainfall_depth - Ia_CN2
+        Pe_CN3 = rainfall_depth - Ia_CN3
+
+        CN2_h = 0.0 if Pe_CN2 <= 0 else (Pe_CN2 ** 2) / (Pe_CN2 + A_CN2)
+        CN3_h = 0.0 if Pe_CN3 <= 0 else (Pe_CN3 ** 2) / (Pe_CN3 + A_CN3)
 
         # Convert runoff height to volume in cubic meters
         CN2_vol = CN2_h * area / 1000000000  # Convert to m³
@@ -202,9 +205,18 @@ class RunOffComputer:
                 # Safely extract numeric values for CN2 and CN3
                 CN2: float = feat.attribute("CN2")
                 CN3: float = feat.attribute("CN3")
-                if CN2 <= 0 or CN3 <= 0:
+                
+                if (
+                    CN2 is None
+                    or (hasattr(CN2, "isNull") and CN2.isNull())
+                    or CN3 is None
+                    or (hasattr(CN3, "isNull") and CN3.isNull())
+                ):
+                    continue
+
+                if CN3 <= 0 or CN3 > 100:
                     QgsMessageLog.logMessage(
-                        f"Invalid CN at feature {feat.id()}", "CzLandUseCN", Qgis.Warning
+                        f"Invalid CN3 value ({CN3}) at feature {feat.id()}", "CzLandUseCN", Qgis.Warning
                     )
                     continue
 

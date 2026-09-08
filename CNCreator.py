@@ -34,7 +34,7 @@ def add_CN3_from_CN2(vector_layer: QgsVectorLayer, field_name: str) -> None:
         for feature in vector_layer.getFeatures():
             cn2_value = feature[field_name]
             if cn2_value is not None:
-                cn3_value = 23 * cn2_value / (10 + 0.13 * cn2_value)
+                cn3_value = cn2_value / (0.4036 + 0.005964 * cn2_value)
                 feature["CN3"] = cn3_value
                 vector_layer.updateFeature(feature)
 
@@ -178,8 +178,16 @@ def _calculate_cn_value(feature: QgsFeature, cn_dict: Dict[int, List[float]]) ->
     except (ValueError, TypeError):
         return None
 
-    if hsg == 0:  # HSG 0 == water body
-        return 99
+    # HSG 0 = no soil information
+    if hsg == 0:
+
+        # Water-related land use classes
+        if 70000 <= landuse <= 79999:
+            hsg = 4
+
+        # Non-water areas without valid HSG
+        else:
+            return None
 
     if landuse in cn_dict and 1 <= hsg <= 4:
         return cn_dict[landuse][hsg - 1]
@@ -258,7 +266,7 @@ class CNCreator:
                 cn_val = _calculate_cn_value(feature, cn_dict)
                 if cn_val is not None:
                     # Calculate CN3 from CN2
-                    cn3_val = 23 * cn_val / (10 + 0.13 * cn_val)
+                    cn3_val = cn_val / (0.4036 + 0.005964 * cn_val)
                 else:
                     cn3_val = None
             except Exception as inner_e:

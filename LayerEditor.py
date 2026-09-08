@@ -61,16 +61,29 @@ def add_constant_atr(layer, atr_name, atr_value):
     return layer
 
 
-def dissolve_polygon(layer: QgsVectorLayer) -> QgsVectorLayer:
-    """Dissolve the input polygon layer, keeping only an ID attribute with a value of 1.
-    (for simple use cases)"""
+def dissolve_polygon(
+	layer: QgsVectorLayer,
+	separate_disjoint: bool = False
+) -> QgsVectorLayer:
+    """
+    Dissolve the input polygon layer, keeping only an ID attribute with a value of 1.
+    (for simple use cases)
 
-    # Run dissolve without retaining any specific field
+    Parameters
+    ----------
+    layer : QgsVectorLayer
+        Input polygon layer.
+    separate_disjoint : bool, optional
+        If True, disjoint geometries remain as separate features. Default is False.
+    """
+
+    # Run dissolve with no regard to any specific field
     dissolved_layer = processing.run(
         "native:dissolve",
         {
             'INPUT': layer,
-            'FIELD': [],  # No fields retained initially
+            'FIELD': [],
+	        'SEPARATE_DISJOINT': separate_disjoint,
             'OUTPUT': 'memory:'
         }
     )['OUTPUT']
@@ -287,7 +300,10 @@ def attribute_layer_buffer(layer: QgsVectorLayer, controlling_atr_name: str, def
         raise ValueError(f"Attribute '{controlling_atr_name}' not found in layer fields.")
 
     # Create a new memory layer to store the buffered features
-    buffer_layer = QgsVectorLayer(f"Polygon?crs={layer.crs().authid()}", f"{input_layer_name}", "memory")
+    buffer_layer = QgsVectorLayer(
+        f"MultiPolygon?crs={layer.crs().authid()}", 
+        f"{input_layer_name}", 
+        "memory")
     buffer_layer.startEditing()
     buffer_layer.dataProvider().addAttributes(layer.fields())
     buffer_layer.updateFields()
@@ -307,22 +323,42 @@ def attribute_layer_buffer(layer: QgsVectorLayer, controlling_atr_name: str, def
         elif geom.wkbType() == 2 or geom.wkbType() == 5:  # 2 = LineString, 5 = MultiLineString
             buffer = geom.buffer(buffer_distance, 2)
         else:
-            QgsMessageLog.logMessage(f"Unsupported geometry type for feature ID {feature.id()}",
-                                     level=Qgis.Warning, notifyUser=True)
+            QgsMessageLog.logMessage(
+                f"Unsupported geometry type for feature ID {feature.id()}",
+                f"wkbType={geom.wkbType()}",
+                "CzLandUseCN",
+                level=Qgis.Warning, 
+                notifyUser=True)
             continue
 
         # Create a new feature with the buffered geometry and add it to the buffer layer
         new_feature = QgsFeature()
         new_feature.setGeometry(buffer)
         new_feature.setAttributes(feature.attributes())
+        
         if not buffer_layer.addFeature(new_feature):
-            QgsMessageLog.logMessage(f"Failed to add feature ID {feature.id()} to the buffer layer.",
-                                     level=Qgis.Warning, notifyUser=True)
+            QgsMessageLog.logMessage(
+                f"Failed to add feature ID {feature.id()} to buffer layer '{input_layer_name}'.",
+                "CzLandUseCN",
+                level=Qgis.Warning,
+                notifyUser=True
+            )
 
     # Commit changes to the buffer layer and add it to the project
     if not buffer_layer.commitChanges():
-        QgsMessageLog.logMessage("Failed to commit changes to the buffer layer.",
-                                 level=Qgis.Warning, notifyUser=True)
+        QgsMessageLog.logMessage(
+            f"Failed to commit buffer layer '{input_layer_name}'.",
+            "CzLandUseCN",
+            level=Qgis.Warning,
+            notifyUser=True
+        )
+        
+        QgsMessageLog.logMessage(
+            f"Commit errors: {buffer_layer.commitErrors()}",
+            "CzLandUseCN",
+            level=Qgis.Warning
+        )
+
         return None
     else:
         return buffer_layer
@@ -333,7 +369,10 @@ def apply_simple_buffer(layer: QgsVectorLayer, buffer_distance: float) -> QgsVec
     """
 
     # Create a new memory layer to store the buffered features
-    buffer_layer = QgsVectorLayer(f"Polygon?crs={layer.crs().authid()}", f"{layer.name()}", "memory")
+    buffer_layer = QgsVectorLayer(
+        f"MultiPolygon?crs={layer.crs().authid()}", 
+        f"{layer.name()}", 
+        "memory")
     buffer_layer.startEditing()
     buffer_layer.dataProvider().addAttributes(layer.fields())
     buffer_layer.updateFields()
@@ -601,9 +640,14 @@ class LayerEditor:
 
     def stack_layers(self, layers: List[QgsVectorLayer]) -> Optional[QgsVectorLayer]:
         """
-        Stack polygon layers by priority, clipping overlaps.
-        Before each union, remove null/empty geometries, fix invalid ones,
-        and (optionally) check validity to avoid 'Could not write feature' errors.
+        Stack polygon layers by priority.
+
+        Higher-priority layers are preserved and lower-priority layers are
+        clipped by a cumulative mask of already processed features.
+
+        Geometries are continuously fixed, empty geometries removed,
+        multipart features converted to singlepart and the mask is updated
+        using merge + dissolve operations.
         """
 
         # 1) Read stacking order
@@ -629,108 +673,132 @@ class LayerEditor:
             return None
 
         processed = []
-        accum_union = None
+        cumulative_mask = None
 
         for idx, lyr in enumerate(ordered):
-            fixed_lyr_gpkg = processing.run(
+            fixed_lyr_path = processing.run(
                 "native:fixgeometries",
                 {'INPUT': lyr,
-                 # 'OUTPUT': 'memory:fixed'
                  'OUTPUT': QgsProcessingUtils.generateTempFilename(f'fixed_{lyr.name()}.gpkg')
                  }
             )['OUTPUT']
-            fixed_lyr = QgsVectorLayer(fixed_lyr_gpkg, "fixed", "ogr")
+            fixed_lyr = QgsVectorLayer(fixed_lyr_path, "fixed", "ogr")
 
-            # A) First layer: clone to avoid altering source
+            # A) First layer: prepare geometry, no clipping needed
             if idx == 0:
-                clipped = fixed_lyr.clone()
+
+                singlepart_path = processing.run(
+                    "native:multiparttosingleparts",
+                    {
+                        'INPUT': fixed_lyr,
+                        'OUTPUT': QgsProcessingUtils.generateTempFilename(f'singlepart_{lyr.name()}.gpkg')
+                    }
+                )['OUTPUT']
+
+                clipped = QgsVectorLayer(singlepart_path, "singlepart", "ogr")
+
+            # B) Subtract higher-priority areas
             else:
-                # B) Subtract higher-priority areas
-                clipped_gpkg = processing.run(
+                clipped_path = processing.run(
                     "native:difference",
                     {
                         'INPUT': fixed_lyr,
-                        'OVERLAY': accum_union,
-                        # 'OUTPUT': 'memory:clipped'
+                        'OVERLAY': cumulative_mask,
                         'OUTPUT': QgsProcessingUtils.generateTempFilename(f'diff_{lyr.name()}.gpkg')
                     }
                 )['OUTPUT']
-                clipped = QgsVectorLayer(clipped_gpkg, "clipped", "ogr")
+                clipped = QgsVectorLayer(clipped_path, "clipped", "ogr")
 
-            # C) Remove null & empty geometries (essential!)
-            clipped_gpkg = processing.run(
+            # C) Remove null geometries, convert to singlepart and fix geometries
+            
+            # C1) Remove null/empty geometries
+            clean_path = processing.run(
                 "native:removenullgeometries",
                 {
                     'INPUT': clipped,
-                    # 'OUTPUT': 'memory:clean_clipped'
                     'OUTPUT': QgsProcessingUtils.generateTempFilename(f'clean_clipped_{lyr.name()}.gpkg')
                 }
             )['OUTPUT']
 
-            clipped = QgsVectorLayer(clipped_gpkg, "clipped", "ogr")
+            clean_layer = QgsVectorLayer(clean_path, "clean_clipped", "ogr")
+            
+            # C2) Multipart to singlepart
+            singlepart_path = processing.run(
+                "native:multiparttosingleparts",
+                {
+                    'INPUT': clean_layer,
+                    'OUTPUT': QgsProcessingUtils.generateTempFilename(f'singlepart_{lyr.name()}.gpkg')
+                }
+            )['OUTPUT']
 
-            # E) Append for later merging (post-clean)
+            singlepart_layer = QgsVectorLayer(singlepart_path, "singlepart", "ogr")
+            
+            # C3) Final geometry fix
+            fixed_clipped_path = processing.run(
+                "native:fixgeometries",
+                {
+                    'INPUT': singlepart_layer,
+                    'OUTPUT': QgsProcessingUtils.generateTempFilename(f'fixed_clipped_{lyr.name()}.gpkg')
+                }
+            )['OUTPUT']
+
+            clipped = QgsVectorLayer(fixed_clipped_path, "clipped", "ogr")
+
+            # D) Store processed layer for final merge
             processed.append(clipped)
 
-            # F) Build/update running union
-            if accum_union is None:
-                accum_union = clipped.clone()
+            # E) Build/update cumulative mask
+            if cumulative_mask is None:
+                cumulative_mask = dissolve_polygon(
+                    clipped,
+                    separate_disjoint = True
+                )
             else:
-                # 1) Fix geometries on both sides
-                fixed_acc_gpkg = processing.run(
+                merged_mask = merge_layers(
+                    [cumulative_mask, clipped],
+                    "merged_mask"
+                )
+                
+                cumulative_mask = dissolve_polygon(
+                    merged_mask,
+                    separate_disjoint = True
+                )
+                
+                fixed_mask_path = processing.run(
                     "native:fixgeometries",
-                    {'INPUT': accum_union,
-                     # 'OUTPUT': 'memory:fixed_acc'
-                     'OUTPUT': QgsProcessingUtils.generateTempFilename(f'fixed_acc_{lyr.name()}.gpkg')
+                    {
+                        'INPUT': cumulative_mask,
+                        'OUTPUT': QgsProcessingUtils.generateTempFilename(f'fixed_mask_{lyr.name()}.gpkg')
                     }
                 )['OUTPUT']
-                fixed_acc = QgsVectorLayer(fixed_acc_gpkg, "fixed_acc", "ogr")
-
-                fixed_clip_gpkg = processing.run(
-                    "native:fixgeometries",
-                    {'INPUT': clipped,
-                     # 'OUTPUT': 'memory:fixed_clip'
-                     'OUTPUT': QgsProcessingUtils.generateTempFilename(f'fixed_clip_{lyr.name()}.gpkg')
+                
+                cumulative_mask = QgsVectorLayer(fixed_mask_path, "cumulative_mask", "ogr")
+                
+                # Remove zero interior holes created during overlay operations
+                noholes_path = processing.run(
+                    "native:deleteholes",
+                    {
+                        'INPUT': cumulative_mask,
+                        'MIN_AREA': 0.02, 
+                        # treshold derived empiricaly. Less did not remove the artifacts, zero led to gaps in landuse
+                        # apparently zero == remove all inner gaps
+                        'OUTPUT': QgsProcessingUtils.generateTempFilename(f'noholes_mask_{lyr.name()}.gpkg')
                     }
                 )['OUTPUT']
-                fixed_clip = QgsVectorLayer(fixed_clip_gpkg, "fixed_clip", "ogr")
-
-                # 2) Finally union the clean, valid inputs
-                try:
-                    accum_union_gpkg = processing.run(
-                        "native:union",
-                        {
-                            'INPUT': fixed_acc,
-                            'OVERLAY': fixed_clip,
-                            # https://github.com/qgis/QGIS/issues/57279
-                            'OUTPUT': QgsProcessingUtils.generateTempFilename(f'accum_union_{lyr.name()}.gpkg')
-                            # 'OUTPUT': 'memory:accum_union'
-                        }
-                    )['OUTPUT']
-                    del fixed_acc
-                    del fixed_clip
-                    accum_union_tmp = QgsVectorLayer(accum_union_gpkg, "accum_union", "ogr")
-
-                    fixed_accum_union = processing.run(
-                        "native:fixgeometries",
-                        {'INPUT': accum_union_tmp,
-                         # 'OUTPUT': 'memory:fixed'
-                         'OUTPUT': QgsProcessingUtils.generateTempFilename(f'fixed_accum_union_{lyr.name()}.gpkg')
-                         }
-                    )['OUTPUT']
-                    accum_union = QgsVectorLayer(fixed_lyr_gpkg, "fixed_accum_union", "ogr")
-                except:
-                    continue
+                
+                cumulative_mask = QgsVectorLayer(noholes_path, "cumulative_mask", "ogr")
 
             QgsMessageLog.logMessage(
                 f"Layer '{lyr.name()}' processed ({idx + 1}/{len(ordered)})",
                 "CzLandUseCN", level=Qgis.Info
             )
 
-        del accum_union
+        # cumulative_mask.setName("DEBUG_cumulative_mask")
+        # QgsProject.instance().addMapLayer(cumulative_mask)
+
 
         # 4) Merge all non-overlapping pieces
-        final_gpkg = processing.run(
+        final_path = processing.run(
             "native:mergevectorlayers",
             {
                 'LAYERS': processed,
@@ -739,7 +807,7 @@ class LayerEditor:
                 'OUTPUT': QgsProcessingUtils.generateTempFilename(f'stacked_nooverlap.gpkg')
             }
         )['OUTPUT']
-        final = QgsVectorLayer(final_gpkg, "final", "ogr")
+        final = QgsVectorLayer(final_path, "final", "ogr")
 
         # 5) Style & add to project
         final = self.apply_symbology(final)

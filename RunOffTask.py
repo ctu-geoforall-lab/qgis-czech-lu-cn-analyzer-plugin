@@ -38,6 +38,41 @@ class TASK_RunOff(QgsTask):
             self.runoffLabel.setText("ERROR - check the message log.")
             self.taskError_RunOff.emit("Task of Run-off Computation failed.")
 
+    def validate_cn2(self) -> None:
+        """
+        Validate CN2 field existence and value range.
+        NULL values are allowed.
+        """
+
+        if self.CN_Layer.fields().indexFromName("CN2") == -1:
+            raise ValueError("Required field 'CN2' is missing.")
+
+        for feature in self.CN_Layer.getFeatures():
+
+            cn2 = feature["CN2"]
+
+            if cn2 is None:
+                continue
+
+            if hasattr(cn2, "isNull") and cn2.isNull():
+                continue
+
+            try:
+                cn2 = float(cn2)
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"Non-numeric CN2 value {repr(cn2)}; TYPE={type(cn2)} "
+                    f"(feature_id={feature.id()}, "
+                    f"LandUse_code={feature['LandUse_code']}, "
+                    f"HSG={feature['HSG']})"
+                )
+
+            if cn2 <= 0 or cn2 > 100:
+                raise ValueError(
+                    f"Feature {feature.id()} contains invalid CN2 value ({cn2}). "
+                    "Allowed range is (0,100]."
+                )
+    
     def run(self):
         """Run the task to process Run-off layers."""
 
@@ -45,6 +80,10 @@ class TASK_RunOff(QgsTask):
             # If CN3 is not present, create it from CN2
             if self.runoffLabel is not None:
                 self.runoffLabel.setText("Checking attributes ...")
+            
+            # Check existing and reasonable values of CN2
+            self.validate_cn2()
+            
             if self.CN_Layer.fields().indexFromName("CN3") == -1:
                 add_CN3_from_CN2(self.CN_Layer, "CN2")
 
@@ -65,13 +104,13 @@ class TASK_RunOff(QgsTask):
             try:
                 if self.RunOffFlag:
                     if len(self.user_defined_height) > 1:
-                        fld = "CN2_1_runoff_volume_m3"
+                        fld = "CN2_1_runoff_height_mm"
                     else:
-                        fld = "CN2_runoff_volume_m3"
+                        fld = "CN2_runoff_height_mm"
 
                 else:
                     last_reoccurence = self.reoccurence_intervals[-1]
-                    fld = f"V_{last_reoccurence}_m3"
+                    fld = f"CN2_{last_reoccurence}_runoff_height_mm"
                 if self.runoffLabel is not None:
                     self.runoffLabel.setText("Adding symbology...")
                 add_cn_symbology(self.RunOffLayer, fld ,
