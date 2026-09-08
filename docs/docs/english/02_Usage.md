@@ -88,4 +88,4 @@ For MS Windows, a batch file `run_batch.bat` is provided, which automatically se
 
 ### Using Local Data
 
-Download LPIS and ZABAGED datasets and update the data source paths (`URI`) in the configuration files located in the `config/local_data/` directory. Then, in the batch job settings, set `local_data` to `True`.
+Download LPIS and ZABAGED datasets and update the data source paths (`URI`) in the configuration files located in the `config` directory.

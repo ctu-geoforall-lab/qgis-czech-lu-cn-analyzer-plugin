@@ -98,5 +98,4 @@ tomto souboru cestu k instalaci QGISu.
 
 Stáhněte data LPIS a ZABAGED a upravte cesty k datovým zdrojům (`URI`)
 v konfiguračních souborech umístěných v adresáři
-`config/local_data/`. Dále v nastavení dávkové úlohy změňte
-`local_data` na `True`.
+`config`.

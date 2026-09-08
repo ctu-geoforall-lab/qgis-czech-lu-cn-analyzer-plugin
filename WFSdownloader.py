@@ -1,9 +1,12 @@
+from typing import Optional, List
+import re
+import unicodedata
+
 from qgis.core import QgsMessageLog, Qgis, QgsVectorLayer, QgsRectangle, QgsGeometry, QgsFeature, QgsFeatureRequest, \
-    QgsWkbTypes
+    QgsWkbTypes, QgsProviderRegistry
 
 from qgis.utils import iface
 import processing
-from typing import Optional, List
 
 
 class WFSDownloaderError(Exception):
@@ -72,11 +75,37 @@ class WFSDownloader:
 
         return extent.yMinimum(), extent.xMinimum(), extent.yMaximum(), extent.xMaximum(), extent
 
+
+    @staticmethod
+    def convert_wfs_layer_name_to_local(name: str) -> str:
+        """Converts a WFS layer name to a local data source name."""
+        if name.startswith("LPIS"):
+            return name
+
+        value = name.split(":", 1)[1].removesuffix('__plocha_')
+        parts = [p for p in re.split(r"_+", value) if p]
+
+        return "".join(
+            unicodedata.normalize("NFKD", part)
+            .encode("ascii", "ignore")
+            .decode("ascii")
+            .capitalize()
+            for part in parts
+        )
+
+
     def process_wfs_layer(self, layer_name: str, ymin: float, xmin: float, ymax: float, xmax: float,
                           extent: QgsGeometry, URI: str) -> Optional[QgsVectorLayer]:
         """ Load and clip a WFS layer to the given extent"""
         if URI.startswith('file://'):
-            uri = f"{URI[len('file://'):]}|layername={layer_name}"
+            data_path = URI[len('file://'):]
+            if layer_name.startswith("ZABAGED"):
+                ds_layer_name = self.convert_wfs_layer_name_to_local(layer_name)
+            else: # LPIS expected here
+                ds = QgsProviderRegistry.instance().querySublayers(data_path)
+                ds_layer_name = ds[0].name()
+
+            uri = f"{data_path}|layername={ds_layer_name}"
             data_provider = "ogr"
         else:
             # WFS

@@ -226,9 +226,6 @@ if __name__ == "__main__":
     CN_table = os.path.join(config_path, "CN_table.csv")
     WPS_config = os.path.join(config_path, "WPS_config.yaml")
 
-    if args_config["download"]["local_data"] is True:
-        config_path = os.path.join(config_path, "local_data")
-
     ZABAGED_config = os.path.join(config_path, "ZABAGED.yaml")
     LPIS_config = os.path.join(config_path, "LPIS.yaml")
     stacking_template = os.path.join(config_path,

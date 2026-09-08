@@ -33,7 +33,6 @@ except ImportError:
     from SoilDownloader import simple_clip
 
 
-
 def apply_simple_difference(layer1: QgsVectorLayer, layer2: QgsVectorLayer) -> QgsVectorLayer:
     """Apply a simple difference operation to the input layers."""
 
@@ -243,6 +242,17 @@ def buffer_QgsVectorLayer(input_layer, distance, segments=10):
 
     return buffer_layer
 
+def find_field_name(layer, controlling_attribute):
+    """Return the matching layer field name case-insensitively.
+    """
+    target = controlling_attribute.casefold()
+
+    for field_name in layer.fields().names():
+        if field_name.casefold() == target:
+            return field_name
+
+    return None
+
 def attribute_layer_edit(layer: QgsVectorLayer, base_use_code: int, controlling_attribute: str,
                          value_increments: dict) -> QgsVectorLayer:
     """
@@ -250,8 +260,8 @@ def attribute_layer_edit(layer: QgsVectorLayer, base_use_code: int, controlling_
     Add a more specific code to the LandUse_code field based on attribute values
     set in the value_increments dictionary
     """
-
-    if controlling_attribute not in layer.fields().names():
+    field_name = find_field_name(layer, controlling_attribute)
+    if field_name is None:
         QgsMessageLog.logMessage(f"Attribute '{controlling_attribute}' not found in layer fields.", "CzLandUseCN",
                                  level=Qgis.Warning)
         raise ValueError(f"Attribute '{controlling_attribute}' not found in layer fields.")
@@ -261,19 +271,14 @@ def attribute_layer_edit(layer: QgsVectorLayer, base_use_code: int, controlling_
         code = base_use_code
 
         # Check if the controlling attribute exists in this feature
-        if controlling_attribute in feature.fields().names():
-            value = feature[controlling_attribute]
-            # Look up the increment in the value_increments dictionary
-            increment = value_increments.get(value, 0)  # Default to 0 if value not found
-            code += increment
-            feature["LandUse_code"] = code
+        value = feature[field_name]
+        # Look up the increment in the value_increments dictionary
+        increment = value_increments.get(value, 0)  # Default to 0 if value not found
+        code += increment
+        feature["LandUse_code"] = code
 
-            # Update the feature with the new LandUse_code
-            layer.updateFeature(feature)
-        else:
-            QgsMessageLog.logMessage(
-                f"Attribute '{controlling_attribute}' missing for feature ID {feature.id()} in layer '{layer.name()}'.",
-                "CzLandUseCN", level=Qgis.Warning)
+        # Update the feature with the new LandUse_code
+        layer.updateFeature(feature)
 
     layer.commitChanges()
     return layer
@@ -438,6 +443,7 @@ class LayerEditor:
         try:
             with open(self.LPIS_config_path , 'r') as file:
                 config = yaml.safe_load(file)
+
                 # Get the LPIS layer configuration from the YAML file
                 lpis_layer_config = next((layer for layer in config['layers'] if layer['name'] == 'LPIS_layer'), None)
                 if not lpis_layer_config:
