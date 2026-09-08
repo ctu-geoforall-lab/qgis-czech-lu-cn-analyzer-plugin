@@ -35,12 +35,16 @@ class TestRunOffComputer:
         # 1. Test _calculate_runoff_volume with known manual values
         roc1 = RunOffComputer(None, None, True, [10.0], 0.2, None, None, )
         h2, h3, v2, v3 = roc1._calculate_runoff_volume(50.0, 60.0, 100.0, 10.0)
-        # A_CN2=254, Ia_CN2=50.8 => h2≈7.806, v2≈0.7806
-        assert pytest.approx(7.806, rel=1e-3) == h2
-        assert pytest.approx(0.7808, rel=1e-4) == v2
-        # A_CN3≈169.333, Ia_CN3≈33.867 => h3≈3.9158, v3≈0.3916
-        assert pytest.approx(3.9158, rel=1e-3) == h3
-        assert pytest.approx(0.3916, rel=1e-4) == v3
+        assert pytest.approx(0.0, rel=1e-3) == h2
+        assert pytest.approx(0.0, rel=1e-4) == v2
+        assert pytest.approx(0.0, rel=1e-3) == h3
+        assert pytest.approx(0.0, rel=1e-4) == v3
+
+        h2, h3, v2, v3 = roc1._calculate_runoff_volume(70.0, 80.0, 100.0, 40.0)
+        assert pytest.approx(2.61461, rel=1e-3) == h2
+        assert pytest.approx(0.26146, rel=1e-4) == v2
+        assert pytest.approx(8.20803, rel=1e-3) == h3
+        assert pytest.approx(0.82080, rel=1e-4) == v3
         print("[OK] Calculated runoff volume successfully")
 
         # 2. Test CSV value retrieval and error

@@ -44,7 +44,8 @@ class TASK_Intersection(QgsTask):
         """Run the task to process Soil layers."""
         try:
             # Clip the layers to the same extent (smaller layer defines the final AOI if they are not the same size)
-            self.Soil_layer, self.LandUse_layer = clip_larger_layer_to_smaller(self.Soil_layer, self.LandUse_layer)
+            # self.Soil_layer, self.LandUse_layer = clip_larger_layer_to_smaller(self.Soil_layer, self.LandUse_layer)
+            # process deactivated as it is very badly written and basicaly not needed
 
             # Union the layers
             self.combined_layer = processing.run("native:union", {
@@ -53,7 +54,14 @@ class TASK_Intersection(QgsTask):
                 'OUTPUT': 'memory:'
             })['OUTPUT']
 
-            self.intersection_cleanup(self.combined_layer)
+            # self.intersection_cleanup(self.combined_layer)
+            # process deactivated, it is useful for the user to preserve all polygons including those without LU data
+            
+            # Convert multipart features to singlepart
+            self.combined_layer = processing.run(
+              "native:multiparttosingleparts",
+              {'INPUT': self.combined_layer, 'OUTPUT': 'memory:'}
+            )['OUTPUT']
 
             # Set the symbology of the combined layer
             symbology_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "colortables",

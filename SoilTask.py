@@ -1,6 +1,7 @@
 import os
 import urllib.request
 import tempfile
+import processing
 from pathlib import Path
 
 from osgeo import gdal
@@ -104,8 +105,24 @@ class TASK_process_soil_layer(QgsTask):
             not_buffered_plg = apply_simple_difference(not_buffered_plg, self.clipped_soil_layer)
 
             # Merge the clipped soil layer with the polygon that is not buffered
-            self.clipped_soil_layer = merge_layers([not_buffered_plg, self.clipped_soil_layer],"Soil Layer HSG")
-            style_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "colortables", "soil.qml")
+            self.clipped_soil_layer = merge_layers(
+              [not_buffered_plg, self.clipped_soil_layer],
+              "Soil Layer HSG"
+            )
+            
+            layer_name = self.clipped_soil_layer.name()
+            self.clipped_soil_layer = processing.run(
+              "native:multiparttosingleparts",
+              {'INPUT': self.clipped_soil_layer, 'OUTPUT': 'memory:'}
+            )['OUTPUT']
+            self.clipped_soil_layer.setName(layer_name)
+                  
+            style_path = os.path.join(
+              os.path.dirname(os.path.realpath(__file__)),
+              "colortables", 
+              "soil.qml"
+            )
+            
             self.clipped_soil_layer.loadNamedStyle(style_path)
 
             if self._is_canceled:

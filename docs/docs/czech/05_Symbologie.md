@@ -1,136 +1,144 @@
 # Symbologie
 !!! note "Poznámka"
-	Tabulky barev se nachází ve složce _colortables_
-## Vrstva využití území (LandUse layer)
-- soubor: __landuse.sld__
-- řídící atribut: __LandUse_layer__
+	Styly zobrazení jednotlivých výstupních vrstev se nachází ve složce _colortables_
+## Vrstva půdního pokryvu / využití území (LandUse Layer)
+- soubor: __landuse.qml__
+- řídicí atribut: __LandUse_code__
 
-!!! note "Poznámka"
-    V souboru jsou připraveny hodnoty i pro kódy využití území, které zásuvný modul negeneruje, ale jsou vytvořeny pro případ jeho rozšíření.
-    První tabulka ukazuje hodnoty momentálně podporované a ta druhá všechny její obsahující hodnoty
 ### Tabulka momentálně podporovaných hodnot
-| Barva                                                                                                          | Hex kód   | Hodnota řídícího atributu | Název                                                                                       |
-|-----------------------------------------------------------------------------------------------------------------|-----------|:-------------------------:|:-------------------------------------------------------------------------------------------|
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ffc803;"></span>                 | `#ffc803` |           10000          | Orná půda                                                                                  |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#0dff00;"></span>                 | `#0dff00` |           20000          | Travní porost                                                                              |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#40f736;"></span>                 | `#40f736` |           22200          | Extenzivní pastviny a louky – dobré hydrologické podmínky                                  |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#1d5220;"></span>                 | `#1d5220` |           30000          | Lesní porost                                                                               |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#03850d;"></span>                 | `#03850d` |           33100          | Lesní porost listnatý – střední hydrologické podmínky                                      |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#00633f;"></span>                 | `#00633f` |           33200          | Lesní porost jehličnatý – špatné hydrologické podmínky                                     |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#08702c;"></span>                 | `#08702c` |           33300          | Lesní porost smíšený – dobré hydrologické podmínky                                         |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#47633a;"></span>                 | `#47633a` |           33500          | Lesní porost – křoviny                                                                     |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#8ac286;"></span>                 | `#8ac286` |           42000          | Zahrada                                                                                    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#626361;"></span>                 | `#626361` |           44100          | Nepropustné povrchy                                                                        |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#8a877f;"></span>                 | `#8a877f` |           44200          | Antropogenní polopropustné plochy                                                          |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#877f65;"></span>                 | `#877f65` |           44300          | Antropogenní propustné plochy                                                              |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#cf9357;"></span>                 | `#cf9357` |           55100          | Sady, vinice, chmelnice s desíkovaným mezíradím                                           |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#2c523b;"></span>                 | `#2c523b` |           66100          | Plochy s nedokonalým pokrytím – extenzivní sady, doprovodná vegetace komunikací a vodních toků |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#009c5f;"></span>                 | `#009c5f` |           66600          | Rašeliniště                                                                                |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#009c5f;"></span>                 | `#009c5f` |           66600          | Rašeliniště                                                                                |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#383efc;"></span>                 | `#383efc` |           77100          | Vodní tok                                                                                  |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#0008ff;"></span>                 | `#0008ff` |           77200          | Vodní plocha – plocha                                                                      |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#999999;"></span>                 | `#999999` |           88200          | Skaly                                                                                      |
 
-
-### Kompletní tabulka všech hodnot
- | Barva                                                     | Hex kód  | Hodnota řídícího atributu | Název |
-|------------------------------------------------------------|-----------|:------:|:------:|
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ffc803;"></span> | `#ffc803` |   10000    |   OrnaPuda    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#f2dc8d;"></span> | `#f2dc8d` |   11100    |   neoseto-DobreHydrologickePodminky-PoskliznoveZbytky    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#dbac02;"></span> | `#dbac02` |   11200    |   LetniUzkoradkovePlodiny    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#fad75a;"></span> | `#fad75a` |   11300    |   OziméUzkoradkovePlodiny    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#e0bd3d;"></span> | `#e0bd3d` |   11400    |   SirokoradkovePlodiny    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#d6b12b;"></span> | `#d6b12b` |   11500    |   ViceletePicniny-TravniPorostNaOrnePude    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#cfbf86;"></span> | `#cfbf86` |   11600    |   MimoprodukcniPlochaANavrhnutaTechnickaOpatreniNaOP    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ba9306;"></span> | `#ba9306` |   11700    |   SirokoradkovePlodiny-SpatneHydrologickePodminky-PrimeRadky    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#b8961d;"></span> | `#b8961d` |   11800    |   SirokoradkovePlodiny-DobreHydrologickePodminky-VrstevnicoveRadky    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#b3962e;"></span> | `#b3962e` |   11900    |   ViceletePicniny-VrstevnicoveRadky-DobreHydrologickePodminky    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#8a6c01;"></span> | `#8a6c01` |   12200    |   UhorCerny    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#d3de04;"></span> | `#d3de04` |   12100    |   SkolkaNaOrnePude    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#f7df07;"></span> | `#f7df07` |   19900    |   OrnaPuda-CORINE    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#e3d97b;"></span> | `#e3d97b` |   11101    |   Neoseto-UhorUdrzovany    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#bfb660;"></span> | `#bfb660` |   11102    |   Neoseto-UhorNeudrzovany    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#5c540f;"></span> | `#5c540f` |   11116    |   Neoseto-SitoveLoze    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#e0a904;"></span> | `#e0a904` |   11203    |   JecmenJarni    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#faaf00;"></span> | `#faaf00` |   11205    |   PseniceJarni    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#dbfc9d;"></span> | `#dbfc9d` |   11210    |   Pohanka    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#99a877;"></span> | `#99a877` |   11220    |   Proso    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#cca435;"></span> | `#cca435` |   11225    |   OvesJarni    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ffee00;"></span> | `#ffee00` |   11208    |   HrachPolniJarni    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#b3a702;"></span> | `#b3a702` |   11229    |   HrachRolniJarni    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#a3de4b;"></span> | `#a3de4b` |   11218    |   BobObecny    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#c990f5;"></span> | `#c990f5` |   11221    |   Lupina    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#9fab74;"></span> | `#9fab74` |   11222    |   HrachRolni    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ffa200;"></span> | `#ffa200` |   11230    |   Mrkev    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#f7ce52;"></span> | `#f7ce52` |   11304    |   JecmenOzimy    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#f7cc65;"></span> | `#f7cc65` |   11406    |   PseniceOzima    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ba926c;"></span> | `#ba926c` |   11524    |   zitoOzime    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#c7a854;"></span> | `#c7a854` |   11626    |   OvesOzimy    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#bda402;"></span> | `#bda402` |   11711    |   RepkaOzima    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#faf1b4;"></span> | `#faf1b4` |   11809    |   HorciceBila    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#b3a702;"></span> | `#b3a702` |   11914    |   HrachPolniOzimy    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#9c9533;"></span> | `#9c9533` |   12028    |   HrachRolniOzimy    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#cfa9e8;"></span> | `#cfa9e8` |   12115    |   Svazenka    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#b892fc;"></span> | `#b892fc` |   12219    |   LenSety    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#94703e;"></span> | `#94703e` |   11417    |   Brambory    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ffcc00;"></span> | `#ffcc00` |   11407    |   Slunecnice    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#cca41f;"></span> | `#cca41f` |   11412    |   Kukurice    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#f7ce97;"></span> | `#f7ce97` |   11427    |   Cirok    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ff0066;"></span> | `#ff0066` |   11431    |   Repa    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#fa4b88;"></span> | `#fa4b88` |   11513    |   Vojtezka    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#f067eb;"></span> | `#f067eb` |   11532    |   Jetel    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#c6db3d;"></span> | `#c6db3d` |   11523    |   JilekVytrvaly    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#0dff00;"></span> | `#0dff00` |   20000    |   TravniPorost    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#2fa828;"></span> | `#2fa828` |   22100    |   IntenzivniPastviny-SpatneHydrologickePodminky    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#40f736;"></span> | `#40f736` |   22200    |   ExtenzivniPastvinyALouky-DobreHydrologickePodminky    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#099e02;"></span> | `#099e02` |   23200    |   TravniKulturyNaMelkychPudach-HorskeLouky-Vrchoviste-Vresoviste-NasycenePudy    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#00ff80;"></span> | `#00ff80` |   29900    |   TravniPorostCORINE    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#1d5220;"></span> | `#1d5220` |   30000    |   LesniPorost    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#03850d;"></span> | `#03850d` |   33100    |   LesniPorostListnaty-StredniHydrologickePodminky    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#00633f;"></span> | `#00633f` |   33200    |   LesniPorostJehlicnaty-SpatneHydrologickePodmink    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#08702c;"></span> | `#08702c` |   33300    |   LesniPorostSmiseny-DobreHydrologickePodminky    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#3a633a;"></span> | `#3a633a` |   33400    |   LesniPorostNeurceny    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#47633a;"></span> | `#47633a` |   33500    |   LesniPorostKroviny    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#528556;"></span> | `#528556` |   34100    |   SkolkaARychlerostouciDreviny    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#01852f;"></span> | `#01852f` |   35100    |   LesniPorost-DobreHydrologickePodminky    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#478501;"></span> | `#478501` |   35200    |   LesniPorost-SpatneHydrologickePodminky    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#8b8c89;"></span> | `#8b8c89` |   40000    |   AntropogeniAZpevnenePlochy    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#626361;"></span> | `#626361` |   44100    |   NeprospustnePovrchy    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#8a877f;"></span> | `#8a877f` |   44200    |   AntropogenniPolopropustnePlochy    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#877f65;"></span> | `#877f65` |   44300    |   AntropogenniPropustnePlochy    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#fab36b;"></span> | `#fab36b` |   50000    |   SadyViniceChmelnice    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#cf9357;"></span> | `#cf9357` |   55100    |   SadyViniceChmelniceSDesikovanymMeziradim    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#c97f34;"></span> | `#c97f34` |   55200    |   SadyViniceChmelniceSObdelavanymMeziradim    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#0f3b00;"></span> | `#0f3b00` |   60000    |   ExtenzivniSmisenePorosty    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#2c523b;"></span> | `#2c523b` |   66100    |   PlochySNedokonalymPokrytim-ExtenzivniSady-DoprovodnaVegetaceKomunikaciAVodnichToku    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#02f069;"></span> | `#02f069` |   66200    |   UpravenePlochySDobrymPokrytim-Zahrady-Parky-ZapojenySmisenyPorost    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#0cb376;"></span> | `#0cb376` |   66300    |   TrvaleZamokrenePlochy-Mokrady-ZamokreneLouky    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#47613e;"></span> | `#47613e` |   66400    |   RidkaVegetace    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#0008ff;"></span> | `#0008ff` |   70000    |   VodniPlocha    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#383efc;"></span> | `#383efc` |   77100    |   VodniTok    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#0008ff;"></span> | `#0008ff` |   77200    |   VodniPlochaPlocha    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#7acaf5;"></span> | `#7acaf5` |   77300    |   LedovceAStalySnih    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ffffff;"></span> | `#ffffff` |   80000    |   OstatniPlochy    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ffe278;"></span> | `#ffe278` |   88100    |   PlazeDunyPisky    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#999999;"></span> | `#999999` |   88200    |   Skaly    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#736147;"></span> | `#736147` |   88300    |   Spaleniste    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#8ac286;"></span> | `#8ac286` |   42000    |   Zahrada    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#7e9120;"></span> | `#7e9120` |   35000    |   LesniPudaSKorvinatymPorostem    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#009c5f;"></span> | `#009c5f` |   66600    |   Raseliniste    |
-
+| Barva | Hex kód | Vzor | Hodnota řídicího atributu | Název |
+|--------|--------|:---:|:---:|--------|
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` |  | 10000 | orná půda (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span> | `#FFFFFF` | X | 11100 | úhor černý |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span> | `#FFFFFF` | / | 11111 | úhor; posklizňové zbytky (špatné hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span> | `#FFFFFF` | / | 11112 | úhor; posklizňové zbytky (dobré hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` | / | 12111 | širokořádkové plodiny, přímé řádky (špatné hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` | / | 12112 | širokořádkové plodiny, přímé řádky (dobré hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` | / | 12121 | širokořádkové plodiny, přímé řádky, posklizňové zbytky (špatné hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` |  | 12122 | širokořádkové plodiny, přímé řádky, posklizňové zbytky (dobré hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` | / | 12131 | širokořádkové plodiny, vrstevnicové řádky (špatné hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` |  | 12132 | širokořádkové plodiny, vrstevnicové řádky (dobré hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` | / | 12141 | širokořádkové plodiny, vrstevnicové řádky, posklizňové zbytky (špatné hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` |  | 12142 | širokořádkové plodiny, vrstevnicové řádky, posklizňové zbytky (dobré hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` |  | 12151 | širokořádkové plodiny, vrstevnicové řádky, terasové uspořádání (špatné hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` |  | 12152 | širokořádkové plodiny, vrstevnicové řádky, terasové uspořádání (dobré hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` |  | 12161 | širokořádkové plodiny, terasové uspořádání, vrstevnicové řádky, posklizňové zbytky (špatné hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` |  | 12162 | širokořádkové plodiny, terasové uspořádání, vrstevnicové řádky, posklizňové zbytky (dobré hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` | / | 12211 | úzkořádkové plodiny, přímé řádky (špatné hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` | / | 12212 | úzkořádkové plodiny, přímé řádky (dobré hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` | / | 12221 | úzkořádkové plodiny, přímé řádky, posklizňové zbytky (špatné hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` |  | 12222 | úzkořádkové plodiny, přímé řádky, posklizňové zbytky (dobré hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` | / | 12231 | úzkořádkové plodiny, vrstevnicové řádky (špatné hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` |  | 12232 | úzkořádkové plodiny, vrstevnicové řádky (dobré hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` |  | 12241 | úzkořádkové plodiny, vrstevnicové řádky, posklizňové zbytky (špatné hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` |  | 12242 | úzkořádkové plodiny, vrstevnicové řádky, posklizňové zbytky (dobré hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` |  | 12251 | úzkořádkové plodiny, vrstevnicové řádky, terasové uspořádání (špatné hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` |  | 12252 | úzkořádkové plodiny, vrstevnicové řádky, terasové uspořádání (dobré hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` |  | 12261 | úzkořádkové plodiny, vrstevnicové řádky, terasové uspořádání, posklizňové zbytky (špatné hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` |  | 12262 | úzkořádkové plodiny, vrstevnicové řádky, terasové uspořádání, posklizňové zbytky (dobré hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFEBBE;"></span> | `#FFEBBE` | / | 13111 | víceleté pícniny, přímé řádky (špatné hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFEBBE;"></span> | `#FFEBBE` |  | 13112 | víceleté pícniny, přímé řádky (dobré hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFEBBE;"></span> | `#FFEBBE` | / | 13121 | víceleté pícniny, vrstevnicové řádky (špatné hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFEBBE;"></span> | `#FFEBBE` |  | 13122 | víceleté pícniny, vrstevnicové řádky (dobré hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFEBBE;"></span> | `#FFEBBE` |  | 13131 | víceleté pícniny, vrstevnicové řádky, posklizňové zbytky (špatné hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFEBBE;"></span> | `#FFEBBE` |  | 13132 | víceleté pícniny, vrstevnicové řádky, posklizňové zbytky (dobré hydrologické podmínky) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFBE;"></span> | `#FFFFBE` |  | 20000 | souvislý travní porost (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#CDF57A;"></span> | `#CDF57A` |  | 21100 | přirozené louky, bez seče a pastvy |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E9FFBE;"></span> | `#E9FFBE` |  | 21200 | extenzivní louky, chráněné před pastvou, nejvýše 1x ročně sečené |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E9FFBE;"></span> | `#E9FFBE` | / | 21300 | extenzivní pastviny, pokryv > 75 %, s lehkou nebo příležitostnou pastvou |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFBE;"></span> | `#FFFFBE` |  | 22000 | souvislý travní porost; intenzivní (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFBE;"></span> | `#FFFFBE` | / | 22100 | intenzivní pastviny, pokryv 50 - 75 % bez intenzivní pastvy |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFBE;"></span> | `#FFFFBE` | X | 22200 | intenzivní pastviny, pokryv < 50 % nebo intenzivní pastva bez ochrany mulčem |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFBE;"></span> | `#FFFFBE` |  | 22300 | trvalý travní porost; intenzivní; pravidelně sečený |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFBE;"></span> | `#FFFFBE` | / | 22400 | zatravněná orná půda |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFF00;"></span> | `#FFFF00` |  | 23100 | travní porost se specifickým využitím; s nízkým zatížením (letiště mimo runway, golf, areály FVE aj.) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFF00;"></span> | `#FFFF00` | / | 23200 | travní porost se specifickým využitím; se zvýšeným zatížením (parkur a jiná sportoviště) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span> | `#4C7300` |  | 30000 | souvislé porosty dřevin (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span> | `#4C7300` |  | 31000 | les se stromy (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span> | `#4C7300` |  | 31100 | les se stromy; listnatý (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span> | `#70A800` |  | 31110 | les se stromy; listnatý, výška do 2.5 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span> | `#70A800` |  | 31120 | les se stromy; listnatý, výška od 2.5 m do 8 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span> | `#4C7300` |  | 31130 | les se stromy; listnatý, výška od 8 m do 22 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span> | `#4C7300` |  | 31140 | les se stromy; listnatý, výška nad 22 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span> | `#4C7300` |  | 31200 | les se stromy; smíšený (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#ABCD66;"></span> | `#ABCD66` |  | 31210 | les se stromy; smíšený, výška do 2.5 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span> | `#70A800` |  | 31220 | les se stromy; smíšený, výška od 2.5 m do 8 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span> | `#70A800` |  | 31230 | les se stromy; smíšený, výška od 8 m do 22 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span> | `#4C7300` |  | 31240 | les se stromy; smíšený, výška nad 22 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span> | `#70A800` |  | 31300 | les se stromy; jehličnatý (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#ABCD66;"></span> | `#ABCD66` |  | 31310 | les se stromy; jehličnatý, výška do 2.5 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#ABCD66;"></span> | `#ABCD66` |  | 31320 | les se stromy; jehličnatý, výška od 2.5 m do 8 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span> | `#70A800` |  | 31330 | les se stromy; jehličnatý, výška od 8 m do 22 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span> | `#70A800` |  | 31340 | les se stromy; jehličnatý, výška nad 22 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#ABCD66;"></span> | `#ABCD66` | / | 31400 | zalesněná orná půda |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#A8A800;"></span> | `#A8A800` |  | 32100 | nízké dřeviny; křoviny |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#A8A800;"></span> | `#A8A800` | / | 32200 | nízké dřeviny; kosodřevina |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#00734C;"></span> | `#00734C` |  | 33000 | lesní školka (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#00734C;"></span> | `#00734C` | / | 33100 | lesní školka; na orné půdě |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#894465;"></span> | `#894465` |  | 34000 | rychle rostoucí dřeviny; bez dalšího určení |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#894465;"></span> | `#894465` | / | 34100 | rychle rostoucí dřeviny; na orné půdě |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#828282;"></span> | `#828282` |  | 40000 | antropogenní plochy (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#343434;"></span> | `#343434` |  | 41000 | budovy a zastřešené objekty; nepropustné, bez známé retence |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#B2B2B2;"></span> | `#B2B2B2` |  | 42000 | dopravní plochy (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#828282;"></span> | `#828282` |  | 42100 | dopravní plochy; nepropustné (asfalt, beton) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#B2B2B2;"></span> | `#B2B2B2` |  | 42200 | dopravní plochy; zhutněné, polopropustné (panely, dlažba) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E1E1E1;"></span> | `#E1E1E1` |  | 42300 | dopravní plochy; zhutněné, propustné (štěrk, drť) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#C8B48C;"></span> | `#C8B48C` |  | 42400 | dopravní plochy; přírodní, propustné (zhutněná zemina) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#AAFF00;"></span> | `#AAFF00` |  | 43000 | udržovaná sídelní zeleň (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E9FF00;"></span> | `#E9FF00` |  | 43100 | udržovaná sídelní zeleň; roztroušená nebo s převahou travních ploch, nízký podíl zpevněných ploch |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#AAFF00;"></span> | `#AAFF00` |  | 43200 | udržovaná sídelní zeleň; souvislá nebo s převahou dřevin, nízký podíl zpevněných ploch |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#AAFF00;"></span> | `#AAFF00` | / | 43300 | udržovaná sídelní zeleň; roztroušená s vyšším podílem zpevněných ploch |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#A80000;"></span> | `#A80000` |  | 44000 | těžební plochy (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#A80000;"></span> | `#A80000` | X | 44100 | těžební plochy; skalní těžba |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#A80000;"></span> | `#A80000` | / | 44200 | těžební plochy; s mělkou HPV (štěrkopísky, rašelina) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#A80000;"></span> | `#A80000` |  | 44300 | těžební plochy; ostatní nesoudržné materiály |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FF0000;"></span> | `#FF0000` |  | 45000 | úložné plochy (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FF0000;"></span> | `#FF0000` | X | 45100 | úložné plochy; haldy a odvaly |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FF0000;"></span> | `#FF0000` | / | 45200 | úložné plochy; skládky materiálu |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FF0000;"></span> | `#FF0000` |  | 45210 | úložné plochy; skládky odpadu |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFBEE8;"></span> | `#FFBEE8` |  | 46000 | ostatní sídelní plochy (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFDDE8;"></span> | `#FFDDE8` |  | 46100 | ostatní sídelní plochy; převaha propustných ploch |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFBEE8;"></span> | `#FFBEE8` |  | 46200 | ostatní sídelní plochy; smíšené povrchy |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FF95E8;"></span> | `#FF95E8` |  | 46300 | ostatní sídelní plochy; převaha zpevněných ploch |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span> | `#FFFFFF` | ▼ | 51000 | vinice (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span> | `#FFFFFF` | ▼ | 51001 | vinice; dle evidence LPIS |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFEBAF;"></span> | `#FFEBAF` | ▼ | 52000 | chmelnice (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFEBAF;"></span> | `#FFEBAF` | ▼ | 52001 | chmelnice; dle evidence LPIS |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span> | `#FFFFFF` | ○ | 53000 | ovocný sad (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span> | `#FFFFFF` | ○ | 53001 | ovocný sad; dle evidence LPIS |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E6E600;"></span> | `#E6E600` |  | 60000 | extenzivní smíšené porosty (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E6E600;"></span> | `#E6E600` |  | 61100 | extenzivní porosty; rozptýlené dřeviny s travním podrostem; s převahou křovin |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E6E600;"></span> | `#E6E600` |  | 61200 | extenzivní porosty; rozptýlené dřeviny s travním podrostem; s převahou vyšších dřevin |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E6E600;"></span> | `#E6E600` | / | 62100 | extenzivní porosty; mozaika souvislých porostů dřevin a travního porostu; s převahou křovin |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E6E600;"></span> | `#E6E600` | / | 62200 | extenzivní porosty; mozaika souvislých porostů dřevin a travního porostu; s převahou vyšších dřevin |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E6E600;"></span> | `#E6E600` | X | 63000 | extenzivní porosty; stromo-křovinné a sukcesní porosty |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#0084A8;"></span> | `#0084A8` |  | 71000 | vodní toky |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#00C5FF;"></span> | `#00C5FF` |  | 72000 | vodní plochy (bez dalšího určení) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#00C5FF;"></span> | `#00C5FF` |  | 72100 | vodní plochy; zemní nádrže hospodářské nebo rekreační |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#00C5FF;"></span> | `#00C5FF` |  | 72200 | vodní plochy; s významnou retencí (přehradní nádrže) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#00C5FF;"></span> | `#00C5FF` |  | 72300 | vodní plochy; nádrže s řízeným vypouštěním |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#AFC5FF;"></span> | `#AFC5FF` |  | 72400 | vodní plochy; odkaliště a další izolované prvky |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#0096F0;"></span> | `#0096F0` |  | 72500 | vodní plochy; přírodní a přírodě blízké |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#0084A8;"></span> | `#0084A8` | / | 73000 | bažina, močál |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#71704A;"></span> | `#71704A` | / | 74000 | rašeliniště |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span> | `#FFFFFF` | X | 82100 | skalní útvary |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span> | `#FFFFFF` | • | 82200 | sutě, kamenná pole |
+| <span style="display:inline-block; width:20px; height:20px; background-color:transparent; color:#FF0000; text-align:center; line-height:20px; font-size:18px;">○</span> | `#FF0000` (bodový vzor; bez výplně) | ○ | NULL | NO LAND USE DATA |
+| <span style="display:inline-block; width:20px; height:20px; background-color:transparent; color:#FF0000; text-align:center; line-height:20px; font-size:18px;">×</span> | `#FF0000` (bodový vzor; bez výplně) | × | ELSE | OTHER LandUse class |
 
 
 ## Vrstva hydrologických skupin půd (Soil Layer HSG)
-- soubor: __soil.sld__
-- řídící atribut: __HSG__
+- soubor: __soil.qml__
+- řídicí atribut: __HSG__
 
- | Barva                                                     | Hex kód  | Hodnota řídícího atributu | Název |
+| Barva                                                      | Hex kód   | Hodnota řídicího atributu | Název |
 |------------------------------------------------------------|-----------|:------:|:------:|
-| <span style="display:inline-block; width:20px; height:20px; background-color:#00ffff;"></span> | `#00ffff` |   0   |   Vodní plocha   |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#09ff00;"></span> | `#09ff00`  |   1    |   A    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#9af571;"></span> | `#9af571` |   2    |   B   |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#e5ff00;"></span> | `#e5ff00` |   3    |   C    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ff0000;"></span> | `#ff0000` |   4   |   D    |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#38A800;"></span> | `#38A800` |   0   |   Plochy bez půdních dat   |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#B0E000;"></span> | `#B0E000` |   1   |   A    |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` |   2   |   B    |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FF0000;"></span> | `#FF0000` |   3   |   C    |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#00FFFF;"></span> | `#00FFFF` |   4   |   D    |
 
 
 ## Propojené vrstvy (Intersected LandUse and HSG)
@@ -138,29 +146,29 @@
 - řídící atributy: __LandUse_code__ , __HSG__
 
 !!! note "Poznámka"
-    Symbologie vzniká kombinací dvou předchozích.
-    Spodní barva polygonu vychází z barev vrstvy využití území.
-    Šrafy nad touto plochou odpovídají barvám vrstvy hydrologických skupin půd
+    Symbologie se pro většinu tříd přebírá z vrstvy _LandUse Layer_.
+    Navíc je přidán symbol _NO HSG DATA_, jeho styl je stejný jako v případě _NO LandUse data", liší se jen barvou symbolu.
+
     
-
-
 ## Vrstva CN hodnot (CN Layer)
 - soubor: __CN_color_ramp.xml__
-- řídící atribut: __CN2__
+- řídicí atribut: __CN2__
 
-Symbologie s barevným přechodem založeným na kvantilech pro číselné prvky a červenou barvu pro prvky s nenumerickými (nebo NULL) hodnotami. Funguje tak, že vypočítá kvantilové hranice pro číselné hodnoty a rozdělí je do patnácti tříd.
+Symbologie s barevným přechodem založeným na kvantilech pro číselné prvky a červenou barvou pro prvky s nenumerickými (nebo NULL) hodnotami. Funguje tak, že vypočítá kvantilové hranice pro číselné hodnoty a rozdělí je do patnácti tříd.
 
 <p align="center">
     <img src="../../img/CNramp.png" alt="CNramp" style="height: 5vh;">
 </p>
  - chybějící a nevalidní hodnoty - <span style="display:inline-block; width:20px; height:20px; background-color:#ff0000;"></span>
-## Vrstva objemů přímých odtoků (RunOff Layer)
-- soubor: __RUNOFF_color_ramp.xml__
-- řídící atributy: 
 
-    - Při výpočtu z jedné výšky úhrnů zadané uživatelem - __CN2_runoff_volume_m3__   
-    - Při výpočtu z více výšek úhrnů zadaných uživatelem - __CN2_1_runoff_volume_m3__
-    - Při výpočtu z dob opakování na [rain.fsv.cvut.cz](https://www.rain.fsv.cvut.cz) - __CN2_N100_runoff_volume_m3__ (Nebo pro další nejvyšší dobu opakování)
+
+## Vrstva výšek přímého odtoku (RunOff Layer)
+- soubor: __RUNOFF_color_ramp.xml__
+- řídicí atributy: 
+
+    - Při výpočtu z jedné výšky úhrnů zadané uživatelem - __CN2_runoff_height_mm__   
+    - Při výpočtu z více výšek úhrnů zadaných uživatelem - __CN2_1_runoff_height_mm__
+    - Při výpočtu z dob opakování na [rain.fsv.cvut.cz](https://www.rain.fsv.cvut.cz) - __CN2_N100_runoff_height_mm__ (Nebo pro nejvyšší použitou dobu opakování)
 
 
     Symbologie s barevným přechodem založeným na kvantilech pro číselné prvky a červenou barvu pro prvky s nenumerickými (nebo NULL) hodnotami. Funguje tak, že vypočítá kvantilové hranice pro číselné hodnoty a rozdělí je do patnácti tříd.

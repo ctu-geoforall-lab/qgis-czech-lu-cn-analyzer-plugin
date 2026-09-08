@@ -2,86 +2,54 @@ land_use:
   - keywords: [Travní, travní, Travni, travni]
     code: 20000
   - keywords: [Lesní, lesní, Lesni, lesni]
-    code: 30000
-  - keywords: [Křovinatým, křovinatým, Krovinatym, krovinatym]
-    code: 33500
-  - keywords: [Průsek, průsek, Prusek, prusek]
-    code: 33500
-  - keywords: [Vodní_plocha, "Vodní plocha", vodní_plocha, "vodní plocha", Vodni_plocha, "Vodni plocha", vodni_plocha, "vodni plocha", "VodniPlocha"]
-    code: 77200
+    code: 32100 # platí pro Lesní průsek a Lesní půdu s křovinatým porostem
+  - keywords: [Kosodřevinou, kosodřevinou, Kosodrevinou, kosodrevinou]
+    code: 32200
   - keywords: [Skalní, skalní, Skalni, skalni]
-    code: 88200
+    code: 82100
   - keywords: [Budova, budova, budov, Budov]
-    code: 44100
+    code: 41000
   - keywords: [Věž, věž, Vez, vez]
-    code: 44100
+    code: 41000
   - keywords: [Nadrz, nadrz, Nádrž, nádrž]
-    code: 44100
-  - keywords: [Pozemni, pozemni, Pozemní, pozemní]
-    code: 77200
-  - keywords: [Silo, silo]
-    code: 44100
+    code: 41000 # Platí pro Nadzemní zásobní nádrž. Dále pro Pozemní nádrž - později přepsáno
   - keywords: [Hrad , hrad ]
-    code: 44100    
+    code: 41000    
   - keywords: [Zamek, zamek, zámek, Zámek]
-    code: 44100
+    code: 41000
   - keywords: [Tribuna, tribuna]
-    code: 44100 
-  - keywords: [Ulice, ulice]
-    code: 44100 
-  - keywords: [Pesina, pesina, pěšina, Pěšina]
-    code: 44100 
+    code: 41000 
   - keywords: [Parkoviste, parkoviste, parkoviště, Parkoviště]
-    code: 44100 
+    code: 42100 
   - keywords: [Trať, trať, trat, Trat]
-    code: 44200 
+    code: 42300 
   - keywords: [Kolejiste, kolejiště, kolejiste, Kolejiště]
-    code: 44200 
-  - keywords: [Zastavka, zastavka, zastávka, Zastávka]
-    code: 44100 
+    code: 42300
   - keywords: [Silnice, slinice]
-    code: 44100 
+    code: 42100 
   - keywords: [Chmelnice, chmelnice]
-    code: 55100
+    code: 52000
   - keywords: [Vinice, vinice]
-    code: 55100 
-  - keywords: [Zahrada, zahrada]
-    code: 42000 
+    code: 51000 
   - keywords: [Rozvodna, rozvodna]
-    code: 44300 
-  - keywords: [Udrzovana, udrzovana, Udržovaná, udržovaná]
-    code: 44200
+    code: 46100 
   - keywords: [Hřbitov, Hrbitov, hrbitov, hřbitov]
-    code: 44200
-  - keywords: [Účel, účel, ucel, Ucel]
-    code: 44100 
-  - keywords: [Skládka, skladka, Skladka, skládka]
-    code: 44100
-  - keywords: [Zakrytý, zakryty, Zakryty, zakrytý]
-    code: 44100
+    code: 43300
   - keywords: [Skleník, sklenik, Sklenik, skleník]
-    code: 44100
+    code: 41000
   - keywords: [Bažina, bazina, Bazina, bažina]
-    code: 66600
-  - keywords: [zřícenina, Zricenina, zricenina, Zřícenina]
-    code: 44100   
+    code: 73000
   - keywords: [liniova, Liniova, Liniová, liniová]
-    code: 66100   
+    code: 61200   
   - keywords: [raseliniste, rašeliniště, Raseliniste, Rašeliniště]
-    code: 66600   
+    code: 74000   
   - keywords: [precerpavaci, přečerpávací, Precerpavaci, Přečerpávací]
-    code: 44200   
+    code: 46200   
   - keywords: [Sidlech, sidlech, sídlech, Sídlech]
-    code: 44200
+    code: 46300
   - keywords: [Letiste, letiste, letiště, Letiště]
-    code: 20000
-  - keywords: [Tocna, tocna, točna, Točna]
-    code: 44200
-  - keywords: [Areál_železniční, Areal_zeleznicni, areál_železniční, areal_zeleznicni, "Areál železniční", "Areal zeleznicni", "areál železniční", "areal zeleznicni"]
-    code: 44200
+    code: 23100
   - keywords: [sesuv, Sesuv]
-    code: 44300
-  - keywords: [Úložné, ulozne, úložné, Ulozne]
-    code: 44300
+    code: 82200
   - keywords: [Vlečka, vlecka, vlečka, Vlecka]
-    code: 44200
+    code: 42300
