@@ -1,4 +1,6 @@
-# URI: https://rain1.fsv.cvut.cz/services/wps
-URI: file:///data/projects/lu_cn_analyzer_cr/hsg.tif
+URI: https://rain1.fsv.cvut.cz/services/wps
+# Local data
+# URI: file:///data/projects/lu_cn_analyzer_cr/hsg.tif
+# URI: file://S:\K155\Public\MLtoPK\lu_cn_analyzer_cr\hsg.tif
 
 process_identifier: soil-texture-hsg

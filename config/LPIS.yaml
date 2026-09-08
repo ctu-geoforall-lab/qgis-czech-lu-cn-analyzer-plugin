@@ -1,5 +1,7 @@
-# URI: https://mze.gov.cz/public/app/wms/plpis_wfs.fcgi
-URI: file:///data/projects/lu_cn_analyzer_cr/lpis_20250104.gpkg
+URI: https://mze.gov.cz/public/app/wms/plpis_wfs.fcgi
+# Local data
+# URI: file:///data/projects/lu_cn_analyzer_cr/lpis_20250104.gpkg
+# URI: file://S:/K155/Public/MLtoPK/lu_cn_analyzer_cr/lpis_20250104.gpkg
 
 # LPIS WFS layer name with desired polygons.
 layer_name: LPIS_DPB_UCINNE
