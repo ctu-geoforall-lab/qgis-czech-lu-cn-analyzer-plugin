@@ -11,8 +11,8 @@
 | _NULL_        | _NULL_  | _NULL_           | _NULL_           | _NULL_             | LPIS_layer                                                   | 12241            | ...     |
 | _NULL_        | 9914363 | 474712196        | 738.75743744     | _NULL_             | ZABAGED_POLOHOPIS:Silnice__dálnice                           | 42100            | ...     |
 
-- OBJECT_ID - indentifikátor poskytovatele
-- FID - indentifikátor poskytovatelem
+- OBJECT_ID - identifikátor poskytovatele
+- FID - identifikátor poskytovatelem
 - FID_ZBG - jednoznačný identifikátor objektu v ZABAGED®
 - Shape_Length - obvod původního prvku poskytnutého WFS službou
 - Shape_Area - Plocha prvku poskytnutá WFS službou. Po získání vrstvy _neodpovídá_ reálné hodnotě a je přepočtena až v procesu výpočtu objemu přímého odtoku.
@@ -43,8 +43,8 @@
 | 32406   | _NULL_    | clipped   | MultiPolygon?crs=EPSG:5514&field=ID:integer(0,0)... | output      | MultiPolygon?crs=EPSG:5514&field=ID:integer(0,0)... |
 | _NULL_  | 1         | clipped   | MultiPolygon?crs=EPSG:5514&field=ID:integer(0,0)... | output      | MultiPolygon?crs=EPSG:5514&field=ID:integer(0,0)... |
 
-- fid -  indentifikátor poskytovatele ZABAGED/LPIS
-- fid_2 - Identifikátor prvku přiřazený WPS službou poskytující vrstvu hydrologických skupin půd
+- fid -  identifikátor poskytovatele ZABAGED/LPIS
+- fid_2 - identifikátor prvku přiřazený WPS službou poskytující vrstvu hydrologických skupin půd
 - layer - text _clipped_ přiřazen při úspěšném oříznutí vrstev
 - path - metadata vrstvy využití území
 - layer_2 - text _output_ přiřazen při úspěšné polygonizaci vrstvy hydrologických skupin půd. Bez tohoto atributu může být geometrie prvku nevalidní.
@@ -58,7 +58,7 @@
 | 32406   | 2701.37014425    | 341856.95321526 | ZABAGED_POLOHOPIS:Vodní_plocha                                 | 77200            | NULL         | 0       | 99      | 99.56274595540009 |
 | NULL    | 110.92570167     | 521.32182349    | ZABAGED_POLOHOPIS:Lesní_půda_se_stromy_kategorizovaná__plocha_ | 33300            | 2040918      | 2       | 50      | 69.6969696969697  |
 
-- OBJECTID - Indentifikátor poskytovatele ZABAGED/LPIS.
+- OBJECTID - identifikátor poskytovatele ZABAGED/LPIS.
 - FID_ZBG - jednoznačný identifikátor původního objektu v ZABAGED®
 - Shape_Length - Obvod původního prvku poskytnutého WFS službou.
 - Shape_Area - Plocha prvku poskytnutá WFS službou. Po získání vrstvy _neodpovídá_ reálné hodnotě a je přepočtena až v procesu výpočtu objemu přímého odtoku.
@@ -78,7 +78,7 @@
 
 ### Při použití 6h srážek na [rain.fsv.cvut.cz](https://www.rain.fsv.cvut.cz)
 !!! note "Poznámka"
-	Ukázka obshuje výsledky pouze pro dvě doby opkování 2 a 5 let (N2, N5). 
+	Ukázka obsahuje výsledky pouze pro dvě doby opakování 2 a 5 let (N2, N5). 
 	
 	Pro jiné doby opakování budou názvy polí stejné, pouze část názvu odkazující na dobu opakování (N2, N5, N10, ..) se bude lišit
 
@@ -110,7 +110,7 @@
 
 ### Při výpočtu z více návrhových úhrnů zadaných uživatelem
 !!! note "Poznámka"
-    Ukázka tabuky je pro dvě zadané hodnoty. Při více hodnotách se budou lišit pouze části názvu odkazující na pořadí zadaného návrhového úhrnu: 
+    Ukázka tabulky je pro dvě zadané hodnoty. Při více hodnotách se budou lišit pouze části názvu odkazující na pořadí zadaného návrhového úhrnu: 
 	
 	CN2_1_runoff_height_mm , CN2_2_runoff_height_mm , CN2_3_runoff_height_mm, ... 
 	

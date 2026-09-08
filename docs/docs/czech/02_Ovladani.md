@@ -8,7 +8,7 @@
 - Nejprve je nutné vybrat zájmové území
 	- Pro stažení dat pro aktuální rozsah mapového okna vyberte možnost _Current window extent_
 	- Pro stažení dat pro území definované polygonovou vrstvou vyberte možnost _Polygon layer_
-		- Tato akce umožní vybrat polygn z projektu v rozbalovací nabídce níže
+		- Tato akce umožní vybrat polygon z projektu v rozbalovací nabídce níže
 
 - Dále je možné zvolit požadovaná data ke stažení
 	- Pro stažení dat o půdním pokryvu (využití území) i hydrologických skupin půd vyberte _Land Use + Hydrologic Soil Groups_
@@ -49,7 +49,7 @@
 
 - Řádek níže obsahuje cestu k CSV tabulce konverze CN hodnot
 - Výchozí hodnota odkazuje na převodní tabulku hodnot CN sestavenou speciálně pro LU vrstvu na základě ZABAGED a LPIS 
-- Pro výběr úmístění vlastní převodní tabulky klikněte na ikonu tří teček vedle tohoto řádku
+- Pro výběr umístění vlastní převodní tabulky klikněte na ikonu tří teček vedle tohoto řádku
 - Pro vytvoření nové polygonové vrstvy CN klikněte na tlačítko _Create CN layer_
 
 <p align="center">
@@ -71,7 +71,7 @@
 
 - Pokud si přejete vyčíslit výšky a objemy přímého odtoku z vlastních návrhových úhrnů, zaškrtněte možnost _User-defined rainfall depth  [mm]_
 	-  Do níže umístěného textového pole vepište výšku vlastního návrhového úhrnu v milimetrech 
-		- Pokud si přejete provést výpočet pro více návrhových úhrnů najdenou, oddělte je v tomto poli středníkem _;_
+		- Pokud si přejete provést výpočet pro více návrhových úhrnů najednou, oddělte je v tomto poli středníkem _;_
 
 - Proces výpočtu spustíte tlačítkem _Compute runoff volume_
 
@@ -82,7 +82,7 @@
 ## Dávkové spuštění
 
 Dávkové spuštění umožňuje `run_batch.py` umístěný v adresáři
-`scripts`. Nástavení dávkové úlohy je specifikováno konfiguračním
+`scripts`. Nastavení dávkové úlohy je specifikováno konfiguračním
 souborem ve formátu YAML. Příklad konfigurace je dostupná v souboru
 `tests/batch.yaml`. Příklad spuštění:
 

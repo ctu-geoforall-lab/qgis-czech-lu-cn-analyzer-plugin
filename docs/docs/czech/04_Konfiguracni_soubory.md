@@ -38,7 +38,7 @@ Tento soubor obsahuje informace o vrstvách stahovaných ze ZABAGED WFS služby 
 
 První řádek obsahuje URL adresu služby pod klíčem `URL`. 
 
-Následuje sekce *buffer leyers*, která obsahuje seznam vrstev pro aplikaci funkce buffer. Ten definuje hodnoty:
+Následuje sekce *buffer layers*, která obsahuje seznam vrstev pro aplikaci funkce buffer. Ten definuje hodnoty:
 
 - `input_layer_name`: název vrstvy ZABAGED
 - `controlling_atr_name`: název atributového pole, které řídí velikost geometrické obálky (bufferu)
@@ -53,7 +53,7 @@ Každá úroveň v `buffer_levels` zahrnuje:
 
 Pokud `controlling_atr_name` není uveden ("NaN") nebo pole není nalezeno, použije se `default_buffer`.
 
-Dále navazuje sekce *layers*, ve které jsou přiřazeny hodnoty kódu půdního pokryvu (vyvyužití území) objektům ve vrstvách ZABAGED na základě hodnot řídicího atributu. Pro každou z uvedených vrstev jsou dále definovány hodnoty:
+Dále navazuje sekce *layers*, ve které jsou přiřazeny hodnoty kódu půdního pokryvu (využití území) objektům ve vrstvách ZABAGED na základě hodnot řídicího atributu. Pro každou z uvedených vrstev jsou dále definovány hodnoty:
 
 - `name`: název vrstvy ZABAGED
 - `base_use_code`: základní kód půdního pokryvu (využití území) přiřazený všem objektům vrstvy
