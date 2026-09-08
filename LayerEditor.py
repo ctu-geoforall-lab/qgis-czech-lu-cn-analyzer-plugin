@@ -31,10 +31,6 @@ try:
     from .SoilDownloader import simple_clip
 except ImportError:
     from SoilDownloader import simple_clip
-try:
-    from .PluginUtils import get_string_from_yaml
-except ImportError:
-    from PluginUtils import get_string_from_yaml
 
 
 def apply_simple_difference(layer1: QgsVectorLayer, layer2: QgsVectorLayer) -> QgsVectorLayer:
