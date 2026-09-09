@@ -8,4 +8,4 @@
 
 ## Description
 
-The QGIS plugin enables automated generation of a land use layer and a hydrologic soil group layer. From the combination of these layers, it assigns a CN value, and it is further possible to obtain the direct runoff volume from precipitation totals provided by [rain.fsv.cvut.cz](https://www.rain.fsv.cvut.cz) or defined by the user.
+The QGIS plugin enables the automated generation of a Land Cover (Land Use) layer and a Hydrologic Soil Groups layer. After combining these layers, CN value may be assigned and direct runoff heights and volumes me be obtained for design rainfall data provided by [rain.fsv.cvut.cz](https://www.rain.fsv.cvut.cz) or defined by the user.

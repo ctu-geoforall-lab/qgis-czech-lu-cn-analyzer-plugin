@@ -133,7 +133,7 @@ Tento soubor obsahuje dvě hodnoty:
 
 
 ### Soil_template.xml
-Tento soubor je šablonou XML pro komunikaci s WPS službou, která poskytuje vrstvu hydrologických skupin půd. Do šablony se doplňují souřadnice polygonu a jeho atributy před odesláním požadavku.
+Tento soubor je šablonou XML pro komunikaci s WPS službou, která poskytuje vrstvu hydrologických skupin půd. Do šablony se doplňují souřadnice zájmového polygonu a jeho atributy před odesláním požadavku.
 
 ### CN_table.csv
 Tato CSV tabulka slouží pro přiřazení hodnot CN pro průměrný stav nasycení (CN2) dle kombinace kódu půdního pokryvu (využití území) a hydrologické skupiny půd. Obsahuje:
