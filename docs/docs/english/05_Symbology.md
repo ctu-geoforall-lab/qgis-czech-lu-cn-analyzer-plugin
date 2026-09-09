@@ -1,145 +1,158 @@
 # Symbology
 !!! note "Note"
-	Color tables are located in the _colortables_ folder
+	Styles for the resulting data layers are located in the _colortables_ folder
 
-## Land Use Layer
-- file: __landuse.sld__
-- controlling attribute: __LandUse_layer__
+## Land Cover (Land Use) layer
+- file: __landuse.qml__
+- controlling attribute: __LandUse_code__
 
-!!! note "Note"
-    The file also contains values for land‐use codes that the plugin does not generate, but which are included in case of future expansion.
-    The first table shows the values currently supported, and the second shows all values contained therein.
 
-### Table of Currently Supported Values
-| Color                                                                                                          | Hex Code  | Attribute Value | Name                                                                                       |
-|-----------------------------------------------------------------------------------------------------------------|-----------|:---------------:|:-------------------------------------------------------------------------------------------|
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ffc803;"></span>                 | `#ffc803` |     10000       | Arable Land                                                                                |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#0dff00;"></span>                 | `#0dff00` |     20000       | Grassland                                                                                  |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#40f736;"></span>                 | `#40f736` |     22200       | Extensive Pastures and Meadows – Good Hydrological Conditions                              |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#1d5220;"></span>                 | `#1d5220` |     30000       | Forest Cover                                                                               |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#03850d;"></span>                 | `#03850d` |     33100       | Deciduous Forest – Moderate Hydrological Conditions                                        |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#00633f;"></span>                 | `#00633f` |     33200       | Coniferous Forest – Poor Hydrological Conditions                                           |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#08702c;"></span>                 | `#08702c` |     33300       | Mixed Forest – Good Hydrological Conditions                                                |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#47633a;"></span>                 | `#47633a` |     33500       | Forest Shrubland                                                                           |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#8ac286;"></span>                 | `#8ac286` |     42000       | Garden                                                                                     |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#626361;"></span>                 | `#626361` |     44100       | Impervious Surfaces                                                                        |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#8a877f;"></span>                 | `#8a877f` |     44200       | Semi-permeable Anthropogenic Areas                                                        |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#877f65;"></span>                 | `#877f65` |     44300       | Permeable Anthropogenic Areas                                                             |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#cf9357;"></span>                 | `#cf9357` |     55100       | Orchards, Vineyards, Hop Gardens with Spaced Rows                                          |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#2c523b;"></span>                 | `#2c523b` |     66100       | Areas with Incomplete Cover – Extensive Orchards, Vegetation along Roads and Watercourses |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#009c5f;"></span>                 | `#009c5f` |     66600       | Peatlands                                                                                  |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#383efc;"></span>                 | `#383efc` |     77100       | Watercourse                                                                               |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#0008ff;"></span>                 | `#0008ff` |     77200       | Water Body – Area                                                                         |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#999999;"></span>                 | `#999999` |     88200       | Rocks                                                                                     |
+### Table with currently supported values
 
-### Complete Table of All Values
-| Color                                                                                                                                     | Hex Code  | Attribute Value | Name                                                                                                          |
-|-------------------------------------------------------------------------------------------------------------------------------------------|-----------|:---------------:|:----------------------------------------------------------------------------------------------------------------|
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ffc803;"></span>                                           | `#ffc803` |     10000       | ArableLand                                                                                                     |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#f2dc8d;"></span>                                           | `#f2dc8d` |     11100       | Unplanted – Good Hydrological Conditions – Crop Residues                                                        |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#dbac02;"></span>                                           | `#dbac02` |     11200       | Summer Narrow‐Row Crops                                                                                        |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#fad75a;"></span>                                           | `#fad75a` |     11300       | Winter Narrow‐Row Crops                                                                                        |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#e0bd3d;"></span>                                           | `#e0bd3d` |     11400       | Broad‐Row Crops                                                                                                |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#d6b12b;"></span>                                           | `#d6b12b` |     11500       | Multi‐year Herbaceous Crops – Grass on Arable Land                                                              |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#cfbf86;"></span>                                           | `#cfbf86` |     11600       | Nonproductive Area and Proposed Technical Measures on Arable Land                                                |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ba9306;"></span>                                           | `#ba9306` |     11700       | Broad‐Row Crops – Poor Hydrological Conditions – Direct Rows                                                     |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#b8961d;"></span>                                           | `#b8961d` |     11800       | Broad‐Row Crops – Good Hydrological Conditions – Contour Rows                                                    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#b3962e;"></span>                                           | `#b3962e` |     11900       | Multi‐year Herbaceous Crops – Contour Rows – Good Hydrological Conditions                                        |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#8a6c01;"></span>                                           | `#8a6c01` |     12200       | Fallow                                                                                                          |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#d3de04;"></span>                                           | `#d3de04` |     12100       | Nursery on Arable Land                                                                                          |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#f7df07;"></span>                                           | `#f7df07` |     19900       | ArableLand‐CORINE                                                                                               |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#e3d97b;"></span>                                           | `#e3d97b` |     11101       | Unplanted – Maintained Fallow                                                                                   |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#bfb660;"></span>                                           | `#bfb660` |     11102       | Unplanted – Unmaintained Fallow                                                                                 |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#5c540f;"></span>                                           | `#5c540f` |     11116       | Unplanted – Strip‐cropped Areas                                                                                  |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#e0a904;"></span>                                           | `#e0a904` |     11203       | Spring Barley                                                                                                   |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#faaf00;"></span>                                           | `#faaf00` |     11205       | Spring Wheat                                                                                                    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#dbfc9d;"></span>                                           | `#dbfc9d` |     11210       | Buckwheat                                                                                                       |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#99a877;"></span>                                           | `#99a877` |     11220       | Millet                                                                                                          |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#cca435;"></span>                                           | `#cca435` |     11225       | Spring Oats                                                                                                     |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ffee00;"></span>                                           | `#ffee00` |     11208       | Field Pea (Spring)                                                                                              |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#b3a702;"></span>                                           | `#b3a702` |     11229       | Field Pea (Spring – Alternate Name)                                                                             |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#a3de4b;"></span>                                           | `#a3de4b` |     11218       | Broad Bean                                                                                                      |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#c990f5;"></span>                                           | `#c990f5` |     11221       | Lupin                                                                                                           |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#9fab74;"></span>                                           | `#9fab74` |     11222       | Field Pea                                                                                                       |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ffa200;"></span>                                           | `#ffa200` |     11230       | Carrot                                                                                                          |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#f7ce52;"></span>                                           | `#f7ce52` |     11304       | Winter Barley                                                                                                   |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#f7cc65;"></span>                                           | `#f7cc65` |     11406       | Winter Wheat                                                                                                    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ba926c;"></span>                                           | `#ba926c` |     11524       | Winter Rye                                                                                                      |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#c7a854;"></span>                                           | `#c7a854` |     11626       | Winter Oats                                                                                                     |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#bda402;"></span>                                           | `#bda402` |     11711       | Winter Rapeseed                                                                                                |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#faf1b4;"></span>                                           | `#faf1b4` |     11809       | White Mustard                                                                                                   |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#b3a702;"></span>                                           | `#b3a702` |     11914       | Field Pea (Winter)                                                                                              |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#9c9533;"></span>                                           | `#9c9533` |     12028       | Winter Field Pea                                                                                                |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#cfa9e8;"></span>                                           | `#cfa9e8` |     12115       | Meadow Sainfoin                                                                                                 |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#b892fc;"></span>                                           | `#b892fc` |     12219       | Flax Seeded                                                                                                     |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#94703e;"></span>                                           | `#94703e` |     11417       | Potatoes                                                                                                        |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ffcc00;"></span>                                           | `#ffcc00` |     11407       | Sunflower                                                                                                       |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#cca41f;"></span>                                           | `#cca41f` |     11412       | Maize                                                                                                           |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#f7ce97;"></span>                                           | `#f7ce97` |     11427       | Sorghum                                                                                                         |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ff0066;"></span>                                           | `#ff0066` |     11431       | Beet                                                                                                            |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#fa4b88;"></span>                                           | `#fa4b88` |     11513       | Vetch                                                                                                           |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#f067eb;"></span>                                           | `#f067eb` |     11532       | Clover                                                                                                          |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#c6db3d;"></span>                                           | `#c6db3d` |     11523       | Perennial Ryegrass                                                                                              |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#0dff00;"></span>                                           | `#0dff00` |     20000       | Grassland                                                                                                       |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#2fa828;"></span>                                           | `#2fa828` |     22100       | Intensive Pastures – Poor Hydrological Conditions                                                               |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#40f736;"></span>                                           | `#40f736` |     22200       | Extensive Pastures and Meadows – Good Hydrological Conditions                                                  |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#099e02;"></span>                                           | `#099e02` |     23200       | Grassland on Shallow Soils – Mountain Meadows – Upland Heath                                                   |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#00ff80;"></span>                                           | `#00ff80` |     29900       | Grassland-CORINE                                                                                               |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#1d5220;"></span>                                           | `#1d5220` |     30000       | Forest Cover                                                                                                     |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#03850d;"></span>                                           | `#03850d` |     33100       | Deciduous Forest – Moderate Hydrological Conditions                                                            |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#00633f;"></span>                                           | `#00633f` |     33200       | Coniferous Forest – Poor Hydrological Conditions                                                               |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#08702c;"></span>                                           | `#08702c` |     33300       | Mixed Forest – Good Hydrological Conditions                                                                    |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#3a633a;"></span>                                           | `#3a633a` |     33400       | Unspecified Forest                                                                                              |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#47633a;"></span>                                           | `#47633a` |     33500       | Forest Shrubland                                                                                               |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#528556;"></span>                                           | `#528556` |     34100       | Nursery and Fast-Growing Tree Plantations                                                                       |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#01852f;"></span>                                           | `#01852f` |     35100       | Forest Cover – Good Hydrological Conditions                                                                     |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#478501;"></span>                                           | `#478501` |     35200       | Forest Cover – Poor Hydrological Conditions                                                                     |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#8b8c89;"></span>                                           | `#8b8c89` |     40000       | Anthropogenic and Paved Surfaces                                                                                |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#626361;"></span>                                           | `#626361` |     44100       | Impervious Surfaces                                                                                             |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#8a877f;"></span>                                           | `#8a877f` |     44200       | Semi-permeable Anthropogenic Areas                                                                              |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#877f65;"></span>                                           | `#877f65` |     44300       | Permeable Anthropogenic Areas                                                                                   |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#fab36b;"></span>                                           | `#fab36b` |     50000       | Orchards, Vineyards, Hop Gardens                                                                                |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#cf9357;"></span>                                           | `#cf9357` |     55100       | Orchards, Vineyards, Hop Gardens with Spaced Rows                                                               |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#c97f34;"></span>                                           | `#c97f34` |     55200       | Orchards, Vineyards, Hop Gardens with Cultivated Rows                                                           |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#0f3b00;"></span>                                           | `#0f3b00` |     60000       | Extensive Mixed Cover                                                                                           |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#2c523b;"></span>                                           | `#2c523b` |     66100       | Areas with Incomplete Cover – Extensive Orchards, Vegetation along Roads and Watercourses                      |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#02f069;"></span>                                           | `#02f069` |     66200       | Managed Areas with Good Cover – Gardens, Parks, Integrated Mixed Cover                                          |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#0cb376;"></span>                                           | `#0cb376` |     66300       | Permanently Waterlogged Areas – Wetlands – Waterlogged Meadows                                                  |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#47613e;"></span>                                           | `#47613e` |     66400       | Sparse Vegetation                                                                                               |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#0008ff;"></span>                                           | `#0008ff` |     70000       | Water Body                                                                                                      |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#383efc;"></span>                                           | `#383efc` |     77100       | Watercourse                                                                                                     |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#0008ff;"></span>                                           | `#0008ff` |     77200       | Water Body – Area                                                                                               |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#7acaf5;"></span>                                           | `#7acaf5` |     77300       | Glaciers and Permanent Snow                                                                                     |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ffffff;"></span>                                           | `#ffffff` |     80000       | Other Areas                                                                                                     |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ffe278;"></span>                                           | `#ffe278` |     88100       | Beaches, Dunes, Sands                                                                                            |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#999999;"></span>                                           | `#999999` |     88200       | Rocks                                                                                                           |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#736147;"></span>                                           | `#736147` |     88300       | Burnt Areas                                                                                                     |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#8ac286;"></span>                                           | `#8ac286` |     42000       | Garden                                                                                                          |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#7e9120;"></span>                                           | `#7e9120` |     35000       | Forest Soil with Understory                                                                                     |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#009c5f;"></span>                                           | `#009c5f` |     66600       | Peatlands                                                                                                       |
+| Color | Hex code | Pattern | Control attribute value | Name |
+|--------|--------|:---:|:---:|--------|
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` |  | 10000 | arable land (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span> | `#FFFFFF` | X | 11100 | bare fallow |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span> | `#FFFFFF` | / | 11111 | fallow; crop residue (poor hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span> | `#FFFFFF` | / | 11112 | fallow; crop residue (good hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` | / | 12111 | wide-row crops, straight rows (poor hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` | / | 12112 | wide-row crops, straight rows (good hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` | / | 12121 | wide-row crops, straight rows, crop residue (poor hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` |  | 12122 | wide-row crops, straight rows, crop residue (good hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` | / | 12131 | wide-row crops, contour rows (poor hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` |  | 12132 | wide-row crops, contour rows (good hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` | / | 12141 | wide-row crops, contour rows, crop residue (poor hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` |  | 12142 | wide-row crops, contour rows, crop residue (good hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` |  | 12151 | wide-row crops, contour rows, terracing (poor hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` |  | 12152 | wide-row crops, contour rows, terracing (good hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` |  | 12161 | wide-row crops, terracing, contour rows, crop residue (poor hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` |  | 12162 | wide-row crops, terracing, contour rows, crop residue (good hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` | / | 12211 | narrow-row crops, straight rows (poor hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` | / | 12212 | narrow-row crops, straight rows (good hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` | / | 12221 | narrow-row crops, straight rows, crop residue (poor hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` |  | 12222 | narrow-row crops, straight rows, crop residue (good hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` | / | 12231 | narrow-row crops, contour rows (poor hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` |  | 12232 | narrow-row crops, contour rows (good hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` |  | 12241 | narrow-row crops, contour rows, crop residue (poor hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` |  | 12242 | narrow-row crops, contour rows, crop residue (good hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` |  | 12251 | narrow-row crops, contour rows, terracing (poor hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` |  | 12252 | narrow-row crops, contour rows, terracing (good hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` |  | 12261 | narrow-row crops, contour rows, terracing, crop residue (poor hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span> | `#FFD37F` |  | 12262 | narrow-row crops, contour rows, terracing, crop residue (good hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFEBBE;"></span> | `#FFEBBE` | / | 13111 | perennial forage crops, straight rows (poor hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFEBBE;"></span> | `#FFEBBE` |  | 13112 | perennial forage crops, straight rows (good hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFEBBE;"></span> | `#FFEBBE` | / | 13121 | perennial forage crops, contour rows (poor hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFEBBE;"></span> | `#FFEBBE` |  | 13122 | perennial forage crops, contour rows (good hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFEBBE;"></span> | `#FFEBBE` |  | 13131 | perennial forage crops, contour rows, crop residue (poor hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFEBBE;"></span> | `#FFEBBE` |  | 13132 | perennial forage crops, contour rows, crop residue (good hydrologic condition) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFBE;"></span> | `#FFFFBE` |  | 20000 | continuous grass cover (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#CDF57A;"></span> | `#CDF57A` |  | 21100 | natural meadows, without mowing or grazing |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E9FFBE;"></span> | `#E9FFBE` |  | 21200 | extensive meadows, protected from grazing, mown no more than once a year |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E9FFBE;"></span> | `#E9FFBE` | / | 21300 | extensive pastures, cover > 75%, with light or occasional grazing |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFBE;"></span> | `#FFFFBE` |  | 22000 | continuous grass cover; intensive (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFBE;"></span> | `#FFFFBE` | / | 22100 | intensive pastures, cover 50 - 75%, without intensive grazing |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFBE;"></span> | `#FFFFBE` | X | 22200 | intensive pastures, cover < 50% or intensive grazing without mulch protection |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFBE;"></span> | `#FFFFBE` |  | 22300 | permanent grassland; intensive; regularly mown |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFBE;"></span> | `#FFFFBE` | / | 22400 | grassed arable land |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFF00;"></span> | `#FFFF00` |  | 23100 | grassland with specific use; low-intensity use (airfields outside runways, golf courses, PV power plant sites, etc.) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFF00;"></span> | `#FFFF00` | / | 23200 | grassland with specific use; increased use intensity (show-jumping arenas and other sports grounds) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span> | `#4C7300` |  | 30000 | continuous woody vegetation (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span> | `#4C7300` |  | 31000 | forest with trees (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span> | `#4C7300` |  | 31100 | forest with trees; deciduous (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span> | `#70A800` |  | 31110 | forest with trees; deciduous, height up to 2.5 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span> | `#70A800` |  | 31120 | forest with trees; deciduous, height from 2.5 m to 8 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span> | `#4C7300` |  | 31130 | forest with trees; deciduous, height from 8 m to 22 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span> | `#4C7300` |  | 31140 | forest with trees; deciduous, height above 22 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span> | `#4C7300` |  | 31200 | forest with trees; mixed (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#ABCD66;"></span> | `#ABCD66` |  | 31210 | forest with trees; mixed, height up to 2.5 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span> | `#70A800` |  | 31220 | forest with trees; mixed, height from 2.5 m to 8 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span> | `#70A800` |  | 31230 | forest with trees; mixed, height from 8 m to 22 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span> | `#4C7300` |  | 31240 | forest with trees; mixed, height above 22 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span> | `#70A800` |  | 31300 | forest with trees; coniferous (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#ABCD66;"></span> | `#ABCD66` |  | 31310 | forest with trees; coniferous, height up to 2.5 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#ABCD66;"></span> | `#ABCD66` |  | 31320 | forest with trees; coniferous, height from 2.5 m to 8 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span> | `#70A800` |  | 31330 | forest with trees; coniferous, height from 8 m to 22 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span> | `#70A800` |  | 31340 | forest with trees; coniferous, height above 22 m |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#ABCD66;"></span> | `#ABCD66` | / | 31400 | afforested arable land |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#A8A800;"></span> | `#A8A800` |  | 32100 | low woody vegetation; shrubs |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#A8A800;"></span> | `#A8A800` | / | 32200 | low woody vegetation; dwarf pine |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#00734C;"></span> | `#00734C` |  | 33000 | forest nursery (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#00734C;"></span> | `#00734C` | / | 33100 | forest nursery; on arable land |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#894465;"></span> | `#894465` |  | 34000 | fast-growing woody vegetation; without further specification |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#894465;"></span> | `#894465` | / | 34100 | fast-growing woody vegetation; on arable land |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#828282;"></span> | `#828282` |  | 40000 | anthropogenic areas (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#343434;"></span> | `#343434` |  | 41000 | buildings and roofed structures; impermeable, with no known retention |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#B2B2B2;"></span> | `#B2B2B2` |  | 42000 | transport areas (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#828282;"></span> | `#828282` |  | 42100 | transport areas; impermeable (asphalt, concrete) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#B2B2B2;"></span> | `#B2B2B2` |  | 42200 | transport areas; compacted, semi-permeable (concrete slabs, paving) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E1E1E1;"></span> | `#E1E1E1` |  | 42300 | transport areas; compacted, permeable (gravel, crushed stone) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#C8B48C;"></span> | `#C8B48C` |  | 42400 | transport areas; natural, permeable (compacted soil) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#AAFF00;"></span> | `#AAFF00` |  | 43000 | maintained settlement green space (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E9FF00;"></span> | `#E9FF00` |  | 43100 | maintained settlement green space; dispersed or predominantly grass-covered, low proportion of paved surfaces |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#AAFF00;"></span> | `#AAFF00` |  | 43200 | maintained settlement green space; continuous or predominantly woody, low proportion of paved surfaces |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#AAFF00;"></span> | `#AAFF00` | / | 43300 | maintained settlement green space; dispersed, with a higher proportion of paved surfaces |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#A80000;"></span> | `#A80000` |  | 44000 | mining areas (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#A80000;"></span> | `#A80000` | X | 44100 | mining areas; rock quarrying |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#A80000;"></span> | `#A80000` | / | 44200 | mining areas; with a shallow groundwater table (sand and gravel, peat) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#A80000;"></span> | `#A80000` |  | 44300 | mining areas; other unconsolidated materials |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FF0000;"></span> | `#FF0000` |  | 45000 | deposit areas (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FF0000;"></span> | `#FF0000` | X | 45100 | deposit areas; spoil heaps and waste dumps |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FF0000;"></span> | `#FF0000` | / | 45200 | deposit areas; material stockpiles |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FF0000;"></span> | `#FF0000` |  | 45210 | deposit areas; waste landfills |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFBEE8;"></span> | `#FFBEE8` |  | 46000 | other settlement areas (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFDDE8;"></span> | `#FFDDE8` |  | 46100 | other settlement areas; predominantly permeable surfaces |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFBEE8;"></span> | `#FFBEE8` |  | 46200 | other settlement areas; mixed surfaces |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FF95E8;"></span> | `#FF95E8` |  | 46300 | other settlement areas; predominantly paved surfaces |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span> | `#FFFFFF` | ▼ | 51000 | vineyards (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span> | `#FFFFFF` | ▼ | 51001 | vineyards; according to LPIS records |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFEBAF;"></span> | `#FFEBAF` | ▼ | 52000 | hop fields (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFEBAF;"></span> | `#FFEBAF` | ▼ | 52001 | hop fields; according to LPIS records |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span> | `#FFFFFF` | ○ | 53000 | orchards (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span> | `#FFFFFF` | ○ | 53001 | orchards; according to LPIS records |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E6E600;"></span> | `#E6E600` |  | 60000 | extensive mixed vegetation (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E6E600;"></span> | `#E6E600` |  | 61100 | extensive vegetation; scattered woody vegetation with grass understorey; predominantly shrubs |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E6E600;"></span> | `#E6E600` |  | 61200 | extensive vegetation; scattered woody vegetation with grass understorey; predominantly taller woody vegetation |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E6E600;"></span> | `#E6E600` | / | 62100 | extensive vegetation; mosaic of continuous woody vegetation and grassland; predominantly shrubs |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E6E600;"></span> | `#E6E600` | / | 62200 | extensive vegetation; mosaic of continuous woody vegetation and grassland; predominantly taller woody vegetation |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#E6E600;"></span> | `#E6E600` | X | 63000 | extensive vegetation; tree-shrub and successional vegetation |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#0084A8;"></span> | `#0084A8` |  | 71000 | watercourses |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#00C5FF;"></span> | `#00C5FF` |  | 72000 | water bodies (without further specification) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#00C5FF;"></span> | `#00C5FF` |  | 72100 | water bodies; farm or recreational earth reservoirs |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#00C5FF;"></span> | `#00C5FF` |  | 72200 | water bodies; with significant retention (dam reservoirs) |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#00C5FF;"></span> | `#00C5FF` |  | 72300 | water bodies; reservoirs with controlled discharge |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#AFC5FF;"></span> | `#AFC5FF` |  | 72400 | water bodies; settling ponds and other isolated features |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#0096F0;"></span> | `#0096F0` |  | 72500 | water bodies; natural and near-natural |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#0084A8;"></span> | `#0084A8` | / | 73000 | marsh, swamp |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#71704A;"></span> | `#71704A` | / | 74000 | peatland |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span> | `#FFFFFF` | X | 82100 | rock formations |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span> | `#FFFFFF` | • | 82200 | scree, boulder fields |
+| <span style="display:inline-block; width:20px; height:20px; background-color:transparent; color:#FF0000; text-align:center; line-height:20px; font-size:18px;">○</span> | `#FF0000` (point pattern; no fill) | ○ | NULL | NO LAND USE DATA |
+| <span style="display:inline-block; width:20px; height:20px; background-color:transparent; color:#FF0000; text-align:center; line-height:20px; font-size:18px;">×</span> | `#FF0000` (point pattern; no fill) | × | ELSE | OTHER LandUse class |
 
-## Soil Hydrological Group Layer
-- file: __soil.sld__
+
+## Soil Hydrological Group layer
+- file: __soil.qml__
 - controlling attribute: __HSG__
 
-| Color                                                                                                          | Hex Code  | Attribute Value | Name         |
+| Color                                                                                                          | Hex Code  | Controlling Attribute Value | Name  |
 |-----------------------------------------------------------------------------------------------------------------|-----------|:---------------:|:-------------|
-| <span style="display:inline-block; width:20px; height:20px; background-color:#00ffff;"></span>                 | `#00ffff` |       0         | Water Body   |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#09ff00;"></span>                 | `#09ff00` |       1         | A            |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#9af571;"></span>                 | `#9af571` |       2         | B            |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#e5ff00;"></span>                 | `#e5ff00` |       3         | C            |
-| <span style="display:inline-block; width:20px; height:20px; background-color:#ff0000;"></span>                 | `#ff0000` |       4         | D            |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#38A800;"></span> | `#38A800` |   0   |   Missing soil data |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#B0E000;"></span> | `#B0E000` |   1   |   A    |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span> | `#FFAA00` |   2   |   B    |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#FF0000;"></span> | `#FF0000` |   3   |   C    |
+| <span style="display:inline-block; width:20px; height:20px; background-color:#00FFFF;"></span> | `#00FFFF` |   4   |   D    |
 
-## Intersected Layers (Land Use × HSG)
+
+## Combined layer (Intersected LandUse and HSG)
 - file: __intersection.qml__
 - controlling attributes: __LandUse_code__, __HSG__
 
 !!! note "Note"
-    Symbology is created by combining the two previous layers.
-    The base polygon color comes from the Land Use layer.
-    The hatch overlay uses colors from the Soil Hydrological Group layer.
+    Symbology for most classes is taken from _LandUse Layer_.
+    Extra symbol for _NO HSG DATA_ is added with the same symbol as for the _NO LandUse data" except for its color.
 
-## CN Layer (Curve Number)
+
+## Curve Number values (CN layer)
 - file: __CN_color_ramp.xml__
 - controlling attribute: __CN2__
 
@@ -150,13 +163,13 @@ Symbology with a color ramp based on quantiles for numeric features, and red for
 </p>
  - missing and invalid values – <span style="display:inline-block; width:20px; height:20px; background-color:#ff0000;"></span>
 
-## RunOff Layer
+## Direct runoff depths (RunOff Layer)
 - file: __RUNOFF_color_ramp.xml__
 - controlling attributes:
 
-    - For single‐rain‐depth input by user: __CN2_runoff_volume_m3__   
-    - For multiple rain depths input by user: __CN2_1_runoff_volume_m3__
-    - For rainfall frequency data from [rain.fsv.cvut.cz](https://www.rain.fsv.cvut.cz): __CN2_N100_runoff_volume_m3__ (or for the next highest return period)
+    - For single user-defined rainfall depth - __CN2_runoff_height_mm__   
+    - For multiple user-defined rainfall depths - __CN2_1_runoff_height_mm__
+    - For design 6-hour rainfall data from [rain.fsv.cvut.cz](https://www.rain.fsv.cvut.cz) - __CN2_N100_runoff_height_mm__ (or the alternative field using the highest return period used in the calculation)
 
 Symbology with a color ramp based on quantiles for numeric features, and red for non‐numeric (or NULL) values. It calculates quantile breaks for numeric values and divides them into fifteen classes.
 

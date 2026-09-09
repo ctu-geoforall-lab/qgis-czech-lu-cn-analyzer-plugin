@@ -12,7 +12,7 @@
 | _NULL_        | 9914363 | 474712196        | 738.75743744     | _NULL_             | ZABAGED_POLOHOPIS:Silnice__dálnice                           | 42100            | ...     |
 
 - OBJECT_ID - identifikátor poskytovatele
-- FID - identifikátor poskytovatelem
+- FID - identifikátor poskytovatele
 - FID_ZBG - jednoznačný identifikátor objektu v ZABAGED®
 - Shape_Length - obvod původního prvku poskytnutého WFS službou
 - Shape_Area - Plocha prvku poskytnutá WFS službou. Po získání vrstvy _neodpovídá_ reálné hodnotě a je přepočtena až v procesu výpočtu objemu přímého odtoku.
@@ -46,7 +46,7 @@
 - fid -  identifikátor poskytovatele ZABAGED/LPIS
 - fid_2 - identifikátor prvku přiřazený WPS službou poskytující vrstvu hydrologických skupin půd
 - layer - text _clipped_ přiřazen při úspěšném oříznutí vrstev
-- path - metadata vrstvy využití území
+- path - metadata vrstvy půdního pokryvu (využití území)
 - layer_2 - text _output_ přiřazen při úspěšné polygonizaci vrstvy hydrologických skupin půd. Bez tohoto atributu může být geometrie prvku nevalidní.
 - path_2 - metadata vrstvy hydrologických skupin půd
 
@@ -59,14 +59,13 @@
 | NULL    | 110.92570167     | 521.32182349    | ZABAGED_POLOHOPIS:Lesní_půda_se_stromy_kategorizovaná__plocha_ | 33300            | 2040918      | 2       | 50      | 69.6969696969697  |
 
 - OBJECTID - identifikátor poskytovatele ZABAGED/LPIS.
-- FID_ZBG - jednoznačný identifikátor původního objektu v ZABAGED®
 - Shape_Length - Obvod původního prvku poskytnutého WFS službou.
 - Shape_Area - Plocha prvku poskytnutá WFS službou. Po získání vrstvy _neodpovídá_ reálné hodnotě a je přepočtena až v procesu výpočtu objemu přímého odtoku.
 - __source__ - Název vrstvy poskytované WFS službou (ZABAGED), u dat LPIS DPB uvedeno pouze _LPIS_layer_
 - __LandUse_code__ - Kód definující půdní pokryv, případně způsob využití území. Přiřazen na základě konfiguračních souborů ([1](04_Konfiguracni_soubory.md#zabaged_to_landusecode_tableyaml), [2](04_Konfiguracni_soubory.md#zabagedyaml)). Je také využit v [tabulce CN hodnot](04_Konfiguracni_soubory.md#cn_tablecsv) pro jejich přiřazení. 
 - __HSG__ - číselný kód hydrologické skupiny půd (0 = plochy bez HSG, 1=A, 2=B, 3=C, 4=D)
 - __CN2__ - Hodnota CN přiřazena z [tabulky](04_Konfiguracni_soubory.md#cn_tablecsv). Představuje hodnotu pro průměrné podmínky předchozího nasycení. 
-- __CN3__ - Hodnota CN vypočtena z hodnoty CN2. Reprezentuje podmínky vyššího předchozího nasycení.
+- __CN3__ - Hodnota CN vypočtena z hodnoty CN2 podle níže uvedeného vztahu. Reprezentuje podmínky vyššího předchozího nasycení.
 
 	CN3 = CN2 / (0.4036 + 0.005964 x CN2)
 
