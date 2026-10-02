@@ -30,7 +30,7 @@ jobs:
         run: mkdocs build --clean
 
       - name: Build plugin ZIP
-        run: echo y | pb_tool zip
+        run: echo y | pb_tool zip -n
 
       - name: Upload plugin ZIP
         uses: actions/upload-artifact@v4
