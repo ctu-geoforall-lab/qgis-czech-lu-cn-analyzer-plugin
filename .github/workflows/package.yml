@@ -30,11 +30,14 @@ jobs:
         run: mkdocs build --clean
 
       - name: Build plugin ZIP
-        run: echo y | pb_tool zip -n
+        run: |
+          echo y | pb_tool zip -n
+          mkdir artifact
+          unzip -q czech_land_use_and_CN_analyzer.zip -d artifact
 
       - name: Upload plugin ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: qgis-plugin
-          path: czech_land_use_and_CN_analyzer.zip
+          name: czech_land_use_and_CN_analyzer
+          path: artifact
           if-no-files-found: error
