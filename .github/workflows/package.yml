@@ -72,7 +72,7 @@ jobs:
           tag_name="$GITHUB_REF_NAME"
           version="${tag_name#ver}"
           version="${version#v}"
-          release_title="Verze $version"
+          release_title="Version $version"
           if gh release view "$tag_name" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$tag_name" dist/czech_land_use_and_CN_analyzer.zip --clobber --repo "$GITHUB_REPOSITORY"
             gh release edit "$tag_name" --title "$release_title" --repo "$GITHUB_REPOSITORY"
