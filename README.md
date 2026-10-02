@@ -1,7 +1,7 @@
 # Czech Land Use and CN Analyzer
 ![plugin icon](https://github.com/ctu-geoforall-lab/qgis-zabaged-plugin/blob/main/docs/images/baner.png?raw=true) <br>
 
-[![Tests](https://github.com/ctu-geoforall-lab/qgis-zabaged-plugin/actions/workflows/main.yml/badge.svg)](https://github.com/ctu-geoforall-lab/qgis-zabaged-plugin/actions/workflows/main.yml)
+[![Tests](https://github.com/ctu-geoforall-lab/qgis-zabaged-plugin/actions/workflows/tests.yml/badge.svg)](https://github.com/ctu-geoforall-lab/qgis-zabaged-plugin/actions/workflows/tests.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) <br>
 
 _Qgis plugin umožňuje automatizovaně generovat vrstvu využití území a vrstvu hydrologických skupin půd. Z této kombinace vrstev přiřazuje hodnotu CN a  dále je možné získat hodnotu objemu přímého odtoku ze srážkových úhrnů poskytovaných z [rain.fsv.cvut.cz](https://www.rain.fsv.cvut.cz) či definovaných uživatelem._
