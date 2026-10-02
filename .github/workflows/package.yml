@@ -23,7 +23,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y pyqt5-dev-tools
-          python -m pip install pb_tool
+          python -m pip install pb_tool mkdocs mkdocs-material
+
+      - name: Build MkDocs site
+        working-directory: docs
+        run: mkdocs build --clean
 
       - name: Build plugin ZIP
         run: pb_tool zip
