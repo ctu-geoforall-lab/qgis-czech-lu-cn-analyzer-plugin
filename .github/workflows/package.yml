@@ -1,0 +1,36 @@
+name: Build QGIS plugin package
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      - name: Install packaging dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pyqt5-dev-tools
+          python -m pip install pb_tool
+
+      - name: Build plugin ZIP
+        run: pb_tool zip
+
+      - name: Upload plugin ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: qgis-plugin
+          path: czech_land_use_and_CN_analyzer.zip
+          if-no-files-found: error
