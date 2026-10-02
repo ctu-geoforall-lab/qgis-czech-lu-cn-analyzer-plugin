@@ -1,0 +1,2019 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../04_Konfiguracni_soubory/">
+      
+      
+      
+        
+          <link rel="alternate" href="/English/" hreflang="en">
+        
+          <link rel="alternate" href="/czech/" hreflang="cs">
+        
+      
+      
+      <link rel="icon" href="../../img/icon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Symbologie - Czech Land Use and CN Analyzer Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#symbologie" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Czech Land Use and CN Analyzer Docs" class="md-header__button md-logo" aria-label="Czech Land Use and CN Analyzer Docs" data-md-component="logo">
+      
+  <img src="../../img/icon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Czech Land Use and CN Analyzer Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Symbologie
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="/English/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="/czech/" hreflang="cs" class="md-select__link">
+              Česky
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ctu-geoforall-lab/qgis-czech-lu-cn-analyzer-plugin" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ctu-geoforall-lab/qgis-czech-lu-cn-analyzer-plugin
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Czech Land Use and CN Analyzer Docs" class="md-nav__button md-logo" aria-label="Czech Land Use and CN Analyzer Docs" data-md-component="logo">
+      
+  <img src="../../img/icon.png" alt="logo">
+
+    </a>
+    Czech Land Use and CN Analyzer Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ctu-geoforall-lab/qgis-czech-lu-cn-analyzer-plugin" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ctu-geoforall-lab/qgis-czech-lu-cn-analyzer-plugin
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    English
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    English
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../english/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../english/01_Installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../english/02_Usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../english/03_Attribute_tables/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Attribute tables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../english/04_Configuration_files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configutation files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../english/05_Symbology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Symbology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Česky
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Česky
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Úvod
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01_isntalace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instalace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02_Ovladani/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ovládání
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03_Atributove_tabulky/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Atributové tabulky
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04_Konfiguracni_soubory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Konfigurační soubory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Symbologie
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Symbologie
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#vrstva-pudniho-pokryvu-vyuziti-uzemi-landuse-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Vrstva půdního pokryvu / využití území (LandUse Layer)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Vrstva půdního pokryvu / využití území (LandUse Layer)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tabulka-momentalne-podporovanych-hodnot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tabulka momentálně podporovaných hodnot
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vrstva-hydrologickych-skupin-pud-soil-layer-hsg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Vrstva hydrologických skupin půd (Soil Layer HSG)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#propojene-vrstvy-intersected-landuse-and-hsg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Propojené vrstvy (Intersected LandUse and HSG)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vrstva-cn-hodnot-cn-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Vrstva CN hodnot (CN Layer)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vrstva-vysek-primeho-odtoku-runoff-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Vrstva výšek přímého odtoku (RunOff Layer)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#vrstva-pudniho-pokryvu-vyuziti-uzemi-landuse-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Vrstva půdního pokryvu / využití území (LandUse Layer)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Vrstva půdního pokryvu / využití území (LandUse Layer)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tabulka-momentalne-podporovanych-hodnot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tabulka momentálně podporovaných hodnot
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vrstva-hydrologickych-skupin-pud-soil-layer-hsg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Vrstva hydrologických skupin půd (Soil Layer HSG)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#propojene-vrstvy-intersected-landuse-and-hsg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Propojené vrstvy (Intersected LandUse and HSG)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vrstva-cn-hodnot-cn-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Vrstva CN hodnot (CN Layer)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vrstva-vysek-primeho-odtoku-runoff-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Vrstva výšek přímého odtoku (RunOff Layer)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="symbologie">Symbologie</h1>
+<div class="admonition note">
+<p class="admonition-title">Poznámka</p>
+<p>Styly zobrazení jednotlivých výstupních vrstev se nachází ve složce <em>colortables</em></p>
+</div>
+<h2 id="vrstva-pudniho-pokryvu-vyuziti-uzemi-landuse-layer">Vrstva půdního pokryvu / využití území (LandUse Layer)</h2>
+<ul>
+<li>soubor: <strong>landuse.qml</strong></li>
+<li>řídicí atribut: <strong>LandUse_code</strong></li>
+</ul>
+<h3 id="tabulka-momentalne-podporovanych-hodnot">Tabulka momentálně podporovaných hodnot</h3>
+<table>
+<thead>
+<tr>
+<th>Barva</th>
+<th>Hex kód</th>
+<th style="text-align: center;">Vzor</th>
+<th style="text-align: center;">Hodnota řídicího atributu</th>
+<th>Název</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span></td>
+<td><code>#FFD37F</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">10000</td>
+<td>orná půda (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span></td>
+<td><code>#FFFFFF</code></td>
+<td style="text-align: center;">X</td>
+<td style="text-align: center;">11100</td>
+<td>úhor černý</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span></td>
+<td><code>#FFFFFF</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">11111</td>
+<td>úhor; posklizňové zbytky (špatné hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span></td>
+<td><code>#FFFFFF</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">11112</td>
+<td>úhor; posklizňové zbytky (dobré hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span></td>
+<td><code>#FFAA00</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">12111</td>
+<td>širokořádkové plodiny, přímé řádky (špatné hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span></td>
+<td><code>#FFAA00</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">12112</td>
+<td>širokořádkové plodiny, přímé řádky (dobré hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span></td>
+<td><code>#FFAA00</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">12121</td>
+<td>širokořádkové plodiny, přímé řádky, posklizňové zbytky (špatné hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span></td>
+<td><code>#FFAA00</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">12122</td>
+<td>širokořádkové plodiny, přímé řádky, posklizňové zbytky (dobré hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span></td>
+<td><code>#FFAA00</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">12131</td>
+<td>širokořádkové plodiny, vrstevnicové řádky (špatné hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span></td>
+<td><code>#FFAA00</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">12132</td>
+<td>širokořádkové plodiny, vrstevnicové řádky (dobré hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span></td>
+<td><code>#FFAA00</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">12141</td>
+<td>širokořádkové plodiny, vrstevnicové řádky, posklizňové zbytky (špatné hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span></td>
+<td><code>#FFAA00</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">12142</td>
+<td>širokořádkové plodiny, vrstevnicové řádky, posklizňové zbytky (dobré hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span></td>
+<td><code>#FFAA00</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">12151</td>
+<td>širokořádkové plodiny, vrstevnicové řádky, terasové uspořádání (špatné hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span></td>
+<td><code>#FFAA00</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">12152</td>
+<td>širokořádkové plodiny, vrstevnicové řádky, terasové uspořádání (dobré hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span></td>
+<td><code>#FFAA00</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">12161</td>
+<td>širokořádkové plodiny, terasové uspořádání, vrstevnicové řádky, posklizňové zbytky (špatné hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span></td>
+<td><code>#FFAA00</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">12162</td>
+<td>širokořádkové plodiny, terasové uspořádání, vrstevnicové řádky, posklizňové zbytky (dobré hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span></td>
+<td><code>#FFD37F</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">12211</td>
+<td>úzkořádkové plodiny, přímé řádky (špatné hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span></td>
+<td><code>#FFD37F</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">12212</td>
+<td>úzkořádkové plodiny, přímé řádky (dobré hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span></td>
+<td><code>#FFD37F</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">12221</td>
+<td>úzkořádkové plodiny, přímé řádky, posklizňové zbytky (špatné hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span></td>
+<td><code>#FFD37F</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">12222</td>
+<td>úzkořádkové plodiny, přímé řádky, posklizňové zbytky (dobré hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span></td>
+<td><code>#FFD37F</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">12231</td>
+<td>úzkořádkové plodiny, vrstevnicové řádky (špatné hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span></td>
+<td><code>#FFD37F</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">12232</td>
+<td>úzkořádkové plodiny, vrstevnicové řádky (dobré hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span></td>
+<td><code>#FFD37F</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">12241</td>
+<td>úzkořádkové plodiny, vrstevnicové řádky, posklizňové zbytky (špatné hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span></td>
+<td><code>#FFD37F</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">12242</td>
+<td>úzkořádkové plodiny, vrstevnicové řádky, posklizňové zbytky (dobré hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span></td>
+<td><code>#FFD37F</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">12251</td>
+<td>úzkořádkové plodiny, vrstevnicové řádky, terasové uspořádání (špatné hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span></td>
+<td><code>#FFD37F</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">12252</td>
+<td>úzkořádkové plodiny, vrstevnicové řádky, terasové uspořádání (dobré hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span></td>
+<td><code>#FFD37F</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">12261</td>
+<td>úzkořádkové plodiny, vrstevnicové řádky, terasové uspořádání, posklizňové zbytky (špatné hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFD37F;"></span></td>
+<td><code>#FFD37F</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">12262</td>
+<td>úzkořádkové plodiny, vrstevnicové řádky, terasové uspořádání, posklizňové zbytky (dobré hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFEBBE;"></span></td>
+<td><code>#FFEBBE</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">13111</td>
+<td>víceleté pícniny, přímé řádky (špatné hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFEBBE;"></span></td>
+<td><code>#FFEBBE</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">13112</td>
+<td>víceleté pícniny, přímé řádky (dobré hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFEBBE;"></span></td>
+<td><code>#FFEBBE</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">13121</td>
+<td>víceleté pícniny, vrstevnicové řádky (špatné hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFEBBE;"></span></td>
+<td><code>#FFEBBE</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">13122</td>
+<td>víceleté pícniny, vrstevnicové řádky (dobré hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFEBBE;"></span></td>
+<td><code>#FFEBBE</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">13131</td>
+<td>víceleté pícniny, vrstevnicové řádky, posklizňové zbytky (špatné hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFEBBE;"></span></td>
+<td><code>#FFEBBE</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">13132</td>
+<td>víceleté pícniny, vrstevnicové řádky, posklizňové zbytky (dobré hydrologické podmínky)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFFFBE;"></span></td>
+<td><code>#FFFFBE</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">20000</td>
+<td>souvislý travní porost (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#CDF57A;"></span></td>
+<td><code>#CDF57A</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">21100</td>
+<td>přirozené louky, bez seče a pastvy</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#E9FFBE;"></span></td>
+<td><code>#E9FFBE</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">21200</td>
+<td>extenzivní louky, chráněné před pastvou, nejvýše 1x ročně sečené</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#E9FFBE;"></span></td>
+<td><code>#E9FFBE</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">21300</td>
+<td>extenzivní pastviny, pokryv &gt; 75 %, s lehkou nebo příležitostnou pastvou</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFFFBE;"></span></td>
+<td><code>#FFFFBE</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">22000</td>
+<td>souvislý travní porost; intenzivní (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFFFBE;"></span></td>
+<td><code>#FFFFBE</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">22100</td>
+<td>intenzivní pastviny, pokryv 50 - 75 % bez intenzivní pastvy</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFFFBE;"></span></td>
+<td><code>#FFFFBE</code></td>
+<td style="text-align: center;">X</td>
+<td style="text-align: center;">22200</td>
+<td>intenzivní pastviny, pokryv &lt; 50 % nebo intenzivní pastva bez ochrany mulčem</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFFFBE;"></span></td>
+<td><code>#FFFFBE</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">22300</td>
+<td>trvalý travní porost; intenzivní; pravidelně sečený</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFFFBE;"></span></td>
+<td><code>#FFFFBE</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">22400</td>
+<td>zatravněná orná půda</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFFF00;"></span></td>
+<td><code>#FFFF00</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">23100</td>
+<td>travní porost se specifickým využitím; s nízkým zatížením (letiště mimo runway, golf, areály FVE aj.)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFFF00;"></span></td>
+<td><code>#FFFF00</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">23200</td>
+<td>travní porost se specifickým využitím; se zvýšeným zatížením (parkur a jiná sportoviště)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span></td>
+<td><code>#4C7300</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">30000</td>
+<td>souvislé porosty dřevin (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span></td>
+<td><code>#4C7300</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">31000</td>
+<td>les se stromy (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span></td>
+<td><code>#4C7300</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">31100</td>
+<td>les se stromy; listnatý (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span></td>
+<td><code>#70A800</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">31110</td>
+<td>les se stromy; listnatý, výška do 2.5 m</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span></td>
+<td><code>#70A800</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">31120</td>
+<td>les se stromy; listnatý, výška od 2.5 m do 8 m</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span></td>
+<td><code>#4C7300</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">31130</td>
+<td>les se stromy; listnatý, výška od 8 m do 22 m</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span></td>
+<td><code>#4C7300</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">31140</td>
+<td>les se stromy; listnatý, výška nad 22 m</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span></td>
+<td><code>#4C7300</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">31200</td>
+<td>les se stromy; smíšený (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#ABCD66;"></span></td>
+<td><code>#ABCD66</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">31210</td>
+<td>les se stromy; smíšený, výška do 2.5 m</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span></td>
+<td><code>#70A800</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">31220</td>
+<td>les se stromy; smíšený, výška od 2.5 m do 8 m</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span></td>
+<td><code>#70A800</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">31230</td>
+<td>les se stromy; smíšený, výška od 8 m do 22 m</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#4C7300;"></span></td>
+<td><code>#4C7300</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">31240</td>
+<td>les se stromy; smíšený, výška nad 22 m</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span></td>
+<td><code>#70A800</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">31300</td>
+<td>les se stromy; jehličnatý (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#ABCD66;"></span></td>
+<td><code>#ABCD66</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">31310</td>
+<td>les se stromy; jehličnatý, výška do 2.5 m</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#ABCD66;"></span></td>
+<td><code>#ABCD66</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">31320</td>
+<td>les se stromy; jehličnatý, výška od 2.5 m do 8 m</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span></td>
+<td><code>#70A800</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">31330</td>
+<td>les se stromy; jehličnatý, výška od 8 m do 22 m</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#70A800;"></span></td>
+<td><code>#70A800</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">31340</td>
+<td>les se stromy; jehličnatý, výška nad 22 m</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#ABCD66;"></span></td>
+<td><code>#ABCD66</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">31400</td>
+<td>zalesněná orná půda</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#A8A800;"></span></td>
+<td><code>#A8A800</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">32100</td>
+<td>nízké dřeviny; křoviny</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#A8A800;"></span></td>
+<td><code>#A8A800</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">32200</td>
+<td>nízké dřeviny; kosodřevina</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#00734C;"></span></td>
+<td><code>#00734C</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">33000</td>
+<td>lesní školka (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#00734C;"></span></td>
+<td><code>#00734C</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">33100</td>
+<td>lesní školka; na orné půdě</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#894465;"></span></td>
+<td><code>#894465</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">34000</td>
+<td>rychle rostoucí dřeviny; bez dalšího určení</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#894465;"></span></td>
+<td><code>#894465</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">34100</td>
+<td>rychle rostoucí dřeviny; na orné půdě</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#828282;"></span></td>
+<td><code>#828282</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">40000</td>
+<td>antropogenní plochy (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#343434;"></span></td>
+<td><code>#343434</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">41000</td>
+<td>budovy a zastřešené objekty; nepropustné, bez známé retence</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#B2B2B2;"></span></td>
+<td><code>#B2B2B2</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">42000</td>
+<td>dopravní plochy (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#828282;"></span></td>
+<td><code>#828282</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">42100</td>
+<td>dopravní plochy; nepropustné (asfalt, beton)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#B2B2B2;"></span></td>
+<td><code>#B2B2B2</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">42200</td>
+<td>dopravní plochy; zhutněné, polopropustné (panely, dlažba)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#E1E1E1;"></span></td>
+<td><code>#E1E1E1</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">42300</td>
+<td>dopravní plochy; zhutněné, propustné (štěrk, drť)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#C8B48C;"></span></td>
+<td><code>#C8B48C</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">42400</td>
+<td>dopravní plochy; přírodní, propustné (zhutněná zemina)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#AAFF00;"></span></td>
+<td><code>#AAFF00</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">43000</td>
+<td>udržovaná sídelní zeleň (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#E9FF00;"></span></td>
+<td><code>#E9FF00</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">43100</td>
+<td>udržovaná sídelní zeleň; roztroušená nebo s převahou travních ploch, nízký podíl zpevněných ploch</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#AAFF00;"></span></td>
+<td><code>#AAFF00</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">43200</td>
+<td>udržovaná sídelní zeleň; souvislá nebo s převahou dřevin, nízký podíl zpevněných ploch</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#AAFF00;"></span></td>
+<td><code>#AAFF00</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">43300</td>
+<td>udržovaná sídelní zeleň; roztroušená s vyšším podílem zpevněných ploch</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#A80000;"></span></td>
+<td><code>#A80000</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">44000</td>
+<td>těžební plochy (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#A80000;"></span></td>
+<td><code>#A80000</code></td>
+<td style="text-align: center;">X</td>
+<td style="text-align: center;">44100</td>
+<td>těžební plochy; skalní těžba</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#A80000;"></span></td>
+<td><code>#A80000</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">44200</td>
+<td>těžební plochy; s mělkou HPV (štěrkopísky, rašelina)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#A80000;"></span></td>
+<td><code>#A80000</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">44300</td>
+<td>těžební plochy; ostatní nesoudržné materiály</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FF0000;"></span></td>
+<td><code>#FF0000</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">45000</td>
+<td>úložné plochy (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FF0000;"></span></td>
+<td><code>#FF0000</code></td>
+<td style="text-align: center;">X</td>
+<td style="text-align: center;">45100</td>
+<td>úložné plochy; haldy a odvaly</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FF0000;"></span></td>
+<td><code>#FF0000</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">45200</td>
+<td>úložné plochy; skládky materiálu</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FF0000;"></span></td>
+<td><code>#FF0000</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">45210</td>
+<td>úložné plochy; skládky odpadu</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFBEE8;"></span></td>
+<td><code>#FFBEE8</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">46000</td>
+<td>ostatní sídelní plochy (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFDDE8;"></span></td>
+<td><code>#FFDDE8</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">46100</td>
+<td>ostatní sídelní plochy; převaha propustných ploch</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFBEE8;"></span></td>
+<td><code>#FFBEE8</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">46200</td>
+<td>ostatní sídelní plochy; smíšené povrchy</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FF95E8;"></span></td>
+<td><code>#FF95E8</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">46300</td>
+<td>ostatní sídelní plochy; převaha zpevněných ploch</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span></td>
+<td><code>#FFFFFF</code></td>
+<td style="text-align: center;">▼</td>
+<td style="text-align: center;">51000</td>
+<td>vinice (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span></td>
+<td><code>#FFFFFF</code></td>
+<td style="text-align: center;">▼</td>
+<td style="text-align: center;">51001</td>
+<td>vinice; dle evidence LPIS</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFEBAF;"></span></td>
+<td><code>#FFEBAF</code></td>
+<td style="text-align: center;">▼</td>
+<td style="text-align: center;">52000</td>
+<td>chmelnice (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFEBAF;"></span></td>
+<td><code>#FFEBAF</code></td>
+<td style="text-align: center;">▼</td>
+<td style="text-align: center;">52001</td>
+<td>chmelnice; dle evidence LPIS</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span></td>
+<td><code>#FFFFFF</code></td>
+<td style="text-align: center;">○</td>
+<td style="text-align: center;">53000</td>
+<td>ovocný sad (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span></td>
+<td><code>#FFFFFF</code></td>
+<td style="text-align: center;">○</td>
+<td style="text-align: center;">53001</td>
+<td>ovocný sad; dle evidence LPIS</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#E6E600;"></span></td>
+<td><code>#E6E600</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">60000</td>
+<td>extenzivní smíšené porosty (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#E6E600;"></span></td>
+<td><code>#E6E600</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">61100</td>
+<td>extenzivní porosty; rozptýlené dřeviny s travním podrostem; s převahou křovin</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#E6E600;"></span></td>
+<td><code>#E6E600</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">61200</td>
+<td>extenzivní porosty; rozptýlené dřeviny s travním podrostem; s převahou vyšších dřevin</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#E6E600;"></span></td>
+<td><code>#E6E600</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">62100</td>
+<td>extenzivní porosty; mozaika souvislých porostů dřevin a travního porostu; s převahou křovin</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#E6E600;"></span></td>
+<td><code>#E6E600</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">62200</td>
+<td>extenzivní porosty; mozaika souvislých porostů dřevin a travního porostu; s převahou vyšších dřevin</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#E6E600;"></span></td>
+<td><code>#E6E600</code></td>
+<td style="text-align: center;">X</td>
+<td style="text-align: center;">63000</td>
+<td>extenzivní porosty; stromo-křovinné a sukcesní porosty</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#0084A8;"></span></td>
+<td><code>#0084A8</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">71000</td>
+<td>vodní toky</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#00C5FF;"></span></td>
+<td><code>#00C5FF</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">72000</td>
+<td>vodní plochy (bez dalšího určení)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#00C5FF;"></span></td>
+<td><code>#00C5FF</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">72100</td>
+<td>vodní plochy; zemní nádrže hospodářské nebo rekreační</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#00C5FF;"></span></td>
+<td><code>#00C5FF</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">72200</td>
+<td>vodní plochy; s významnou retencí (přehradní nádrže)</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#00C5FF;"></span></td>
+<td><code>#00C5FF</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">72300</td>
+<td>vodní plochy; nádrže s řízeným vypouštěním</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#AFC5FF;"></span></td>
+<td><code>#AFC5FF</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">72400</td>
+<td>vodní plochy; odkaliště a další izolované prvky</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#0096F0;"></span></td>
+<td><code>#0096F0</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">72500</td>
+<td>vodní plochy; přírodní a přírodě blízké</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#0084A8;"></span></td>
+<td><code>#0084A8</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">73000</td>
+<td>bažina, močál</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#71704A;"></span></td>
+<td><code>#71704A</code></td>
+<td style="text-align: center;">/</td>
+<td style="text-align: center;">74000</td>
+<td>rašeliniště</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span></td>
+<td><code>#FFFFFF</code></td>
+<td style="text-align: center;">X</td>
+<td style="text-align: center;">82100</td>
+<td>skalní útvary</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFFFFF;"></span></td>
+<td><code>#FFFFFF</code></td>
+<td style="text-align: center;">•</td>
+<td style="text-align: center;">82200</td>
+<td>sutě, kamenná pole</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:transparent; color:#FF0000; text-align:center; line-height:20px; font-size:18px;">○</span></td>
+<td><code>#FF0000</code> (bodový vzor; bez výplně)</td>
+<td style="text-align: center;">○</td>
+<td style="text-align: center;">NULL</td>
+<td>NO LAND USE DATA</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:transparent; color:#FF0000; text-align:center; line-height:20px; font-size:18px;">×</span></td>
+<td><code>#FF0000</code> (bodový vzor; bez výplně)</td>
+<td style="text-align: center;">×</td>
+<td style="text-align: center;">ELSE</td>
+<td>OTHER LandUse class</td>
+</tr>
+</tbody>
+</table>
+<h2 id="vrstva-hydrologickych-skupin-pud-soil-layer-hsg">Vrstva hydrologických skupin půd (Soil Layer HSG)</h2>
+<ul>
+<li>soubor: <strong>soil.qml</strong></li>
+<li>řídicí atribut: <strong>HSG</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Barva</th>
+<th>Hex kód</th>
+<th style="text-align: center;">Hodnota řídicího atributu</th>
+<th style="text-align: center;">Název</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#38A800;"></span></td>
+<td><code>#38A800</code></td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">Plochy bez půdních dat</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#B0E000;"></span></td>
+<td><code>#B0E000</code></td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">A</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FFAA00;"></span></td>
+<td><code>#FFAA00</code></td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">B</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#FF0000;"></span></td>
+<td><code>#FF0000</code></td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">C</td>
+</tr>
+<tr>
+<td><span style="display:inline-block; width:20px; height:20px; background-color:#00FFFF;"></span></td>
+<td><code>#00FFFF</code></td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">D</td>
+</tr>
+</tbody>
+</table>
+<h2 id="propojene-vrstvy-intersected-landuse-and-hsg">Propojené vrstvy (Intersected LandUse and HSG)</h2>
+<ul>
+<li>soubor: <strong>intersection.qml</strong></li>
+<li>řídící atributy: <strong>LandUse_code</strong> , <strong>HSG</strong></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Poznámka</p>
+<p>Symbologie se pro většinu tříd přebírá z vrstvy <em>LandUse Layer</em>.
+Navíc je přidán symbol <em>NO HSG DATA</em>, jeho styl je stejný jako v případě _NO LandUse data", liší se jen barvou symbolu.</p>
+</div>
+<h2 id="vrstva-cn-hodnot-cn-layer">Vrstva CN hodnot (CN Layer)</h2>
+<ul>
+<li>soubor: <strong>CN_color_ramp.xml</strong></li>
+<li>řídicí atribut: <strong>CN2</strong></li>
+</ul>
+<p>Symbologie s barevným přechodem založeným na kvantilech pro číselné prvky a červenou barvou pro prvky s nenumerickými (nebo NULL) hodnotami. Funguje tak, že vypočítá kvantilové hranice pro číselné hodnoty a rozdělí je do patnácti tříd.</p>
+<p align="center">
+    <img src="../../img/CNramp.png" alt="CNramp" style="height: 5vh;">
+</p>
+<ul>
+<li>chybějící a nevalidní hodnoty - <span style="display:inline-block; width:20px; height:20px; background-color:#ff0000;"></span></li>
+</ul>
+<h2 id="vrstva-vysek-primeho-odtoku-runoff-layer">Vrstva výšek přímého odtoku (RunOff Layer)</h2>
+<ul>
+<li>soubor: <strong>RUNOFF_color_ramp.xml</strong></li>
+<li>
+<p>řídicí atributy: </p>
+<ul>
+<li>Při výpočtu z jedné výšky úhrnů zadané uživatelem - <strong>CN2_runoff_height_mm</strong>   </li>
+<li>Při výpočtu z více výšek úhrnů zadaných uživatelem - <strong>CN2_1_runoff_height_mm</strong></li>
+<li>Při výpočtu z dob opakování na <a href="https://www.rain.fsv.cvut.cz">rain.fsv.cvut.cz</a> - <strong>CN2_N100_runoff_height_mm</strong> (Nebo pro nejvyšší použitou dobu opakování)</li>
+</ul>
+<p>Symbologie s barevným přechodem založeným na kvantilech pro číselné prvky a červenou barvu pro prvky s nenumerickými (nebo NULL) hodnotami. Funguje tak, že vypočítá kvantilové hranice pro číselné hodnoty a rozdělí je do patnácti tříd.</p>
+</li>
+</ul>
+<p align="center">
+    <img src="../../img/RNramp.png" alt="RNramp" style="height: 5vh;">
+</p>
+<ul>
+<li>chybějící a nevalidní hodnoty - <span style="display:inline-block; width:20px; height:20px; background-color:#ff0000;"></span></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../04_Konfiguracni_soubory/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Konfigurační soubory">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Konfigurační soubory
+              </div>
+            </div>
+          </a>
+        
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.footer"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/mathtex-script-type.min.js"></script>
+      
+    
+  </body>
+</html>
