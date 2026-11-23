@@ -1,5 +1,5 @@
-from qgis.PyQt.QtCore import pyqtSignal
-from qgis.core import QgsTask, QgsMessageLog, Qgis
+from qgis.PyQt.QtCore import pyqtSignal, QCoreApplication
+from qgis.core import QgsTask, QgsMessageLog, Qgis, QgsFeatureRequest
 
 from .LayerEditor import LayerEditor, resolve_overlaping_buffers
 
@@ -52,6 +52,12 @@ class TASK_edit_layers(QgsTask):
                                        self.symbology_path, self.AreaFlag, self.polygon, self.ymin, self.xmin, self.ymax,
                                        self.xmax)
 
+            # The input layers were created by the WFS task, i.e. they are owned by a different (worker) thread.
+            # Editing a layer (startEditing/commitChanges) from a thread other than the one owning it breaks
+            # QGIS internal signal/slot connections ("Cannot queue arguments of type 'QgsChangedAttributesMap'")
+            # and can crash QGIS. Work on copies created in this thread instead.
+            self.LandUseLayers = [layer.materialize(QgsFeatureRequest()) for layer in self.LandUseLayers]
+
             self._update_progress_bar(10)
 
             # Add LandUse attribute to all layers in list
@@ -81,6 +87,11 @@ class TASK_edit_layers(QgsTask):
             self._update_progress_bar(90)
             # Store the merged layer as an instance attribute to keep it in scope
             self.merged_layer = layer_editor.stack_layers(self.LandUseLayers)
+
+            # The merged layer was created in this worker thread; it is added to the project in the main thread,
+            # so hand it over (otherwise: "QObject::setParent: Cannot set parent, new parent is in a different thread")
+            if self.merged_layer is not None:
+                self.merged_layer.moveToThread(QCoreApplication.instance().thread())
 
             return True
 
