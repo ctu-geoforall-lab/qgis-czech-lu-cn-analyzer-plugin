@@ -351,12 +351,19 @@ class RunOffComputer:
             )
             if self.runoffLabel is not None:
                 self.runoffLabel.setText("WPS: waiting for result ...")
-            return wps.execute(
-                identifier=self.process_identifier,
-                inputs=inputs,
-                output=outputs,
-                mode='sync'
-            )
+            try:
+                return wps.execute(
+                    identifier=self.process_identifier,
+                    inputs=inputs,
+                    output=outputs,
+                    mode='sync'
+                )
+            except requests.exceptions.HTTPError as e:
+                raise RuntimeError(
+                    f"WPS server failed in synchronous mode as well ({e}). "
+                    "The server probably cut off the request after about 30 s; "
+                    "try selecting fewer return periods."
+                ) from e
 
     def _wait_for_completion(self, execution) -> None:
         """

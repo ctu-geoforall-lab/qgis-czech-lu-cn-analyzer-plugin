@@ -96,8 +96,9 @@ class TASK_RunOff(QgsTask):
             if self.RunOffLayer is None or not self.RunOffLayer.isValid():
                 if self.runoffLabel is not None:
                     self.runoffLabel.setText("ERROR - check the message log.")
-                QgsMessageLog.logMessage("Run-off layer is Invalid.", "CzLandUseCN", level=Qgis.Warning,
-                                         notifyUser=True)
+                msg = ("Run-off computation failed, no layer created." if self.RunOffLayer is None
+                       else "Run-off layer is invalid.")
+                QgsMessageLog.logMessage(msg, "CzLandUseCN", level=Qgis.Warning, notifyUser=True)
                 return False
             self.RunOffLayer.setName("RunOff Layer")
 
