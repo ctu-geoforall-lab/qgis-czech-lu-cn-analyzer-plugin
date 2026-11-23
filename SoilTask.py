@@ -7,7 +7,7 @@ from pathlib import Path
 from osgeo import gdal
 from owslib.wps import WebProcessingService, monitorExecution
 
-from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import pyqtSignal, QCoreApplication
 from qgis.core import QgsTask, QgsMessageLog, Qgis, QgsVectorLayer, QgsFeature, QgsFeatureRequest, QgsWkbTypes, QgsGeometry, QgsRasterLayer, QgsProject, QgsApplication, QgsVectorLayer
 
 from .WFSdownloader import WFSDownloader
@@ -53,11 +53,25 @@ class TASK_process_soil_layer(QgsTask):
 
     def run(self):
         """Run the task to process Soil layers."""
+        try:
+            return self._run()
+        finally:
+            # The soil layer was created in this worker thread; finished() hands it over to the main thread
+            # (added to the project) on every exit path, so move it there
+            # (otherwise: "QObject::setParent: Cannot set parent, new parent is in a different thread")
+            if self.clipped_soil_layer is not None:
+                self.clipped_soil_layer.moveToThread(QCoreApplication.instance().thread())
+
+    def _run(self):
         QgsMessageLog.logMessage("Soil task started.", "CzLandUseCN",
                                  level=Qgis.Info, notifyUser=False)
         self._update_progress_bar(10)
-        not_buffered_plg = self.polygon_Soil
+        # The input polygon was created in the main thread. It is edited below (add_constant_atr), and editing
+        # a layer from a thread other than the one owning it breaks QGIS internal signal/slot connections
+        # ("Cannot queue arguments of type 'QgsChangedAttributesMap'") and can crash QGIS.
+        # Work on a copy created in this thread instead.
         try:
+            not_buffered_plg = self.polygon_Soil.materialize(QgsFeatureRequest())
             URI = get_string_from_yaml(os.path.join(self.config_path, 'Soil.yaml'), "URI")
 
             self._update_progress_bar(20)
