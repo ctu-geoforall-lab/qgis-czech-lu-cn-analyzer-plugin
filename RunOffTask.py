@@ -93,13 +93,13 @@ class TASK_RunOff(QgsTask):
             if self.runoffLabel is not None:
                 self.runoffLabel.setText("Computing run-off height ...")
             self.RunOffLayer = runoff_computer.get_runoff_volume()
-            self.RunOffLayer.setName("RunOff Layer")
             if self.RunOffLayer is None or not self.RunOffLayer.isValid():
                 if self.runoffLabel is not None:
                     self.runoffLabel.setText("ERROR - check the message log.")
                 QgsMessageLog.logMessage("Run-off layer is Invalid.", "CzLandUseCN", level=Qgis.Warning,
                                          notifyUser=True)
                 return False
+            self.RunOffLayer.setName("RunOff Layer")
 
             try:
                 if self.RunOffFlag:

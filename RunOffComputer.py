@@ -332,12 +332,31 @@ class RunOffComputer:
     def _execute_wps(self, wps: WebProcessingService, inputs: list, outputs: list) -> object:
         """
         Executes a Web Processing Service (WPS) request.
+
+        Asynchronous mode is tried first (allows progress reporting). If the
+        server rejects it with an HTTP error, the request is repeated in
+        synchronous mode.
         """
-        return wps.execute(
-            identifier=self.process_identifier,
-            inputs=inputs,
-            output=outputs
-        )
+        try:
+            return wps.execute(
+                identifier=self.process_identifier,
+                inputs=inputs,
+                output=outputs,
+                mode='async'
+            )
+        except requests.exceptions.HTTPError as e:
+            QgsMessageLog.logMessage(
+                f"Asynchronous WPS request failed ({e}), retrying in synchronous mode.",
+                "CzLandUseCN", level=Qgis.Warning
+            )
+            if self.runoffLabel is not None:
+                self.runoffLabel.setText("WPS: waiting for result ...")
+            return wps.execute(
+                identifier=self.process_identifier,
+                inputs=inputs,
+                output=outputs,
+                mode='sync'
+            )
 
     def _wait_for_completion(self, execution) -> None:
         """
